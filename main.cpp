@@ -1,38 +1,33 @@
 #include <iostream>
-#include "ADTMap.h"
+#include <cstdlib> 
 #include "KNNGraph.hpp"
 
 using namespace std;
 
-int main()
-{
-    int d1[3] = {1, 2, 3};
-    int d2[3] = {4, 5, 6};
-    int d3[3] = {7, 8, 9};
-    int d4[3] = {10, 11, 12};
-    int d5[3] = {13, 14, 15};
-    int d6[3] = {16, 17, 18};
-    int d7[3] = {19, 20, 21};
-    int d8[3] = {22, 23, 24};
+#define K 2
 
-    void *dataArray[8]; // Array of void pointers
 
-    dataArray[0] = d1;
-    dataArray[1] = d2;
-    dataArray[2] = d3;
-    dataArray[3] = d4;
-    dataArray[4] = d5;
-    dataArray[5] = d6;
-    dataArray[6] = d7;
-    dataArray[7] = d8;
+int main() {
+    
+   int arraySize = 10;
 
-    // Pointer data = myArray;
-    // DataPoint sample(0, data);
-    // Vertex vert(&sample);
-    // Map nn = vert.getNeighbors();
-    // cout << "neighbors size: " << map_size(nn) << endl;
+    // Create an array of tuples (x, y, z)
+    MyTuple myTuples[arraySize];
 
-    KNNGraph G(3, 8, dataArray);
-    void *randomdp = G.get_vertex_info(2);
-    // den prolava na elegksw tin orthotita olwn aytwn pou exw grapsei
+    for (int i = 0; i < arraySize; ++i) {
+        myTuples[i].num1 = i + 1;
+        myTuples[i].num2 = 2 * (i + 1);
+        myTuples[i].num3 = 3 * (i + 1);
+    }
+
+    for (int i = 0; i < arraySize; ++i) {
+        std::cout << "Tuple " << i << ": (" << myTuples[i].num1 << ", " << myTuples[i].num2 << ", " << myTuples[i].num3 << ")\n";
+    }
+
+    KNNGraph myGraph(K, arraySize, myTuples);
+    myGraph.printNeighbors();
+    
+
+    return 0;
 }
+

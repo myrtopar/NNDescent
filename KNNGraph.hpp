@@ -1,45 +1,59 @@
 #include <iostream>
-// #include <unordered_set>
+#include <cstdlib> 
 #include "ADTMap.h"
+
 using namespace std;
 
 int compare_ints(Pointer a, Pointer b);
 
-class DataPoint
-{
+struct MyTuple {
+    int num1;
+    int num2;
+    int num3;
+};
+
+class DataPoint {
 private:
     int id;
-    void *datapoint;
+    void* datapoint;
 
 public:
-    DataPoint(int _id, void *_datapoint);
-    int getindex();
-    void *getdata();
+    DataPoint(int _id, void* _datapoint);
+    
+    int getId() const;
+    void* getAddr() const;
 };
 
-class Vertex
-{
+
+
+class Vertex {
 private:
-    DataPoint *data;
-    Map NN;  // structure that holds the nearest neighbors of this point (key-data_id, value-pointer to the actual data)
-    Map RNN; // structure that holds the reverse nearest neighbors of this point (same logic applies)
+    DataPoint* data;
+    Map NN;
+    Map RNN;
 
 public:
-    Vertex(DataPoint *_data);
-    DataPoint *getpointer();
-    Map getNeighbors();
-    Map getReverseNeighbors();
+    Vertex(DataPoint* _data);
+
+    void addNeighbor(Vertex* neighborVertex);
+    Map getNeighbors() const;
+    Map getReverseNeighbors() const;
+
 };
 
-class KNNGraph
-{
+
+
+class KNNGraph {
 private:
-    int k;
-    int dataset_size;
-    Vertex **vertexArray; // implementing an adjacency set
+    Vertex** vertexArray;
+    int size;
+    int K;
 
 public:
-    KNNGraph(int _k, int size, void **dataset);
+    KNNGraph(int _K, int _size, MyTuple* myTuples);
+
+    void createRandomGraph(int K, Vertex **vertexArray);
+    void printNeighbors() const;
+
     ~KNNGraph();
-    void *get_vertex_info(int id);
 };
