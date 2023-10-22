@@ -2,6 +2,7 @@
 #include <cstdlib> 
 #include <cmath>
 #include "KNNGraph.hpp"
+#include <string>
 
 using namespace std;
 
@@ -38,6 +39,7 @@ int main() {
 
     KNNGraph<MyTuple, double (*)(const MyTuple&, const MyTuple&)> myGraph(K, arraySize, myTuples, calculateEuclideanDistance);
     myGraph.printNeighbors();
+    myGraph.calculateKNN();
     
     return 0;
 }

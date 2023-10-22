@@ -50,3 +50,6 @@ Map Vertex::getReverseNeighbors() const {
     return RNN;
 }
 
+void *Vertex::getAddr() const {
+    return data->getAddr();
+}
