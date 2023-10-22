@@ -100,7 +100,7 @@ static void rehash(Map map)
         map->capacity *= 2;            // LCOV_EXCL_LINE
 
     // Δημιουργούμε ένα μεγαλύτερο hash table
-    map->array = (MapNode)(map->capacity * sizeof(struct map_node));
+    map->array = (MapNode)malloc(map->capacity * sizeof(struct map_node));
     for (int i = 0; i < map->capacity; i++)
         map->array[i].state = EMPTY;
 
@@ -128,7 +128,6 @@ void map_insert(Map map, Pointer key, Pointer value)
          map->array[pos].state != EMPTY;                // αν φτάσουμε σε EMPTY σταματάμε
          pos = (pos + 1) % map->capacity)
     { // linear probing, γυρνώντας στην αρχή όταν φτάσουμε στη τέλος του πίνακα
-
         if (map->array[pos].state == DELETED)
         {
             // Βρήκαμε DELETED θέση. Θα μπορούσαμε να βάλουμε το ζευγάρι εδώ, αλλά _μόνο_ αν το key δεν υπάρχει ήδη.
@@ -142,7 +141,8 @@ void map_insert(Map map, Pointer key, Pointer value)
             node = &map->array[pos]; // βρήκαμε το key, το ζευγάρι θα μπει αναγκαστικά εδώ (ακόμα και αν είχαμε προηγουμένως βρει DELETED θέση)
             break;                   // και δε χρειάζεται να συνεχίζουμε την αναζήτηση.
         }
-    }
+    }    
+
     if (node == NULL) // αν βρήκαμε EMPTY (όχι DELETED, ούτε το key), το node δεν έχει πάρει ακόμα τιμή
         node = &map->array[pos];
 
@@ -313,8 +313,9 @@ uint hash_string(Pointer value)
 
 uint hash_int(Pointer value)
 {
-    return *(int *)value;
+    return *(int*)value;
 }
+
 
 uint hash_pointer(Pointer value)
 {
