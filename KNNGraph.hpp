@@ -36,6 +36,7 @@ private:
 public:
     Vertex(DataPoint* _data);
 
+    void *getAddr() const;
     void addNeighbor(Vertex* neighborVertex);
     Map getNeighbors() const;
     Map getReverseNeighbors() const;
@@ -55,6 +56,7 @@ public:
 
     void createRandomGraph(int K, Vertex **vertexArray);
     void printNeighbors() const;
+    void calculateKNN() const; 
 
     ~KNNGraph();
 };
@@ -137,4 +139,30 @@ KNNGraph<DataType, DistanceFunction>::~KNNGraph() {
         delete vertexArray[i]; // Delete each Vertex
     }
     delete[] vertexArray; // Delete the array of Vertex pointers
+}
+
+
+template <typename DataType, typename DistanceFunction>
+void KNNGraph<DataType, DistanceFunction>::calculateKNN() const {
+    cout << "\nCalculate KNN :" << endl;
+
+    for (int i = 0; i < size; i++) {
+        Vertex* vertex = vertexArray[i];
+        cout << "Vertex " << i << " neighbors: " << endl;
+        Map neighbors = vertex->getNeighbors();
+        
+        // Iterate through the neighbors 
+        MapNode node = map_first(neighbors);
+        while (node != MAP_EOF) {
+            int neighborId = (int)(intptr_t)map_node_key(neighbors, node);
+            cout << neighborId << " ";
+
+            double dist = distance(*static_cast<DataType*>(vertexArray[i]->getAddr()), *static_cast<DataType*>(map_node_value(neighbors, node)));
+            cout << "Distance: " << dist << endl;
+
+            node = map_next(neighbors, node);
+        }
+        
+        cout << endl;
+    }
 }
