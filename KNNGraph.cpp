@@ -1,3 +1,88 @@
 #include <iostream>
+#include "KNNGraph.hpp"
 
 using namespace std;
+
+
+
+int compare_ints(Pointer a, Pointer b) {
+    return *(int *)a - *(int *)b;
+}
+
+DataPoint::DataPoint(int _id, void *_datapoint) : id(_id), datapoint(_datapoint) {}
+
+int DataPoint::getId() const {
+    return id;
+}
+
+void* DataPoint::getAddr() const { 
+    return datapoint; 
+}
+
+
+Vertex::Vertex(DataPoint* _data) : data(_data) {
+    // for each vertex, create a map that holds its nearest neighbors and reverse neighbors
+    // (key->id, value->pointer to the actual data)
+    NN = map_create(compare_ints, NULL, NULL);
+    map_set_hash_function(NN, hash_pointer);
+    map_set_destroy_key(NN, NULL);
+    map_set_destroy_value(NN, NULL);
+
+    RNN = map_create(compare_ints, NULL, NULL);
+    map_set_hash_function(RNN, hash_pointer);
+    map_set_destroy_key(RNN, NULL);
+    map_set_destroy_value(RNN, NULL);
+
+    cout << "Constructed a vertex ---> ";
+    cout << data->getId() << " . " << data->getAddr() << "\n";
+}
+
+
+void Vertex::addNeighbor(Neighbor* neighbor) {
+    // cout << "neighbor no " << *(int *)neighbor->getid() << "is being inserted in the nn map" << endl;
+    map_insert(NN, neighbor->getid(), neighbor->getDistance());
+
+} 
+
+void Vertex::addReverseNeighbor(Neighbor *neighbor){
+    // cout << "neighbor no " << *(int *)neighbor->getid() << "is being inserted in the rnn map" << endl;
+    map_insert(RNN, neighbor->getid(), neighbor->getDistance());
+}
+
+
+
+Map Vertex::getNeighbors() const {
+    return NN;
+}
+
+Map Vertex::getReverseNeighbors() const {
+    return RNN;
+}
+
+DataPoint *Vertex::getData() const {
+    return data;
+}
+
+int Vertex::findNeighbor(int id) const {
+    if(map_find(NN, &id) == NULL)
+        return 0;
+    return 1;
+}
+
+Neighbor::Neighbor(int _id, double _distance) {
+    id = new int;
+    *id = _id;   
+    distance = new double;
+    *distance = _distance;    
+    // cout << "Constructed neighbor no:" << _id << " with distance:" << _distance << " \n";
+
+}
+
+int *Neighbor::getid(){
+    return id;
+}
+
+double *Neighbor::getDistance(){
+    return distance;
+}
+
