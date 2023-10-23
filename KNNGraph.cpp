@@ -3,6 +3,8 @@
 
 using namespace std;
 
+
+
 int compare_ints(Pointer a, Pointer b) {
     return *(int *)a - *(int *)b;
 }
@@ -36,10 +38,15 @@ Vertex::Vertex(DataPoint* _data) : data(_data) {
 }
 
 
-void Vertex::addNeighbor(Vertex* neighborVertex) {
-    map_insert(NN, (Pointer)(intptr_t)neighborVertex->data->getId(), neighborVertex->data); // neighbors
-    map_insert(neighborVertex->RNN, (Pointer)(intptr_t)data->getId(), data); // reverse neighbors
+void Vertex::addNeighbor(Neighbor* neighbor) {
+    map_insert(NN, neighbor->getid(), neighbor->getDistance());
+
 } 
+
+void Vertex::addReverseNeighbor(Neighbor *neighbor){
+    map_insert(RNN, neighbor->getid(), neighbor->getDistance());
+}
+
 
 
 Map Vertex::getNeighbors() const {
@@ -50,6 +57,30 @@ Map Vertex::getReverseNeighbors() const {
     return RNN;
 }
 
-void *Vertex::getAddr() const {
-    return data->getAddr();
+DataPoint *Vertex::getData() const {
+    return data;
 }
+
+int Vertex::findNeighbor(int id) const {
+    if(map_find(NN, &id) == NULL)
+        return 0;
+    return 1;
+}
+
+Neighbor::Neighbor(int _id, double _distance) {
+    id = new int;
+    *id = _id;   
+    distance = new double;
+    *distance = _distance;    
+    // cout << "Constructed neighbor no:" << _id << " with distance:" << _distance << " \n";
+
+}
+
+int *Neighbor::getid(){
+    return id;
+}
+
+double *Neighbor::getDistance(){
+    return distance;
+}
+

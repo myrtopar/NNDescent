@@ -16,6 +16,7 @@ double calculateEuclideanDistance(const MyTuple& point1, const MyTuple& point2) 
     double dy = point2.num2 - point1.num2;
     double dz = point2.num3 - point1.num3;
 
+    // cout << "dx, dy, dz = " << dx << " " << dy << " " << dz << " \n";
     return std::sqrt(dx * dx + dy * dy + dz * dz);
 }
 

@@ -4,6 +4,8 @@
 
 using namespace std;
 
+class Neighbor;
+
 int compare_ints(Pointer a, Pointer b);
 
 struct MyTuple {
@@ -36,10 +38,22 @@ private:
 public:
     Vertex(DataPoint* _data);
 
-    void *getAddr() const;
-    void addNeighbor(Vertex* neighborVertex);
+    DataPoint *getData() const;
+    void addNeighbor(Neighbor *neighbor);
+    void addReverseNeighbor(Neighbor *neighbor);
     Map getNeighbors() const;
     Map getReverseNeighbors() const;
+    int findNeighbor(int id) const;
+};
+
+class Neighbor {
+private:
+    int *id;
+    double *distance;
+public:
+    Neighbor(int _id, double _distance);
+    int *getid();
+    double *getDistance();
 };
 
 
@@ -81,15 +95,37 @@ KNNGraph<DataType, DistanceFunction>::KNNGraph(int _K, int _size, DataType* myTu
 template <typename DataType, typename DistanceFunction>
 void KNNGraph<DataType, DistanceFunction>::createRandomGraph(int K, Vertex **vertexArray) {
     cout << "\nInitializing the graph..." << endl;
+
     // Connect each vertex with K random neighbors
     for (int i = 0; i < size; i++) {
         for (int j = 0; j < K; j++) {
             int randomNeighborIndex;
             do {
                 randomNeighborIndex = rand() % size;
-            } while (randomNeighborIndex == i);
-            vertexArray[i]->addNeighbor(vertexArray[randomNeighborIndex]);
+            } while (randomNeighborIndex == i || vertexArray[i]->findNeighbor(randomNeighborIndex) == 1);
+            
+            // calculate distance 
+            DataType* vertexData = static_cast<DataType*>(vertexArray[i]->getData()->getAddr());
+            DataType* neighborData = static_cast<DataType*>(vertexArray[randomNeighborIndex]->getData()->getAddr());
+            
+            cout << "Vertex Data: (" << vertexData->num1 << ", " << vertexData->num2 << ", " << vertexData->num3 << ") ,";
+            cout << "  Neighbor Data: (" << neighborData->num1 << ", " << neighborData->num2 << ", " << neighborData->num3 << ")";
+
+            double dist = distance(*vertexData, *neighborData);
+            cout << "  -   Distance: " << dist << endl;
+
+            Neighbor* newNeighbor = new Neighbor(randomNeighborIndex, dist);
+            Neighbor* newReverseNeighbor = new Neighbor(i, dist);
+
+            // cout << "adding neighbor no " << randomNeighborIndex << " in the nn map of " << i << endl;
+            vertexArray[i]->addNeighbor(newNeighbor);
+            // cout << "adding reverse neighbor no " << i << " in the rnn map of " << randomNeighborIndex << endl;
+            vertexArray[randomNeighborIndex]->addReverseNeighbor(newReverseNeighbor);
+
         }
+
+        cout << endl;
+
     }
     printf("Inserted all neighbors and reverse neighbors\n");
 }
@@ -106,8 +142,8 @@ void KNNGraph<DataType, DistanceFunction>::printNeighbors() const {
         // Iterate through the neighbors and print their IDs
         MapNode node = map_first(neighbors);
         while (node != MAP_EOF) {
-            int neighborId = (int)(intptr_t)map_node_key(neighbors, node);
-            cout << neighborId << " ";
+            int *neighborId = (int *)map_node_key(neighbors, node);
+            cout << *neighborId << " ";
             node = map_next(neighbors, node);
         }
         
@@ -123,8 +159,8 @@ void KNNGraph<DataType, DistanceFunction>::printNeighbors() const {
         // Iterate through the neighbors and print their IDs
         MapNode node = map_first(neighbors);
         while (node != MAP_EOF) {
-            int neighborId = (int)(intptr_t)map_node_key(neighbors, node);
-            cout << neighborId << " ";
+            int *neighborId = (int *)map_node_key(neighbors, node);
+            cout << *neighborId << " ";
             node = map_next(neighbors, node);
         }
         
@@ -144,25 +180,26 @@ KNNGraph<DataType, DistanceFunction>::~KNNGraph() {
 
 template <typename DataType, typename DistanceFunction>
 void KNNGraph<DataType, DistanceFunction>::calculateKNN() const {
-    cout << "\nCalculate KNN :" << endl;
+    cout << "\nCalculate KNN..." << endl;
 
     for (int i = 0; i < size; i++) {
         Vertex* vertex = vertexArray[i];
-        cout << "Vertex " << i << " neighbors: " << endl;
+        cout << "Vertex " << i << " neighbors: ";
         Map neighbors = vertex->getNeighbors();
         
         // Iterate through the neighbors 
         MapNode node = map_first(neighbors);
         while (node != MAP_EOF) {
-            int neighborId = (int)(intptr_t)map_node_key(neighbors, node);
-            cout << neighborId << " ";
+            int *neighborId = (int *)map_node_key(neighbors, node);
+            cout << *neighborId << " ";
 
-            double dist = distance(*static_cast<DataType*>(vertexArray[i]->getAddr()), *static_cast<DataType*>(map_node_value(neighbors, node)));
-            cout << "Distance: " << dist << endl;
-
+            // MapNode neighborNode = map_find_node(neighbors, neighborId);
+            // Neighbor nn = static_cast<Neighbor>(map_node_value(neighbors, neighborNode));
+            
             node = map_next(neighbors, node);
         }
-        
+                
         cout << endl;
     }
+
 }

@@ -1,7 +1,7 @@
 CC = gcc
 CXX = g++
 CFLAGS = -Wall
-CXXFLAGS = -std=c++11 -Wall -g
+CXXFLAGS = -std=c++11 -Wall -g -Wno-unused-variable
 LDFLAGS =
 
 SOURCES = main.cpp KNNGraph.cpp ADTMap.c
