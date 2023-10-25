@@ -1,11 +1,11 @@
 CC = gcc
 CXX = g++
 CFLAGS = -Wall
-CXXFLAGS = -std=c++11 -Wall -g
+CXXFLAGS = -std=c++11 -Wall -g -Wno-unused-variable
 LDFLAGS =
 
-SOURCES = main.cpp KNNGraph.cpp ADTMap.c
-HEADERS = KNNGraph.hpp ADTMap.h common_types.h
+SOURCES = main.cpp KNNGraph.cpp ADTPriorityQueue.c ADTVector.c
+HEADERS = KNNGraph.hpp ADTPriorityQueue.h ADTVector.h common_types.h
 EXECUTABLE = my_program
 
 all: $(EXECUTABLE)
