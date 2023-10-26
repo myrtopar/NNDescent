@@ -159,6 +159,7 @@ void KNNGraphBruteForce<DataType, DistanceFunction>::calculateKNNBF() const
         Vertex *vertex = vertexArray[i];
         for (int j = 0; j < size - K - 1; j++)
         {
+            // suitable set method to remove max
             // pqueue_remove_max(vertex->getNeighbors());
         }
     }
