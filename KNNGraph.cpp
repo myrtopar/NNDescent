@@ -2,21 +2,25 @@
 
 using namespace std;
 
-int compare_ints(Pointer a, Pointer b)
-{
+
+
+int compare_ints(Pointer a, Pointer b) {
     return *(int *)a - *(int *)b;
 }
 
-int compare_distances(Pointer a, Pointer b)
-{
-    Neighbor *n1 = (Neighbor *)a;
-    Neighbor *n2 = (Neighbor *)b;
+
+int compare_distances(Pointer a, Pointer b) {
+    Neighbor *n1 = (Neighbor*)a;
+    Neighbor *n2 = (Neighbor*)b;
 
     double *distance1 = n1->getDistance();
     double *distance2 = n2->getDistance();
-    if (*distance1 != *distance2)
-        return *distance1 - *distance2;
+    
+    // cout << "D1: " << *distance1 << " D2: " << *distance2 << endl;
 
+    if(*distance1 != *distance2) 
+        return *distance1 - *distance2;
+    
     return *(int *)n1->getid() - *(int *)n2->getid();
 }
 
@@ -32,18 +36,17 @@ void *DataPoint::getAddr() const
     return datapoint;
 }
 
+
 Vertex::Vertex(DataPoint *_data) : data(_data)
 {
-    // for each vertex, create a map that holds its nearest neighbors and reverse neighbors
-    // (key->id, value->pointer to the actual data)
     NN = set_create(compare_distances, NULL);
 
     RNN = set_create(compare_distances, NULL);
 
     potentialNN = set_create(compare_distances, NULL);
 
-    cout << "Constructed a vertex ---> ";
-    cout << data->getId() << " . " << data->getAddr() << "\n";
+    RNN = pqueue_create(compare_distances, NULL, NULL);
+    pqueue_set_destroy_value(RNN, NULL);
 }
 
 void Vertex::addNeighbor(Neighbor *neighbor)

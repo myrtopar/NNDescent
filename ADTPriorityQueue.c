@@ -30,6 +30,7 @@ struct priority_queue
 
 // Επιστρέφει την τιμή του κόμβου node_id
 
+
 static Pointer node_value(PriorityQueue pqueue, int node_id)
 {
 	// τα node_ids είναι 1-based, το node_id αποθηκεύεται στη θέση node_id - 1
@@ -37,6 +38,7 @@ static Pointer node_value(PriorityQueue pqueue, int node_id)
 }
 
 // Ανταλλάσει τις τιμές των κόμβων node_id1 και node_id2
+
 
 static void node_swap(PriorityQueue pqueue, int node_id1, int node_id2)
 {
@@ -48,7 +50,7 @@ static void node_swap(PriorityQueue pqueue, int node_id1, int node_id2)
 	vector_set_at(pqueue->vector, node_id2 - 1, value1);
 }
 
-// Αποκαθιστά την ιδιότητα του σωρού.
+
 // Πριν: όλοι οι κόμβοι ικανοποιούν την ιδιότητα του σωρού, εκτός από τον
 //       node_id που μπορεί να είναι _μικρότερος_ από κάποιο από τα παιδιά του.
 // Μετά: όλοι οι κόμβοι ικανοποιούν την ιδιότητα του σωρού.
@@ -66,11 +68,10 @@ static void bubble_down(PriorityQueue pqueue, int node_id)
 	// βρίσκουμε το μέγιστο από τα 2 παιδιά
 	int max_child = left_child;
 	if (right_child <= size && pqueue->compare(node_value(pqueue, left_child), node_value(pqueue, right_child)) < 0)
-		max_child = right_child;
+			max_child = right_child;
 
 	// Αν ο κόμβος είναι μικρότερος από το μέγιστο παιδί, swap και συνεχίζουμε προς τα κάτω
-	if (pqueue->compare(node_value(pqueue, node_id), node_value(pqueue, max_child)) < 0)
-	{
+	if (pqueue->compare(node_value(pqueue, node_id), node_value(pqueue, max_child)) < 0) {
 		node_swap(pqueue, node_id, max_child);
 		bubble_down(pqueue, max_child);
 	}

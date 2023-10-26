@@ -5,16 +5,35 @@ using namespace std;
 
 #define K 2
 
+
 // a simple euclidean distance calculator for 3D tuples
 // user can pass any other distance calctulator function
-double calculateEuclideanDistance(const MyTuple &point1, const MyTuple &point2)
-{
-    double dx = point2.num1 - point1.num1;
-    double dy = point2.num2 - point1.num2;
-    double dz = point2.num3 - point1.num3;
+// double calculateEuclideanDistance(const MyTuple& point1, const MyTuple& point2) {
+//     double dx = point2.num1 - point1.num1;
+//     double dy = point2.num2 - point1.num2;
+//     double dz = point2.num3 - point1.num3;
 
-    // cout << "dx, dy, dz = " << dx << " " << dy << " " << dz << " \n";
-    return std::sqrt(dx * dx + dy * dy + dz * dz);
+//     // cout << "dx, dy, dz = " << dx << " " << dy << " " << dz << " \n";
+//     return std::sqrt(dx * dx + dy * dy + dz * dz);
+// }
+
+typedef double (*DistanceFunction)(const float*, const float*, int);
+double calculateEuclideanDistance(const float* point1, const float* point2, int numDimensions) {
+    // cout << "\nPoint1: \n";
+    // for (int i = 0; i < numDimensions; i++) {
+    //     cout << point1[i] << " ";
+    // }
+    // cout << "\nPoint2: \n";
+    // for (int i = 0; i < numDimensions; i++) {
+    //     cout << point2[i] << " ";
+    // }
+
+    double sum = 0.0;
+    for (int i = 0; i < numDimensions; i++) {
+        double diff = point1[i] - point2[i];
+        sum += diff * diff;
+    }
+    return sqrt(sum);
 }
 
 int *create_int(int value)
@@ -24,61 +43,81 @@ int *create_int(int value)
     return p;
 }
 
-int main()
-{
 
-    // const char* file_path = "datasets/00000020.bin";
-    // cout << "Reading Data: " << file_path << endl;
+int main() {
 
-    // ifstream ifs;
-    // ifs.open(file_path, ios::binary);
-    // if (!ifs.is_open()) {
-    //     cout << "Failed to open the file." << endl;
-    //     return 1;
-    // }
+    const char* file_path = "datasets/00000020.bin";
+    cout << "Reading Data: " << file_path << endl;
 
-    // Vector data = vector_create(0, NULL);
-
-    // // Read the number of points (N)
-    // uint32_t N;
-    // ifs.read((char*)&N, sizeof(uint32_t));
-    // cout << "# of points: " << N << endl;
-
-    // const int num_dimensions = 100;
-    // for (int i = 0; i < (int)N; i++) {
-    //     Vector point = vector_create(num_dimensions, NULL);
-
-    //     for (int d = 0; d < num_dimensions; d++) {
-    //         float value;
-    //         ifs.read((char*)(&value), sizeof(float));
-    //         vector_insert_last(point, &value);
-    //     }
-
-    //     vector_insert_last(data, point);
-    // }
-
-    // ifs.close();
-    // cout << "Finish Reading Data" << endl;
-    // vector_destroy(data);
-
-    int arraySize = 10;
-
-    // Create an array of tuples (x, y, z)
-    MyTuple myTuples[arraySize];
-
-    for (int i = 0; i < arraySize; ++i)
-    {
-        myTuples[i].num1 = i + 1;
-        myTuples[i].num2 = 2 * (i + 1);
-        myTuples[i].num3 = 3 * (i + 1);
+    ifstream ifs;
+    ifs.open(file_path, ios::binary);
+    if (!ifs.is_open()) {
+        cout << "Failed to open the file." << endl;
+        return 1;
     }
 
-    for (int i = 0; i < arraySize; ++i)
-    {
-        std::cout << "Tuple " << i << ": (" << myTuples[i].num1 << ", " << myTuples[i].num2 << ", " << myTuples[i].num3 << ")\n";
+    // Read the number of points (N)
+    uint32_t N;
+    ifs.read((char*)&N, sizeof(uint32_t));
+    cout << "# of points: " << N << endl;
+
+    const int num_dimensions = 100;
+
+    // Create arrays for storing the data
+    float** data = new float*[N];
+    for (uint32_t i = 0; i < N; i++) {
+        data[i] = new float[num_dimensions];
     }
 
-    // KNNGraphBruteForce<MyTuple, double (*)(const MyTuple&, const MyTuple&)> myGraph(K, arraySize, myTuples, calculateEuclideanDistance);
+    for (uint32_t i = 0; i < N; i++) {
+        for (int d = 0; d < num_dimensions; d++) {
+            float value;
+            ifs.read((char*)(&value), sizeof(float));
+            data[i][d] = value;
+        }
+    }
+
+    ifs.close();
+    cout << "Finish Reading Data" << endl;
+
+    // print data
+    for (uint32_t i = 0; i < N; i++) {
+        for (int d = 0; d < num_dimensions; d++) {
+            cout << data[i][d] << ", ";
+        }
+        cout << "\n\n";
+    }
+
+    DistanceFunction distanceFunction = &calculateEuclideanDistance;
+    KNNGraphBruteForce<float, DistanceFunction> myGraph(K, N, num_dimensions, data, distanceFunction);
+    
+    for (uint32_t i = 0; i < N; i++) {
+        delete[] data[i];
+    }
+    delete[] data;
+
+
+
+
+    // int arraySize = 10;
+
+    // // Create an array of tuples (x, y, z)
+    // MyTuple myTuples[arraySize];
+
+    // for (int i = 0; i < arraySize; ++i) {
+    //     myTuples[i].num1 = i + 1;
+    //     myTuples[i].num2 = 2 * (i + 1);
+    //     myTuples[i].num3 = 3 * (i + 1);
+    // }
+
+    // for (int i = 0; i < arraySize; ++i) {
+    //     std::cout << "Tuple " << i << ": (" << myTuples[i].num1 << ", " << myTuples[i].num2 << ", " << myTuples[i].num3 << ")\n";
+    // }
+
+    // KNNGraphBruteForce<MyTuple, double (*)(const MyTuple&, const MyTuple&)> myGraph(K, arraySize, 2, myTuples, calculateEuclideanDistance);
+    // KNNGraph<MyTuple, double (*)(const MyTuple&, const MyTuple&)> myGraph(K, arraySize, myTuples, calculateEuclideanDistance);
+    // myGraph.printNeighbors();
+    
 
     KNNGraph<MyTuple, double (*)(const MyTuple &, const MyTuple &)> myGraph(K, arraySize, myTuples, calculateEuclideanDistance);
     myGraph.printNeighbors();
@@ -88,35 +127,3 @@ int main()
     return 0;
 }
 
-// Set myset = set_create(compare_ints, NULL);
-// int *n1 = create_int(100);
-// int *n2 = create_int(150);
-// int *n3 = create_int(200);
-// int *n4 = create_int(250);
-// int *n5 = create_int(300);
-// int *n6 = create_int(150);
-
-// set_insert(myset, n1);
-// set_insert(myset, n2);
-// set_insert(myset, n3);
-// set_insert(myset, n4);
-// set_insert(myset, n5);
-
-// void **array = set_to_array(myset);
-// for (int i = 0; i < set_size(myset); i++)
-// {
-//     int *n = (int *)array[i];
-//     cout << *n << " ";
-// }
-
-// cout << endl;
-// set_insert(myset, n6);
-
-// array = set_to_array(myset);
-// for (int i = 0; i < set_size(myset); i++)
-// {
-//     int *n = (int *)array[i];
-//     cout << *n << " ";
-// }
-
-// cout << endl;

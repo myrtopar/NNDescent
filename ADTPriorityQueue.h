@@ -48,6 +48,7 @@ DestroyFunc pqueue_set_destroy_value(PriorityQueue pqueue, DestroyFunc destroy_v
 
 void pqueue_destroy(PriorityQueue pqueue);
 
-Pointer *pqueue_to_array(PriorityQueue pqueue);
+Pointer* pqueue_to_array(PriorityQueue pqueue);
 
-// void *pqueue_get_at(PriorityQueue pqueue, int pos);
+void *pqueue_get_at(PriorityQueue pqueue, int pos);
+
