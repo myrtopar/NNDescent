@@ -87,89 +87,6 @@ public:
     ~KNNGraph();
 };
 
-template <typename DataType, typename DistanceFunction>
-class KNNGraphBruteForce
-{
-private:
-    Vertex **vertexArray;
-    int K;
-    int size;
-    DistanceFunction distance;
-
-public:
-    KNNGraphBruteForce(int _K, int _size, DataType *myTuples, DistanceFunction _distance);
-
-    void printNeighborsBF() const;
-    void calculateKNNBF() const;
-
-    ~KNNGraphBruteForce();
-};
-
-template <typename DataType, typename DistanceFunction>
-KNNGraphBruteForce<DataType, DistanceFunction>::KNNGraphBruteForce(int _K, int _size, DataType *myTuples, DistanceFunction _metricFunction) : K(_K), size(_size), distance(_metricFunction)
-{
-    cout << "\nConstructing a BRUTEFORCE graph of " << size << " elements" << endl;
-    vertexArray = new Vertex *[size];
-    for (int i = 0; i < size; i++)
-    {
-        vertexArray[i] = new Vertex(new DataPoint(i, &myTuples[i]));
-    }
-    calculateKNNBF();
-}
-
-template <typename DataType, typename DistanceFunction>
-void KNNGraphBruteForce<DataType, DistanceFunction>::calculateKNNBF() const
-{
-    cout << "\nBrute Force on graph to create KNN..." << endl;
-
-    for (int i = 0; i < size; i++)
-    {
-        Vertex *vertex = vertexArray[i];
-        cout << "Vertex " << i << endl;
-        for (int j = 0; j < size; j++)
-        {
-            if (i == j)
-                continue;
-
-            cout << "Distance from vertex " << j;
-            Vertex *nvertex = vertexArray[j];
-
-            DataType *vertexData = static_cast<DataType *>(vertex->getData()->getAddr());
-            DataType *neighborData = static_cast<DataType *>(nvertex->getData()->getAddr());
-
-            // cout << "Vertex Data: (" << vertexData->num1 << ", " << vertexData->num2 << ", " << vertexData->num3 << ") ,";
-            // cout << "  Neighbor Data: (" << neighborData->num1 << ", " << neighborData->num2 << ", " << neighborData->num3 << ")";
-
-            double dist = distance(*vertexData, *neighborData);
-            cout << ": " << dist << endl;
-
-            Neighbor *newNeighbor = new Neighbor(j, dist);
-            // cout << "adding neighbor no " << randomNeighborIndex << " in the nn PriorityQueue of " << i << endl;
-            vertex->addNeighbor(newNeighbor);
-            // cout << "adding reverse neighbor no " << i << " in the rnn PriorityQueue of " << randomNeighborIndex << endl;
-        }
-
-        cout << endl;
-    }
-
-    printNeighborsBF();
-
-    for (int i = 0; i < size; i++)
-    {
-        Vertex *vertex = vertexArray[i];
-        for (int j = 0; j < size - K - 1; j++)
-        {
-            // suitable set method to remove max
-            // pqueue_remove_max(vertex->getNeighbors());
-        }
-    }
-    printNeighborsBF();
-}
-
-template <typename DataType, typename DistanceFunction>
-void KNNGraphBruteForce<DataType, DistanceFunction>::printNeighborsBF() const
-{
-    cout << "\nPrinting Neighbors:" << endl;
 
 template <typename DataType, typename DistanceFunction>
 class KNNGraphBruteForce {
@@ -226,19 +143,21 @@ void KNNGraphBruteForce<DataType, DistanceFunction>::calculateKNNBF() const {
             Neighbor* newNeighbor = new Neighbor(j, dist);
             vertex->addNeighbor(newNeighbor);
         }
-    
         cout << endl;
     }
 
+    cout << "//////////////////";
 
     for(int i = 0; i < size; i++){
         Vertex* vertex = vertexArray[i];   
         for(int j = 0; j < size - K - 1; j++) {
-            pqueue_remove_max(vertex->getNeighbors());
+            SetNode s = set_last(vertex->getNeighbors());
+            Pointer p = set_node_value(vertex->getNeighbors(), s);
+            set_remove(vertex->getNeighbors(), p);
         }
     }
     
-    printNeighborsBF();
+    // printNeighborsBF();
 
 }
 
@@ -250,10 +169,10 @@ void KNNGraphBruteForce<DataType, DistanceFunction>::printNeighborsBF() const {
         
         Vertex* vertex = vertexArray[i];
         cout << "Vertex " << i << " neighbors: ";
-        PriorityQueue neighbors = vertex->getNeighbors();
-        void **nArray = pqueue_to_array(neighbors);
+        Set neighbors = vertex->getNeighbors();
+        void **nArray = set_to_array(neighbors);
 
-        for (int j = 0; j < pqueue_size(neighbors); j++) {
+        for (int j = 0; j < set_size(neighbors); j++) {
             Neighbor *n = (Neighbor *)nArray[j];
             int *id = n->getid();
             double *dist = n->getDistance();
@@ -265,8 +184,7 @@ void KNNGraphBruteForce<DataType, DistanceFunction>::printNeighborsBF() const {
     }    
     
 }
-     // cout << "\nPrinting Reverse Neighbors:" << endl;
-}
+
 
 template <typename DataType, typename DistanceFunction>
 KNNGraphBruteForce<DataType, DistanceFunction>::~KNNGraphBruteForce() {
@@ -275,6 +193,7 @@ KNNGraphBruteForce<DataType, DistanceFunction>::~KNNGraphBruteForce() {
     }
     delete[] vertexArray; // Delete the array of Vertex pointers
 }
+
 
 // due to the template usage, the implementation of the functions below should be available in this file
 

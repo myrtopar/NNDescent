@@ -40,13 +40,8 @@ void *DataPoint::getAddr() const
 Vertex::Vertex(DataPoint *_data) : data(_data)
 {
     NN = set_create(compare_distances, NULL);
-
     RNN = set_create(compare_distances, NULL);
-
     potentialNN = set_create(compare_distances, NULL);
-
-    RNN = pqueue_create(compare_distances, NULL, NULL);
-    pqueue_set_destroy_value(RNN, NULL);
 }
 
 void Vertex::addNeighbor(Neighbor *neighbor)

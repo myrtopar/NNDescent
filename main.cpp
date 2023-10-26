@@ -119,10 +119,10 @@ int main() {
     // myGraph.printNeighbors();
     
 
-    KNNGraph<MyTuple, double (*)(const MyTuple &, const MyTuple &)> myGraph(K, arraySize, myTuples, calculateEuclideanDistance);
-    myGraph.printNeighbors();
-    myGraph.calculateKNN();
-    myGraph.printPotentialNeighbors();
+    // KNNGraph<MyTuple, double (*)(const MyTuple &, const MyTuple &)> myGraph(K, arraySize, myTuples, calculateEuclideanDistance);
+    // myGraph.printNeighbors();
+    // myGraph.calculateKNN();
+    // myGraph.printPotentialNeighbors();
 
     return 0;
 }
