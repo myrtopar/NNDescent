@@ -12,11 +12,9 @@
 #include "common_types.h"
 #include "ADTVector.h"
 
-
 // Μία ουρά προτεραιότητας αναπαριστάται από τον τύπο PriorityQueue
 
-typedef struct priority_queue* PriorityQueue;
-
+typedef struct priority_queue *PriorityQueue;
 
 // Δημιουργεί και επιστρέφει μια νέα ουρά προτεραιότητας, της οποίας τα στοιχεία συγκρίνονται με βάση τη συνάρτηση compare.
 // Αν destroy_value != NULL, τότε καλείται destroy_value(value) κάθε φορά που αφαιρείται ένα στοιχείο.
@@ -50,6 +48,6 @@ DestroyFunc pqueue_set_destroy_value(PriorityQueue pqueue, DestroyFunc destroy_v
 
 void pqueue_destroy(PriorityQueue pqueue);
 
-Pointer* pqueue_to_array(PriorityQueue pqueue);
+Pointer *pqueue_to_array(PriorityQueue pqueue);
 
-void *pqueue_get_at(PriorityQueue pqueue, int pos);
+// void *pqueue_get_at(PriorityQueue pqueue, int pos);
