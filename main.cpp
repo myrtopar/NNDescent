@@ -6,7 +6,6 @@ using namespace std;
 #define K 2
 
 
-
 // a simple euclidean distance calculator for 3D tuples
 // user can pass any other distance calctulator function
 // double calculateEuclideanDistance(const MyTuple& point1, const MyTuple& point2) {
@@ -37,6 +36,12 @@ double calculateEuclideanDistance(const float* point1, const float* point2, int 
     return sqrt(sum);
 }
 
+int *create_int(int value)
+{
+    int *p = new int;
+    *p = value;
+    return p;
+}
 
 
 int main() {
@@ -113,6 +118,12 @@ int main() {
     // KNNGraph<MyTuple, double (*)(const MyTuple&, const MyTuple&)> myGraph(K, arraySize, myTuples, calculateEuclideanDistance);
     // myGraph.printNeighbors();
     
+
+    KNNGraph<MyTuple, double (*)(const MyTuple &, const MyTuple &)> myGraph(K, arraySize, myTuples, calculateEuclideanDistance);
+    myGraph.printNeighbors();
+    myGraph.calculateKNN();
+    myGraph.printPotentialNeighbors();
+
     return 0;
 }
 
