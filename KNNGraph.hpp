@@ -4,6 +4,7 @@
 #include <cmath>
 #include <string>
 #include "ADTPriorityQueue.h"
+#include "ADTSet.h"
 
 using namespace std;
 
@@ -37,8 +38,9 @@ class Vertex
 {
 private:
     DataPoint *data;
-    PriorityQueue NN;
-    PriorityQueue RNN;
+    Set NN;
+    Set RNN;
+    Set potentialNN;
 
 public:
     Vertex(DataPoint *_data);
@@ -46,9 +48,10 @@ public:
     DataPoint *getData() const;
     void addNeighbor(Neighbor *neighbor);
     void addReverseNeighbor(Neighbor *neighbor);
-    PriorityQueue getNeighbors() const;
-    PriorityQueue getReverseNeighbors() const;
-    // int findNeighbor(int id) const;
+    void addPotentialNeighbor(Neighbor *neighbor);
+    Set getNeighbors() const;
+    Set getReverseNeighbors() const;
+    Set getPotentialNeighbors() const;
 };
 
 class Neighbor
@@ -56,6 +59,7 @@ class Neighbor
 private:
     int *id;
     double *distance;
+    int flag;
 
 public:
     Neighbor(int _id, double _distance);
@@ -77,6 +81,7 @@ public:
 
     void createRandomGraph(int K, Vertex **vertexArray);
     void printNeighbors() const;
+    void printPotentialNeighbors() const;
     void calculateKNN() const;
 
     ~KNNGraph();
@@ -154,7 +159,7 @@ void KNNGraphBruteForce<DataType, DistanceFunction>::calculateKNNBF() const
         Vertex *vertex = vertexArray[i];
         for (int j = 0; j < size - K - 1; j++)
         {
-            pqueue_remove_max(vertex->getNeighbors());
+            // pqueue_remove_max(vertex->getNeighbors());
         }
     }
     printNeighborsBF();
@@ -169,10 +174,10 @@ void KNNGraphBruteForce<DataType, DistanceFunction>::printNeighborsBF() const
     {
         Vertex *vertex = vertexArray[i];
         cout << "Vertex " << i << " neighbors: ";
-        PriorityQueue neighbors = vertex->getNeighbors();
+        Set neighbors = vertex->getNeighbors();
 
-        void **nArray = pqueue_to_array(neighbors);
-        for (int j = 0; j < pqueue_size(neighbors); j++)
+        void **nArray = set_to_array(neighbors);
+        for (int j = 0; j < set_size(neighbors); j++)
         {
             Neighbor *n = (Neighbor *)nArray[j];
             int *id = n->getid();
@@ -259,15 +264,10 @@ void KNNGraph<DataType, DistanceFunction>::printNeighbors() const
     {
         Vertex *vertex = vertexArray[i];
         cout << "Vertex " << i << " neighbors: ";
-        PriorityQueue neighbors = vertex->getNeighbors();
+        Set neighbors = vertex->getNeighbors();
 
-        // for(int j = 1; j <= pqueue_size(neighbors); j++){
-        //     void *n = pqueue_get_at(neighbors, j);
-        //     cout <<
-        // }
-
-        void **nArray = pqueue_to_array(neighbors);
-        for (int j = 0; j < pqueue_size(neighbors); j++)
+        void **nArray = set_to_array(neighbors);
+        for (int j = 0; j < set_size(neighbors); j++)
         {
             Neighbor *n = (Neighbor *)nArray[j];
             int *id = n->getid();
@@ -277,8 +277,30 @@ void KNNGraph<DataType, DistanceFunction>::printNeighbors() const
 
         cout << endl;
     }
+}
 
-    // cout << "\nPrinting Reverse Neighbors:" << endl;
+template <typename DataType, typename DistanceFunction>
+void KNNGraph<DataType, DistanceFunction>::printPotentialNeighbors() const
+{
+    cout << "\nPrinting Potential Neighbors:" << endl;
+
+    for (int i = 0; i < size; i++)
+    {
+        Vertex *vertex = vertexArray[i];
+        cout << "Vertex " << i << " neighbors: ";
+        Set pNeighbors = vertex->getPotentialNeighbors();
+
+        void **nArray = set_to_array(pNeighbors);
+        for (int j = 0; j < set_size(pNeighbors); j++)
+        {
+            Neighbor *n = (Neighbor *)nArray[j];
+            int *id = n->getid();
+            cout << *id << " ";
+        }
+        free(nArray);
+
+        cout << endl;
+    }
 }
 
 template <typename DataType, typename DistanceFunction>
@@ -299,33 +321,45 @@ void KNNGraph<DataType, DistanceFunction>::calculateKNN() const
     for (int i = 0; i < size; i++)
     {
         Vertex *vertex = vertexArray[i];
-        cout << "Vertex " << i << " neighbors: ";
+        cout << "Vertex " << i << endl;
 
-        PriorityQueue neighbors = vertex->getNeighbors();
-        void **neighborArray = pqueue_to_array(neighbors); // array me nn tou vertex
+        Set neighbors = vertex->getNeighbors();
+        void **neighborArray = set_to_array(neighbors); // array me nn tou vertex
 
-        PriorityQueue ReverseNeighbors = vertex->getNeighbors();
-        void **ReverseNeighborArray = pqueue_to_array(ReverseNeighbors); // array me rnn tou vertex
+        Set ReverseNeighbors = vertex->getReverseNeighbors();
+        void **ReverseNeighborArray = set_to_array(ReverseNeighbors); // array me rnn tou vertex
 
-        for (int j = 0; j < pqueue_size(neighbors); j++)
+        for (int j = 0; j < set_size(neighbors); j++)
         {
             Neighbor *n = (Neighbor *)neighborArray[j];
             int n_id = *(n->getid());
             Vertex *v1 = vertexArray[n_id];
             DataType *neighborData = static_cast<DataType *>(v1->getData()->getAddr());
 
-            for (int k = 0; k < pqueue_size(ReverseNeighbors); k++)
+            for (int k = 0; k < set_size(ReverseNeighbors); k++)
             {
+                cout << "neighbor " << n_id;
                 Neighbor *rn = (Neighbor *)ReverseNeighborArray[k];
                 int rn_id = *(rn->getid());
+                cout << " and reverse neighbor " << rn_id;
                 if (n_id == rn_id)
+                {
+                    cout << " have zero distance." << endl;
                     continue;
+                }
 
                 Vertex *v2 = vertexArray[rn_id];
                 DataType *reverseNeighborData = static_cast<DataType *>(v2->getData()->getAddr());
 
                 double dist = distance(*neighborData, *reverseNeighborData);
+
+                cout << " have distance " << dist << endl;
+
+                cout << "For vertex " << n_id << ", creating new potential neighbor with id " << rn_id << " and distance " << dist << endl;
+                Neighbor *newPotentialNeighbor = new Neighbor(rn_id, dist);
+                vertexArray[n_id]->addPotentialNeighbor(newPotentialNeighbor);
             }
+            cout << "////////////////////////////////" << endl;
         }
         free(neighborArray);
         free(ReverseNeighborArray);
