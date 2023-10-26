@@ -6,6 +6,7 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include <stdio.h>
 
 #include "ADTSet.h"
 
@@ -395,7 +396,7 @@ Set set_create(CompareFunc compare, DestroyFunc destroy_value)
 {
     // assert(compare != NULL); // LCOV_EXCL_LINE
 
-    // δημιουργούμε το stuct
+    // δημιουργούμε το struct
     Set set = (Set)malloc(sizeof(*set));
     set->root = NULL; // κενό δέντρο
     set->size = 0;
@@ -543,19 +544,5 @@ void **set_to_array(Set set)
 
     return arr;
 }
-
-// void **pqueue_to_array(PriorityQueue pqueue)
-// {
-//     int size = pqueue_size(pqueue);
-//     void **arr = (void **)malloc(size * sizeof(void *));
-//     int i = 0;
-//     for (VectorNode node = vector_last(pqueue->vector); node != VECTOR_BOF; node = vector_previous(pqueue->vector, node))
-//     {
-//         arr[i] = vector_get_at(pqueue->vector, i);
-//         i++;
-//     }
-
-//     return arr;
-// }
 
 // LCOV_EXCL_STOP
