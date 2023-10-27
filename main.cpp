@@ -3,7 +3,7 @@
 
 using namespace std;
 
-#define K 3
+#define K 2
 
 // a simple euclidean distance calculator for 3D tuples
 // user can pass any other distance calctulator function
@@ -34,13 +34,6 @@ double calculateEuclideanDistance(const float *point1, const float *point2, int 
         sum += diff * diff;
     }
     return sqrt(sum);
-}
-
-int *create_int(int value)
-{
-    int *p = new int;
-    *p = value;
-    return p;
 }
 
 int main()
@@ -85,23 +78,19 @@ int main()
     cout << "Finish Reading Data" << endl;
 
     // print data
-    for (uint32_t i = 0; i < N; i++)
-    {
-        for (int d = 0; d < num_dimensions; d++)
-        {
-            cout << data[i][d] << ", ";
-        }
-        cout << "\n\n";
-    }
+    // for (uint32_t i = 0; i < N; i++)
+    // {
+    //     for (int d = 0; d < num_dimensions; d++)
+    //     {
+    //         cout << data[i][d] << ", ";
+    //     }
+    //     cout << "\n\n";
+    // }
 
     DistanceFunction distanceFunction = &calculateEuclideanDistance;
-    KNNGraphBruteForce<float, DistanceFunction> myGraph(K, N, num_dimensions, data, distanceFunction);
 
-    for (uint32_t i = 0; i < N; i++)
-    {
-        delete[] data[i];
-    }
-    delete[] data;
+    cout << "BRUTE FORCE GRAPH" << endl;
+    KNNGraphBruteForce<float, DistanceFunction> myGraph(K, N, num_dimensions, data, distanceFunction);
 
     // int arraySize = 10;
 
@@ -121,9 +110,15 @@ int main()
     // KNNGraphBruteForce<MyTuple, double (*)(const MyTuple&, const MyTuple&)> myGraph(K, arraySize, 2, myTuples, calculateEuclideanDistance);
     // KNNGraph<MyTuple, double (*)(const MyTuple&, const MyTuple&)> myGraph(K, arraySize, myTuples, calculateEuclideanDistance);
     // myGraph.printNeighbors();
+
+    cout << endl;
+    cout << "KNN DESCENT GRAPH" << endl;
     KNNGraph<float, DistanceFunction> myGraph2(K, N, num_dimensions, data, distanceFunction);
 
     myGraph2.printNeighbors();
+    myGraph2.printReverseNeighbors();
+
+    delete_data(data, N);
 
     return 0;
 }

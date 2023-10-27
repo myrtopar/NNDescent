@@ -16,6 +16,12 @@ $(EXECUTABLE): $(SOURCES) $(HEADERS)
 run: $(EXECUTABLE)
 	./$(EXECUTABLE)
 
+gdb: $(EXECUTABLE)
+	gdb ./$(EXECUTABLE)
+
+valgrind: $(EXECUTABLE)
+	valgrind ./$(EXECUTABLE)
+
 clean:
 	rm -f $(EXECUTABLE)
 
