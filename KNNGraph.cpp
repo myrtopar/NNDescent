@@ -15,8 +15,6 @@ double compare_distances(Pointer a, Pointer b) {
     double *distance1 = n1->getDistance();
     double *distance2 = n2->getDistance();
     
-    cout << "Diff : " << *distance1-*distance2 << endl;
-
     if(*distance1 != *distance2) 
         return 1000000*(*distance1 - *distance2);
     
@@ -38,6 +36,7 @@ Vertex::Vertex(DataPoint *_data) : data(_data) {
     NN = set_create(compare_distances, NULL);
     RNN = set_create(compare_distances, NULL);
     potentialNN = set_create(compare_distances, NULL);
+    usedIds = set_create(compare_distances, NULL);
 }
 
 void Vertex::addNeighbor(Neighbor *neighbor) {
@@ -52,6 +51,13 @@ void Vertex::addPotentialNeighbor(Neighbor *neighbor) {
     set_insert(potentialNN, neighbor);
 }
 
+int Vertex::findNeighbor(int id) {
+    if(set_find(usedIds, (void*)&id) == NULL)
+        return 0;
+    cout << "found the same id\n";
+    return 1;
+}
+
 Set Vertex::getNeighbors() const {
     return NN;
 }
@@ -62,6 +68,10 @@ Set Vertex::getReverseNeighbors() const {
 
 Set Vertex::getPotentialNeighbors() const {
     return potentialNN;
+}
+
+Set Vertex::getUsedIds() const {
+    return usedIds;
 }
 
 DataPoint *Vertex::getData() const {

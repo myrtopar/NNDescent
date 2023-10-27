@@ -3,7 +3,7 @@
 
 using namespace std;
 
-#define K 2
+#define K 3
 
 
 // a simple euclidean distance calculator for 3D tuples
@@ -27,7 +27,6 @@ double calculateEuclideanDistance(const float* point1, const float* point2, int 
     // for (int i = 0; i < numDimensions; i++) {
     //     cout << point2[i] << " ";
     // }
-
     double sum = 0.0;
     for (int i = 0; i < numDimensions; i++) {
         double diff = point1[i] - point2[i];
@@ -95,33 +94,8 @@ int main() {
     }
     delete[] data;
 
-
-
-
-    // int arraySize = 10;
-
-    // // Create an array of tuples (x, y, z)
-    // MyTuple myTuples[arraySize];
-
-    // for (int i = 0; i < arraySize; ++i) {
-    //     myTuples[i].num1 = i + 1;
-    //     myTuples[i].num2 = 2 * (i + 1);
-    //     myTuples[i].num3 = 3 * (i + 1);
-    // }
-
-    // for (int i = 0; i < arraySize; ++i) {
-    //     std::cout << "Tuple " << i << ": (" << myTuples[i].num1 << ", " << myTuples[i].num2 << ", " << myTuples[i].num3 << ")\n";
-    // }
-
-    // KNNGraphBruteForce<MyTuple, double (*)(const MyTuple&, const MyTuple&)> myGraph(K, arraySize, 2, myTuples, calculateEuclideanDistance);
-    // KNNGraph<MyTuple, double (*)(const MyTuple&, const MyTuple&)> myGraph(K, arraySize, myTuples, calculateEuclideanDistance);
-    // myGraph.printNeighbors();
+    KNNGraph<float, DistanceFunction> myGraph2(K, N, num_dimensions, data, distanceFunction);
     
-
-    // KNNGraph<MyTuple, double (*)(const MyTuple &, const MyTuple &)> myGraph(K, arraySize, myTuples, calculateEuclideanDistance);
-    // myGraph.printNeighbors();
-    // myGraph.calculateKNN();
-    // myGraph.printPotentialNeighbors();
 
     return 0;
 }
