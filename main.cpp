@@ -36,7 +36,8 @@ double calculateEuclideanDistance(const float *point1, const float *point2, int 
     return sqrt(sum);
 }
 
-int *create_int(int value) {
+int *create_int(int value)
+{
     int *p = new int;
     *p = value;
     return p;
@@ -102,7 +103,6 @@ int main()
     }
     delete[] data;
 
-<<<<<<< HEAD
     // int arraySize = 10;
 
     // // Create an array of tuples (x, y, z)
@@ -121,10 +121,9 @@ int main()
     // KNNGraphBruteForce<MyTuple, double (*)(const MyTuple&, const MyTuple&)> myGraph(K, arraySize, 2, myTuples, calculateEuclideanDistance);
     // KNNGraph<MyTuple, double (*)(const MyTuple&, const MyTuple&)> myGraph(K, arraySize, myTuples, calculateEuclideanDistance);
     // myGraph.printNeighbors();
-=======
     KNNGraph<float, DistanceFunction> myGraph2(K, N, num_dimensions, data, distanceFunction);
-    
->>>>>>> a64aef27b23f3f19993fa509d63afd0c1353891c
+
+    myGraph2.printNeighbors();
 
     return 0;
 }
