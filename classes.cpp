@@ -1,4 +1,5 @@
 #include "KNNGraph.hpp"
+#include "classes.hpp"
 
 using namespace std;
 
@@ -128,8 +129,6 @@ Neighbor::Neighbor(int _id, double _distance)
     *id = _id;
     distance = new double;
     *distance = _distance;
-    flag = 0;
-    // cout << "Constructed neighbor no:" << _id << " with distance:" << _distance << " \n";
 }
 
 int *Neighbor::getid()
@@ -140,4 +139,10 @@ int *Neighbor::getid()
 double *Neighbor::getDistance()
 {
     return distance;
+}
+
+Neighbor::~Neighbor()
+{
+    delete id;
+    delete distance;
 }
