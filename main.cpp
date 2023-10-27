@@ -36,8 +36,7 @@ double calculateEuclideanDistance(const float* point1, const float* point2, int 
     return sqrt(sum);
 }
 
-int *create_int(int value)
-{
+int *create_int(int value) {
     int *p = new int;
     *p = value;
     return p;

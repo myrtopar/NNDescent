@@ -12,8 +12,7 @@ class Neighbor;
 
 int compare_ints(Pointer a, Pointer b);
 
-struct MyTuple
-{
+struct MyTuple {
     int num1;
     int num2;
     int num3;
@@ -21,8 +20,7 @@ struct MyTuple
 
 // typedef double (*DistanceFunction)(const void* a, const void* b);
 
-class DataPoint
-{
+class DataPoint {
 private:
     int id;
     void *datapoint;
@@ -34,8 +32,7 @@ public:
     void *getAddr() const;
 };
 
-class Vertex
-{
+class Vertex {
 private:
     DataPoint *data;
     Set NN;
@@ -54,8 +51,7 @@ public:
     Set getPotentialNeighbors() const;
 };
 
-class Neighbor
-{
+class Neighbor {
 private:
     int *id;
     double *distance;
@@ -68,8 +64,7 @@ public:
 };
 
 template <typename DataType, typename DistanceFunction>
-class KNNGraph
-{
+class KNNGraph {
 private:
     Vertex **vertexArray;
     int K;
@@ -157,7 +152,7 @@ void KNNGraphBruteForce<DataType, DistanceFunction>::calculateKNNBF() const {
         }
     }
     
-    // printNeighborsBF();
+    printNeighborsBF();
 
 }
 
@@ -198,8 +193,7 @@ KNNGraphBruteForce<DataType, DistanceFunction>::~KNNGraphBruteForce() {
 // due to the template usage, the implementation of the functions below should be available in this file
 
 template <typename DataType, typename DistanceFunction>
-KNNGraph<DataType, DistanceFunction>::KNNGraph(int _K, int _size, DataType *myTuples, DistanceFunction _metricFunction) : K(_K), size(_size), distance(_metricFunction)
-{
+KNNGraph<DataType, DistanceFunction>::KNNGraph(int _K, int _size, DataType *myTuples, DistanceFunction _metricFunction) : K(_K), size(_size), distance(_metricFunction) {
     cout << "\nConstructing a graph of " << size << " elements" << endl;
     vertexArray = new Vertex *[size];
     for (int i = 0; i < size; i++)
@@ -210,8 +204,7 @@ KNNGraph<DataType, DistanceFunction>::KNNGraph(int _K, int _size, DataType *myTu
 }
 
 template <typename DataType, typename DistanceFunction>
-void KNNGraph<DataType, DistanceFunction>::createRandomGraph(int K, Vertex **vertexArray)
-{
+void KNNGraph<DataType, DistanceFunction>::createRandomGraph(int K, Vertex **vertexArray) {
     cout << "\nInitializing the graph..." << endl;
 
     // Connect each vertex with K random neighbors
@@ -251,8 +244,7 @@ void KNNGraph<DataType, DistanceFunction>::createRandomGraph(int K, Vertex **ver
 }
 
 template <typename DataType, typename DistanceFunction>
-void KNNGraph<DataType, DistanceFunction>::printNeighbors() const
-{
+void KNNGraph<DataType, DistanceFunction>::printNeighbors() const {
     cout << "\nPrinting Neighbors:" << endl;
 
     for (int i = 0; i < size; i++)
@@ -275,8 +267,7 @@ void KNNGraph<DataType, DistanceFunction>::printNeighbors() const
 }
 
 template <typename DataType, typename DistanceFunction>
-void KNNGraph<DataType, DistanceFunction>::printPotentialNeighbors() const
-{
+void KNNGraph<DataType, DistanceFunction>::printPotentialNeighbors() const {
     cout << "\nPrinting Potential Neighbors:" << endl;
 
     for (int i = 0; i < size; i++)
@@ -300,8 +291,7 @@ void KNNGraph<DataType, DistanceFunction>::printPotentialNeighbors() const
 }
 
 template <typename DataType, typename DistanceFunction>
-KNNGraph<DataType, DistanceFunction>::~KNNGraph()
-{
+KNNGraph<DataType, DistanceFunction>::~KNNGraph() {
     for (int i = 0; i < size; i++)
     {
         delete vertexArray[i]; // Delete each Vertex
@@ -311,8 +301,7 @@ KNNGraph<DataType, DistanceFunction>::~KNNGraph()
 
 
 template <typename DataType, typename DistanceFunction>
-void KNNGraph<DataType, DistanceFunction>::calculateKNN() const
-{
+void KNNGraph<DataType, DistanceFunction>::calculateKNN() const {
     cout << "\nCalculate KNN..." << endl;
 
     for (int i = 0; i < size; i++)
