@@ -41,6 +41,7 @@ private:
     Set NN;
     Set RNN;
     Set potentialNN;
+    Set usedIds;
 
 public:
     Vertex(DataPoint *_data);
@@ -49,9 +50,11 @@ public:
     void addNeighbor(Neighbor *neighbor);
     void addReverseNeighbor(Neighbor *neighbor);
     void addPotentialNeighbor(Neighbor *neighbor);
+    int findNeighbor(int id);
     Set getNeighbors() const;
     Set getReverseNeighbors() const;
     Set getPotentialNeighbors() const;
+    Set getUsedIds() const;
 };
 
 class Neighbor
@@ -74,10 +77,11 @@ private:
     Vertex **vertexArray;
     int K;
     int size;
+    int dimensions;
     DistanceFunction distance;
 
 public:
-    KNNGraph(int _K, int _size, DataType *myTuples, DistanceFunction _distance);
+    KNNGraph(int _K, int _size, int dimensions, DataType **myTuples, DistanceFunction _distance);
 
     void createRandomGraph(int K, Vertex **vertexArray);
     void printNeighbors() const;
@@ -106,6 +110,8 @@ public:
     ~KNNGraphBruteForce();
 };
 
+///////////////////////////////////////////////////////////////////
+
 template <typename DataType, typename DistanceFunction>
 KNNGraphBruteForce<DataType, DistanceFunction>::KNNGraphBruteForce(int _K, int _size, int _dimensions, DataType **data, DistanceFunction _metricFunction) : K(_K), size(_size), dimensions(_dimensions), distance(_metricFunction)
 {
@@ -128,6 +134,7 @@ void KNNGraphBruteForce<DataType, DistanceFunction>::calculateKNNBF() const
     {
         Vertex *vertex = vertexArray[i];
         cout << "Vertex " << i << endl;
+
         for (int j = 0; j < size; j++)
         {
             if (i == j)
@@ -158,6 +165,7 @@ void KNNGraphBruteForce<DataType, DistanceFunction>::calculateKNNBF() const
             set_remove(vertex->getNeighbors(), p);
         }
     }
+
     printNeighborsBF();
 }
 
@@ -197,16 +205,17 @@ KNNGraphBruteForce<DataType, DistanceFunction>::~KNNGraphBruteForce()
     delete[] vertexArray; // Delete the array of Vertex pointers
 }
 
+/////////////////////////////////////////////////////////////
 // due to the template usage, the implementation of the functions below should be available in this file
 
 template <typename DataType, typename DistanceFunction>
-KNNGraph<DataType, DistanceFunction>::KNNGraph(int _K, int _size, DataType *myTuples, DistanceFunction _metricFunction) : K(_K), size(_size), distance(_metricFunction)
+KNNGraph<DataType, DistanceFunction>::KNNGraph(int _K, int _size, int _dimensions, DataType **data, DistanceFunction _metricFunction) : K(_K), size(_size), dimensions(_dimensions), distance(_metricFunction)
 {
     cout << "\nConstructing a graph of " << size << " elements" << endl;
     vertexArray = new Vertex *[size];
     for (int i = 0; i < size; i++)
     {
-        vertexArray[i] = new Vertex(new DataPoint(i, &myTuples[i]));
+        vertexArray[i] = new Vertex(new DataPoint(i, data[i]));
     }
     createRandomGraph(K, vertexArray);
 }
@@ -225,25 +234,25 @@ void KNNGraph<DataType, DistanceFunction>::createRandomGraph(int K, Vertex **ver
             do
             {
                 randomNeighborIndex = rand() % size;
-            } while (randomNeighborIndex == i); // edw thelei allagh --> while (randomNeighborIndex == i || vertexArray[i]->findNeighbor(randomNeighborIndex) == 1);
+            } while (randomNeighborIndex == i || vertexArray[i]->findNeighbor(randomNeighborIndex) == 1);
+
+            Set s = vertexArray[i]->getUsedIds();
+            set_insert(s, (void *)&randomNeighborIndex);
 
             // calculate distance
             DataType *vertexData = static_cast<DataType *>(vertexArray[i]->getData()->getAddr());
             DataType *neighborData = static_cast<DataType *>(vertexArray[randomNeighborIndex]->getData()->getAddr());
 
-            cout << "Vertex Data: (" << vertexData->num1 << ", " << vertexData->num2 << ", " << vertexData->num3 << ") ,";
-            cout << "  Neighbor Data: (" << neighborData->num1 << ", " << neighborData->num2 << ", " << neighborData->num3 << ")";
-
-            double dist = distance(*vertexData, *neighborData);
-            cout << "  -   Distance: " << dist << endl;
+            // cout << "Vertex Data: (" << vertexData;
+            //  cout << "  Neighbor Data: (" << neighborData->num1 << ", " << neighborData->num2 << ", " << neighborData->num3 << ")";
 
             Neighbor *newNeighbor = new Neighbor(randomNeighborIndex, dist);
             Neighbor *newReverseNeighbor = new Neighbor(i, dist);
 
-            // cout << "adding neighbor no " << randomNeighborIndex << " in the nn PriorityQueue of " << i << endl;
-            vertexArray[i]->addNeighbor(newNeighbor);
-            // cout << "adding reverse neighbor no " << i << " in the rnn PriorityQueue of " << randomNeighborIndex << endl;
-            vertexArray[randomNeighborIndex]->addReverseNeighbor(newReverseNeighbor);
+            // // cout << "adding neighbor no " << randomNeighborIndex << " in the nn PriorityQueue of " << i << endl;
+            // vertexArray[i]->addNeighbor(newNeighbor);
+            // // cout << "adding reverse neighbor no " << i << " in the rnn PriorityQueue of " << randomNeighborIndex << endl;
+            // vertexArray[randomNeighborIndex]->addReverseNeighbor(newReverseNeighbor);
         }
 
         cout << endl;
