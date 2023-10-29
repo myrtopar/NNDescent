@@ -5,17 +5,6 @@ using namespace std;
 
 #define K 2
 
-// a simple euclidean distance calculator for 3D tuples
-// user can pass any other distance calctulator function
-// double calculateEuclideanDistance(const MyTuple& point1, const MyTuple& point2) {
-//     double dx = point2.num1 - point1.num1;
-//     double dy = point2.num2 - point1.num2;
-//     double dz = point2.num3 - point1.num3;
-
-//     // cout << "dx, dy, dz = " << dx << " " << dy << " " << dz << " \n";
-//     return std::sqrt(dx * dx + dy * dy + dz * dz);
-// }
-
 typedef double (*DistanceFunction)(const float *, const float *, int);
 double calculateEuclideanDistance(const float *point1, const float *point2, int numDimensions)
 {
@@ -89,35 +78,21 @@ int main()
 
     DistanceFunction distanceFunction = &calculateEuclideanDistance;
 
-    cout << "BRUTE FORCE GRAPH" << endl;
-    KNNGraphBruteForce<float, DistanceFunction> myGraph(K, N, num_dimensions, data, distanceFunction);
-
-    // int arraySize = 10;
-
-    // // Create an array of tuples (x, y, z)
-    // MyTuple myTuples[arraySize];
-
-    // for (int i = 0; i < arraySize; ++i) {
-    //     myTuples[i].num1 = i + 1;
-    //     myTuples[i].num2 = 2 * (i + 1);
-    //     myTuples[i].num3 = 3 * (i + 1);
-    // }
-
-    // for (int i = 0; i < arraySize; ++i) {
-    //     std::cout << "Tuple " << i << ": (" << myTuples[i].num1 << ", " << myTuples[i].num2 << ", " << myTuples[i].num3 << ")\n";
-    // }
-
-    // KNNGraphBruteForce<MyTuple, double (*)(const MyTuple&, const MyTuple&)> myGraph(K, arraySize, 2, myTuples, calculateEuclideanDistance);
-    // KNNGraph<MyTuple, double (*)(const MyTuple&, const MyTuple&)> myGraph(K, arraySize, myTuples, calculateEuclideanDistance);
-    // myGraph.printNeighbors();
+    // cout << "BRUTE FORCE GRAPH" << endl;
+    // KNNBruteForce<float, DistanceFunction> myGraph(K, N, num_dimensions, data, distanceFunction);
 
     cout << endl;
     cout << "KNN DESCENT GRAPH" << endl;
-    KNNGraph<float, DistanceFunction> myGraph2(K, N, num_dimensions, data, distanceFunction);
+    KNNDescent<float, DistanceFunction> myGraph2(K, N, num_dimensions, data, distanceFunction);
 
+    myGraph2.calculatePotentialNewNeighbors();
     myGraph2.printNeighbors();
     myGraph2.printReverseNeighbors();
+    myGraph2.printPotentialNeighbors();
+    myGraph2.updateGraph();
+    myGraph2.printNeighbors();
 
+    cout << "deleting data" << endl;
     delete_data(data, N);
 
     return 0;

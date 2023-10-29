@@ -12,8 +12,10 @@ using namespace std;
 class Neighbor;
 
 double compare_ints(Pointer a, Pointer b);
+double compare_distances(Pointer a, Pointer b);
 int *create_int(int n);
 void delete_data(float **data, uint32_t N);
+void delete_int(void *a);
 
 struct MyTuple
 {
@@ -44,7 +46,6 @@ private:
     Set NN;
     Set RNN;
     Set potentialNN;
-    Set usedIds;
 
 public:
     Vertex(DataPoint *_data);
@@ -53,12 +54,13 @@ public:
     void addNeighbor(Neighbor *neighbor);
     void addReverseNeighbor(Neighbor *neighbor);
     void addPotentialNeighbor(Neighbor *neighbor);
-    void addUsedId(int *id);
-    int findNeighbor(int id);
     Set getNeighbors() const;
     Set getReverseNeighbors() const;
     Set getPotentialNeighbors() const;
-    Set getUsedIds() const;
+    Neighbor *furthest_neighbor(Set s);
+    Neighbor *closest_neighbor(Set s);
+    void replaceNNSet(Set set);
+
     ~Vertex();
 };
 
