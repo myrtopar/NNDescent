@@ -1,4 +1,5 @@
 #include "KNNGraph.hpp"
+#include "classes.hpp"
 
 using namespace std;
 
@@ -7,9 +8,14 @@ double compare_ints(Pointer a, Pointer b)
     return *(int *)a - *(int *)b;
 }
 
-void delete_int(Pointer a)
+void delete_int(void *a)
 {
     delete (int *)a;
+}
+
+void delete_neighbor(void *a)
+{
+    delete (Neighbor *)a;
 }
 
 int *create_int(int n)
@@ -56,10 +62,9 @@ void *DataPoint::getAddr() const
 
 Vertex::Vertex(DataPoint *_data) : data(_data)
 {
-    NN = set_create(compare_distances, NULL);
-    RNN = set_create(compare_distances, NULL);
-    potentialNN = set_create(compare_distances, NULL);
-    usedIds = set_create(compare_ints, delete_int);
+    NN = set_create(compare_distances, delete_neighbor);
+    RNN = set_create(compare_distances, delete_neighbor);
+    potentialNN = set_create(compare_distances, delete_neighbor);
 }
 
 void Vertex::addNeighbor(Neighbor *neighbor)
@@ -77,19 +82,6 @@ void Vertex::addPotentialNeighbor(Neighbor *neighbor)
     set_insert(potentialNN, neighbor);
 }
 
-void Vertex::addUsedId(int *id)
-{
-    set_insert(usedIds, id);
-}
-
-int Vertex::findNeighbor(int id)
-{
-    if (set_find(usedIds, (void *)&id) == NULL)
-        return 0;
-    cout << "found the same id\n";
-    return 1;
-}
-
 Set Vertex::getNeighbors() const
 {
     return NN;
@@ -105,9 +97,26 @@ Set Vertex::getPotentialNeighbors() const
     return potentialNN;
 }
 
-Set Vertex::getUsedIds() const
+Neighbor *Vertex::furthest_neighbor(Set s)
 {
-    return usedIds;
+    SetNode lastNode = set_last(s);
+    if (lastNode != NULL)
+        return (Neighbor *)set_node_value(s, set_last(s));
+    return NULL;
+}
+
+Neighbor *Vertex::closest_neighbor(Set s)
+{
+    SetNode firstNode = set_first(s);
+    if (firstNode != NULL)
+        return (Neighbor *)set_node_value(s, set_first(s));
+    return NULL;
+}
+
+void Vertex::replaceNNSet(Set NewSet)
+{
+    set_destroy(NN);
+    NN = NewSet;
 }
 
 DataPoint *Vertex::getData() const
@@ -117,9 +126,11 @@ DataPoint *Vertex::getData() const
 
 Vertex::~Vertex()
 {
+    cout << "deleting nn, rnn and pnn" << endl;
     set_destroy(NN);
     set_destroy(RNN);
     set_destroy(potentialNN);
+    delete data;
 }
 
 Neighbor::Neighbor(int _id, double _distance)
@@ -128,8 +139,6 @@ Neighbor::Neighbor(int _id, double _distance)
     *id = _id;
     distance = new double;
     *distance = _distance;
-    flag = 0;
-    // cout << "Constructed neighbor no:" << _id << " with distance:" << _distance << " \n";
 }
 
 int *Neighbor::getid()
@@ -140,4 +149,10 @@ int *Neighbor::getid()
 double *Neighbor::getDistance()
 {
     return distance;
+}
+
+Neighbor::~Neighbor()
+{
+    delete id;
+    delete distance;
 }

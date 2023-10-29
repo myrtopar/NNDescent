@@ -13,8 +13,8 @@
 // Υλοποιούμε τον ADT Set μέσω AVL, οπότε το struct set είναι ένα AVL Δέντρο.
 struct set
 {
-    SetNode root;              // η ρίζα, NULL αν είναι κενό δέντρο
-    SetNode max;               // ο κομβος με το max value, για ευκολη εξαγωγη
+    SetNode root; // η ρίζα, NULL αν είναι κενό δέντρο
+    // SetNode max;               // ο κομβος με το max value, για ευκολη εξαγωγη
     int size;                  // μέγεθος, ώστε η set_size να είναι Ο(1)
     CompareFunc compare;       // η διάταξη
     DestroyFunc destroy_value; // Συνάρτηση που καταστρέφει ένα στοιχείο του set
@@ -545,4 +545,13 @@ void **set_to_array(Set set)
     return arr;
 }
 
+// αφαιρει ολα τα στοιχεια απο το set αλλα δεν καταστρεφει τη δομη, μπορει να ξαναχρησιμοποιηθει απλα ειναι αδειο
+void remove_all(Set set)
+{
+    node_destroy(set->root, set->destroy_value);
+
+    // επαναφερουμε το μεγεθος και τον δεικτη της ριζας στις αρχικες τους τιμες
+    set->root = NULL; // κενό δέντρο
+    set->size = 0;
+}
 // LCOV_EXCL_STOP

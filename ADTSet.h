@@ -84,3 +84,5 @@ Pointer set_node_value(Set set, SetNode node);
 SetNode set_find_node(Set set, Pointer value);
 
 void **set_to_array(Set set);
+
+void remove_all(Set set);
