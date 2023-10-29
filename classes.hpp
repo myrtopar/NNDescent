@@ -16,6 +16,7 @@ double compare_distances(Pointer a, Pointer b);
 int *create_int(int n);
 void delete_data(float **data, uint32_t N);
 void delete_int(void *a);
+void delete_neighbor(void *a);
 
 struct MyTuple
 {

@@ -90,7 +90,10 @@ int main()
     myGraph2.printReverseNeighbors();
     myGraph2.printPotentialNeighbors();
     myGraph2.updateGraph();
+
+    cout << " AFTER UPDATE " << endl;
     myGraph2.printNeighbors();
+    myGraph2.printReverseNeighbors();
 
     cout << "deleting data" << endl;
     delete_data(data, N);

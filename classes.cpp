@@ -126,7 +126,6 @@ DataPoint *Vertex::getData() const
 
 Vertex::~Vertex()
 {
-    cout << "deleting nn, rnn and pnn" << endl;
     set_destroy(NN);
     set_destroy(RNN);
     set_destroy(potentialNN);
