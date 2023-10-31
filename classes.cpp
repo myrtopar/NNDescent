@@ -119,6 +119,12 @@ void Vertex::replaceNNSet(Set NewSet)
     NN = NewSet;
 }
 
+void Vertex::replaceRNNSet(Set NewSet)
+{
+    set_destroy(RNN);
+    RNN = NewSet;
+}
+
 void Vertex::resetPNNSet()
 {
     set_destroy(potentialNN);

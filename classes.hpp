@@ -52,6 +52,7 @@ public:
     Neighbor *furthest_neighbor(Set s);
     Neighbor *closest_neighbor(Set s);
     void replaceNNSet(Set set);
+    void replaceRNNSet(Set set);
     void resetPNNSet();
 
     ~Vertex();

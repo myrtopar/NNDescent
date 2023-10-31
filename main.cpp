@@ -3,7 +3,7 @@
 
 using namespace std;
 
-#define K 2
+#define K 3
 
 typedef double (*DistanceFunction)(const float *, const float *, int);
 double calculateEuclideanDistance(const float *point1, const float *point2, int numDimensions)
@@ -28,7 +28,7 @@ double calculateEuclideanDistance(const float *point1, const float *point2, int 
 int main()
 {
 
-    const char *file_path = "00000020.bin";
+    const char *file_path = "00000050.bin";
     cout << "Reading Data: " << file_path << endl;
 
     ifstream ifs;
@@ -83,9 +83,13 @@ int main()
 
     KNNDescent<float, DistanceFunction> KNNGraph(K, N, num_dimensions, data, distanceFunction);
 
+    // KNNGraph.printNeighbors();
+    // KNNGraph.printReverseNeighbors();
+    // KNNGraph.calculatePotentialNewNeighbors();
     KNNGraph.createKNNGraph();
-    // cout << "BRUTE FORCE GRAPH" << endl;
-    // KNNBruteForce<float, DistanceFunction> myGraph(K, N, num_dimensions, data, distanceFunction);
+
+    cout << "BRUTE FORCE GRAPH" << endl;
+    KNNBruteForce<float, DistanceFunction> myGraph(K, N, num_dimensions, data, distanceFunction);
 
     delete_data(data, N);
 
