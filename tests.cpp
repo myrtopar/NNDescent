@@ -1,21 +1,11 @@
-#include <iostream>
+#include "acutest.h"
+#include "classes.hpp"
 #include "KNNGraph.hpp"
-
-using namespace std;
-
-#define K 2
 
 typedef double (*DistanceFunction)(const float *, const float *, int);
 double calculateEuclideanDistance(const float *point1, const float *point2, int numDimensions)
 {
-    // cout << "\nPoint1: \n";
-    // for (int i = 0; i < numDimensions; i++) {
-    //     cout << point1[i] << " ";
-    // }
-    // cout << "\nPoint2: \n";
-    // for (int i = 0; i < numDimensions; i++) {
-    //     cout << point2[i] << " ";
-    // }
+
     double sum = 0.0;
     for (int i = 0; i < numDimensions; i++)
     {
@@ -25,9 +15,9 @@ double calculateEuclideanDistance(const float *point1, const float *point2, int 
     return sqrt(sum);
 }
 
-int main()
+// test pou tha pairnei ta sets me ta neighbors kai elegxei an oi apostaseis einai ontws autes
+void test_distances(void)
 {
-
     const char *file_path = "00000020.bin";
     cout << "Reading Data: " << file_path << endl;
 
@@ -36,7 +26,7 @@ int main()
     if (!ifs.is_open())
     {
         cout << "Failed to open the file." << endl;
-        return 1;
+        return;
     }
 
     // Read the number of points (N)
@@ -64,30 +54,21 @@ int main()
     }
 
     ifs.close();
-    cout << "Finish Reading Data" << endl;
-
-    // print data
-    // for (uint32_t i = 0; i < N; i++)
-    // {
-    //     for (int d = 0; d < num_dimensions; d++)
-    //     {
-    //         cout << data[i][d] << ", ";
-    //     }
-    //     cout << "\n\n";
-    // }
 
     DistanceFunction distanceFunction = &calculateEuclideanDistance;
 
-    // cout << endl;
-    cout << "KNN DESCENT GRAPH" << endl;
+    KNNDescent<float, DistanceFunction> KNNGraph(2, N, num_dimensions, data, distanceFunction);
 
-    KNNDescent<float, DistanceFunction> KNNGraph(K, N, num_dimensions, data, distanceFunction);
-
-    KNNGraph.createKNNGraph();
-    // cout << "BRUTE FORCE GRAPH" << endl;
-    // KNNBruteForce<float, DistanceFunction> myGraph(K, N, num_dimensions, data, distanceFunction);
-
-    delete_data(data, N);
-
-    return 0;
+    Vertex **array = KNNGraph.vertexArray;
+    for (int i = 0; i < N; i++)
+    {
+        Vertex *v = array[i];
+        Set nn = v->getNeighbors();
+    }
 }
+
+// Λίστα με όλα τα tests προς εκτέλεση
+TEST_LIST = {
+    {"test distances", test_distances},
+    {NULL, NULL} // τερματίζουμε τη λίστα με NULL
+};

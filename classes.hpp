@@ -18,15 +18,6 @@ void delete_data(float **data, uint32_t N);
 void delete_int(void *a);
 void delete_neighbor(void *a);
 
-struct MyTuple
-{
-    int num1;
-    int num2;
-    int num3;
-};
-
-// typedef double (*DistanceFunction)(const void* a, const void* b);
-
 class DataPoint
 {
 private:
@@ -61,6 +52,7 @@ public:
     Neighbor *furthest_neighbor(Set s);
     Neighbor *closest_neighbor(Set s);
     void replaceNNSet(Set set);
+    void resetPNNSet();
 
     ~Vertex();
 };

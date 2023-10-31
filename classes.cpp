@@ -119,6 +119,12 @@ void Vertex::replaceNNSet(Set NewSet)
     NN = NewSet;
 }
 
+void Vertex::resetPNNSet()
+{
+    set_destroy(potentialNN);
+    potentialNN = set_create(compare_distances, delete_neighbor);
+}
+
 DataPoint *Vertex::getData() const
 {
     return data;
