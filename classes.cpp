@@ -48,6 +48,19 @@ double compare_distances(Pointer a, Pointer b)
     return *(int *)n1->getid() - *(int *)n2->getid();
 }
 
+Set copy_set(Set set)
+{
+    Set newSet = set_create(compare_distances, delete_neighbor);
+    for (SetNode node = set_first(set); node != SET_EOF; node = set_next(set, node))
+    {
+        Neighbor *n = (Neighbor *)set_node_value(set, node);
+        Neighbor *newNeighbor = new Neighbor(*(n->getid()), *(n->getDistance()));
+        set_insert(newSet, newNeighbor);
+    }
+
+    return newSet;
+}
+
 DataPoint::DataPoint(int _id, void *_datapoint) : id(_id), datapoint(_datapoint) {}
 
 int DataPoint::getId() const
@@ -97,7 +110,7 @@ Set Vertex::getPotentialNeighbors() const
     return potentialNN;
 }
 
-Neighbor *Vertex::furthest_neighbor(Set s)
+Neighbor *furthest_neighbor(Set s)
 {
     SetNode lastNode = set_last(s);
     if (lastNode != NULL)
@@ -105,7 +118,7 @@ Neighbor *Vertex::furthest_neighbor(Set s)
     return NULL;
 }
 
-Neighbor *Vertex::closest_neighbor(Set s)
+Neighbor *closest_neighbor(Set s)
 {
     SetNode firstNode = set_first(s);
     if (firstNode != NULL)
@@ -129,6 +142,12 @@ void Vertex::resetPNNSet()
 {
     set_destroy(potentialNN);
     potentialNN = set_create(compare_distances, delete_neighbor);
+}
+
+void Vertex::resetRNNSet()
+{
+    set_destroy(RNN);
+    RNN = set_create(compare_distances, delete_neighbor);
 }
 
 DataPoint *Vertex::getData() const

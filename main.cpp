@@ -3,7 +3,7 @@
 
 using namespace std;
 
-#define K 3
+#define K 4
 
 typedef double (*DistanceFunction)(const float *, const float *, int);
 double calculateEuclideanDistance(const float *point1, const float *point2, int numDimensions)

@@ -28,9 +28,9 @@ public:
     void printPotentialNeighbors() const;
     void calculatePotentialNewNeighbors();
     void updateGraph();
+    void restoreReverseNeighbors();
     void createKNNGraph();
 
-    void test_calculate_potential_new_neighbors();
     void test_update();
     ~KNNDescent();
 
@@ -130,7 +130,7 @@ void KNNBruteForce<DataType, DistanceFunction>::printNeighborsBF() const
             Neighbor *n = (Neighbor *)set_node_value(Neighbors, node);
             int *id = n->getid();
             double *dist = n->getDistance();
-            cout << "\e[32m" << *id << "\e[0m"
+            cout << "\e[1;32m" << *id << "\e[0m"
                  << "(" << *dist << "), ";
         }
         cout << endl;
@@ -349,6 +349,11 @@ void KNNDescent<DataType, DistanceFunction>::calculatePotentialNewNeighbors()
                 DataType *data2 = static_cast<DataType *>(v2->getData()->getAddr());
 
                 double dist = distance(data1, data2, dimensions);
+                Neighbor *furthest = furthest_neighbor(vertexArray[id1]->getNeighbors());
+                if (dist > *(furthest->getDistance()))
+                {
+                    continue;
+                }
                 // cout << " - distance: " << dist << endl;
                 // Neighbor *n = vertexArray[i]->closest_neighbor(neighbors);
                 // cout << "adding to " << id1 << " potential neighbor " << id2 << " with distance " << dist << endl;
@@ -440,12 +445,9 @@ void KNNDescent<DataType, DistanceFunction>::updateGraph()
     {
         cout << "\nvertex " << i << " has potential new neighbors: ";
 
-        //  will place the updated neighbors in this set and replace the old NN set with this one
-        Set newNeighborSet = set_create(compare_distances, delete_neighbor);
-
         Set nn = vertexArray[i]->getNeighbors();
         Set pn = vertexArray[i]->getPotentialNeighbors();
-        Set rn = vertexArray[i]->getReverseNeighbors();
+        Set newNeighborSet = copy_set(nn);
 
         for (SetNode node = set_first(pn); node != SET_EOF; node = set_next(pn, node))
         {
@@ -458,7 +460,6 @@ void KNNDescent<DataType, DistanceFunction>::updateGraph()
         cout << endl;
 
         // for every neighbor of the vertex
-        int j = 0;
         for (SetNode node = set_first(nn); node != SET_EOF; node = set_next(nn, node))
         // for (SetNode node = set_last(nn); node != SET_EOF; node = set_previous(nn, node))
         {
@@ -466,15 +467,12 @@ void KNNDescent<DataType, DistanceFunction>::updateGraph()
             int nid = *n->getid();
             double ndist = *n->getDistance();
 
-            Neighbor *p = vertexArray[i]->closest_neighbor(pn);
+            Neighbor *p = closest_neighbor(pn); // closest potential neighbor for update
 
             if (p == NULL) // if there is no closest potential neighbor
             {
                 // copy the neighbors from the old nn set to the new nn set
                 // cout << "no potential neighbors for update, copying neighbor with id " << *n->getid() << " to the new set" << endl;
-                Neighbor *newNeighbor = new Neighbor(nid, ndist);
-                set_insert(newNeighborSet, newNeighbor);
-                j++;
                 continue;
             }
 
@@ -488,51 +486,73 @@ void KNNDescent<DataType, DistanceFunction>::updateGraph()
 
                 // if the closest potential neighbor IS CLOSER than the existing neighbor, we make the potential neighbor a new one and add it to the new set
                 Neighbor *newNeighbor = new Neighbor(pid, pdist);
-                cout << "\e[34m replacing " << nid << " with " << pid << "\e[0m" << endl;
                 set_insert(newNeighborSet, newNeighbor);
+
+                Neighbor *furthest = furthest_neighbor(newNeighborSet);
+                cout << "\e[34m placing " << pid << " as a neighbor and removing the furthest neighbor " << *(furthest->getid()) << "\e[0m" << endl;
+                set_remove(newNeighborSet, furthest);
                 set_remove(pn, p); // remove the potential neighbor because it was chosen for update
-
-                // cout << "fixing reverse neighbors" << endl;
-                //  fix reverse neighbor set
-                //  remove the reverse neighbor that just got replaced
-                Neighbor *to_remove = new Neighbor(i, ndist);
-                // cout << "about to remove reverse neighbor " << i << " from reverse neighbors of " << nid << endl;
-                set_remove(vertexArray[nid]->getReverseNeighbors(), to_remove);
-                delete to_remove;
-
-                // insert the new reverse neighbor that occured from the neighbor update
-                // cout << "about to insert reverse neighbor " << i << " to the reverse neighbors of " << pid << endl;
-
-                // extracting the data
-                Vertex *v1 = vertexArray[pid];
-                DataType *data1 = static_cast<DataType *>(v1->getData()->getAddr());
-
-                Vertex *v2 = vertexArray[i];
-                DataType *data2 = static_cast<DataType *>(v2->getData()->getAddr());
-
-                double dist = distance(data1, data2, dimensions);
-
-                Neighbor *newReverseNeighbor = new Neighbor(i, dist);
-                vertexArray[pid]->addReverseNeighbor(newReverseNeighbor);
             }
-            else
-            {
-                cout << "\e[35m not replacing " << nid << " with " << pid << "\e[0m" << endl;
+            // else
+            // {
+            //     cout << "\e[35m not replacing " << nid << " with " << pid << "\e[0m" << endl;
 
-                // copy the neighbor from the old nn set to the new nn set
-                Neighbor *newNeighbor = new Neighbor(nid, ndist);
-                set_insert(newNeighborSet, newNeighbor);
-            }
-            j++;
+            //     // copy the neighbor from the old nn set to the new nn set
+            //     Neighbor *newNeighbor = new Neighbor(nid, ndist);
+            //     set_insert(newNeighborSet, newNeighbor);
+            // }
         }
         // cout << endl;
         vertexArray[i]->replaceNNSet(newNeighborSet);
         vertexArray[i]->resetPNNSet();
-        if (set_size(vertexArray[i]->getPotentialNeighbors()) != 0)
+        vertexArray[i]->resetRNNSet();
+
+        if ((set_size(vertexArray[i]->getPotentialNeighbors()) != 0) || (set_size(vertexArray[i]->getReverseNeighbors()) != 0))
         {
-            cout << "\e[1;31mABORT\e[0m" << endl;
+            cout << "\e[1;31mMUST ABORT\e[0m" << endl;
         }
     }
+}
+
+template <typename DataType, typename DistanceFunction>
+void KNNDescent<DataType, DistanceFunction>::restoreReverseNeighbors()
+{
+    //  fixing reverse neighbor sets
+
+    for (int i = 0; i < size; i++)
+    {
+        Set nn = vertexArray[i]->getNeighbors();
+        for (SetNode node = set_first(nn); node != SET_EOF; node = set_next(nn, node))
+        {
+            Neighbor *n = (Neighbor *)set_node_value(nn, node);
+            int nid = *n->getid();
+            double ndist = *n->getDistance();
+
+            Neighbor *newReverse = new Neighbor(i, ndist);
+            vertexArray[nid]->addReverseNeighbor(newReverse);
+        }
+    }
+
+    // //  remove the reverse neighbor that just got replaced
+    // Neighbor *to_remove = new Neighbor(nid, *(furthest->getDistance()));
+
+    // set_remove(vertexArray[nid]->getReverseNeighbors(), to_remove);
+    // delete to_remove;
+
+    // // insert the new reverse neighbor that occured from the neighbor update
+    // // cout << "about to insert reverse neighbor " << i << " to the reverse neighbors of " << pid << endl;
+
+    // // extracting the data
+    // Vertex *v1 = vertexArray[pid];
+    // DataType *data1 = static_cast<DataType *>(v1->getData()->getAddr());
+
+    // Vertex *v2 = vertexArray[i];
+    // DataType *data2 = static_cast<DataType *>(v2->getData()->getAddr());
+
+    // double dist = distance(data1, data2, dimensions);
+
+    // Neighbor *newReverseNeighbor = new Neighbor(i, dist);
+    // vertexArray[pid]->addReverseNeighbor(newReverseNeighbor);
 }
 
 template <typename DataType, typename DistanceFunction>
@@ -541,12 +561,13 @@ void KNNDescent<DataType, DistanceFunction>::createKNNGraph()
     printNeighbors();
     // printReverseNeighbors();
 
-    for (int i = 0; i < 7; i++)
+    for (int i = 0; i < 5; i++)
     {
         calculatePotentialNewNeighbors();
         // printPotentialNeighbors();
         test_update();
         updateGraph();
+        restoreReverseNeighbors();
         test_update();
         cout << endl
              << "after update " << i + 1 << endl;
@@ -670,9 +691,4 @@ void KNNDescent<DataType, DistanceFunction>::test_update()
     {
         cout << "\e[31mDid not pass the tests\e[0m" << endl;
     }
-}
-
-template <typename DataType, typename DistanceFunction>
-void KNNDescent<DataType, DistanceFunction>::test_calculate_potential_new_neighbors()
-{
 }

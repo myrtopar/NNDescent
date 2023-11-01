@@ -17,6 +17,9 @@ int *create_int(int n);
 void delete_data(float **data, uint32_t N);
 void delete_int(void *a);
 void delete_neighbor(void *a);
+Set copy_set(Set set);
+Neighbor *furthest_neighbor(Set s);
+Neighbor *closest_neighbor(Set s);
 
 class DataPoint
 {
@@ -49,11 +52,11 @@ public:
     Set getNeighbors() const;
     Set getReverseNeighbors() const;
     Set getPotentialNeighbors() const;
-    Neighbor *furthest_neighbor(Set s);
-    Neighbor *closest_neighbor(Set s);
+
     void replaceNNSet(Set set);
     void replaceRNNSet(Set set);
     void resetPNNSet();
+    void resetRNNSet();
 
     ~Vertex();
 };
