@@ -14,7 +14,7 @@ $(EXECUTABLE): $(SOURCES) $(HEADERS)
 	$(CXX) $(CXXFLAGS) $(SOURCES) -o $@
 
 run: $(EXECUTABLE)
-	./$(EXECUTABLE)
+	./$(EXECUTABLE) $(ARG)
 
 gdb: $(EXECUTABLE)
 	gdb ./$(EXECUTABLE)

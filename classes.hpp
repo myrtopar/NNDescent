@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <cmath>
 #include <string>
+#include <chrono>
 #include "ADTSet.h"
 
 using namespace std;
@@ -21,6 +22,7 @@ Set copy_set(Set set);
 Neighbor *furthest_neighbor(Set s);
 Neighbor *closest_neighbor(Set s);
 
+void compare_results(int **array1, int **array2, int N, int K);
 class DataPoint
 {
 private:

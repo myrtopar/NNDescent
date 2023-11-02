@@ -126,6 +126,32 @@ Neighbor *closest_neighbor(Set s)
     return NULL;
 }
 
+void compare_results(int **arrayBF, int **arrayNND, int N, int K)
+{
+    int count = 0;
+    for (int i = 0; i < N; i++)
+    {
+        for (int j = 0; j < K; j++)
+        {
+            int found = 0;
+            for (int k = 0; k < K; k++)
+            {
+                if (arrayNND[i][j] == arrayBF[i][k])
+                {
+                    found = 1;
+                    break;
+                }
+            }
+            if (found == 0)
+                count++;
+        }
+    }
+    int number_of_edegs = N * K;
+    double percent = (((double)number_of_edegs - (double)count) / (double)number_of_edegs) * 100;
+    cout << "\x1b[32msimilarity percent: " << percent << "%"
+         << "\x1b[0m" << endl;
+}
+
 void Vertex::replaceNNSet(Set NewSet)
 {
     set_destroy(NN);
