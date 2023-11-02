@@ -3,19 +3,9 @@
 
 using namespace std;
 
-#define K 2
-
 typedef double (*DistanceFunction)(const float *, const float *, int);
 double calculateEuclideanDistance(const float *point1, const float *point2, int numDimensions)
 {
-    // cout << "\nPoint1: \n";
-    // for (int i = 0; i < numDimensions; i++) {
-    //     cout << point1[i] << " ";
-    // }
-    // cout << "\nPoint2: \n";
-    // for (int i = 0; i < numDimensions; i++) {
-    //     cout << point2[i] << " ";
-    // }
     double sum = 0.0;
     for (int i = 0; i < numDimensions; i++)
     {
@@ -25,11 +15,13 @@ double calculateEuclideanDistance(const float *point1, const float *point2, int 
     return sqrt(sum);
 }
 
-int main()
+int main(int argc, char *argv[])
 {
 
-    const char *file_path = "00000020.bin";
-    cout << "Reading Data: " << file_path << endl;
+    int K = atoi(argv[1]);
+
+    // const char *file_path = "00005000-1.bin";
+    const char *file_path = "datasets/00000020.bin";
 
     ifstream ifs;
     ifs.open(file_path, ios::binary);
@@ -42,7 +34,6 @@ int main()
     // Read the number of points (N)
     uint32_t N;
     ifs.read((char *)&N, sizeof(uint32_t));
-    cout << "# of points: " << N << endl;
 
     const int num_dimensions = 100;
 
@@ -64,36 +55,51 @@ int main()
     }
 
     ifs.close();
-    cout << "Finish Reading Data" << endl;
-
-    // print data
-    // for (uint32_t i = 0; i < N; i++)
-    // {
-    //     for (int d = 0; d < num_dimensions; d++)
-    //     {
-    //         cout << data[i][d] << ", ";
-    //     }
-    //     cout << "\n\n";
-    // }
 
     DistanceFunction distanceFunction = &calculateEuclideanDistance;
 
-    // cout << "BRUTE FORCE GRAPH" << endl;
-    // KNNBruteForce<float, DistanceFunction> myGraph(K, N, num_dimensions, data, distanceFunction);
+    // auto start1 = std::chrono::high_resolution_clock::now();
+    // KNNDescent<float, DistanceFunction> KNNGraph(K, N, num_dimensions, data, distanceFunction);
+    // KNNGraph.createKNNGraph();
+    // auto stop1 = std::chrono::high_resolution_clock::now();
 
-    cout << endl;
-    cout << "KNN DESCENT GRAPH" << endl;
-    KNNDescent<float, DistanceFunction> myGraph2(K, N, num_dimensions, data, distanceFunction);
+    // auto duration1 = std::chrono::duration_cast<std::chrono::seconds>(stop1 - start1);
+    // cout << "KNNDescent: " << duration1.count() << " seconds" << endl;
 
-    myGraph2.calculatePotentialNewNeighbors();
-    myGraph2.printNeighbors();
-    myGraph2.printReverseNeighbors();
-    myGraph2.printPotentialNeighbors();
-    myGraph2.updateGraph();
-    myGraph2.printNeighbors();
+    auto start2 = std::chrono::high_resolution_clock::now();
+    KNNBruteForce<float, DistanceFunction> myGraph(K, N, num_dimensions, data, distanceFunction);
+    auto stop2 = std::chrono::high_resolution_clock::now();
 
-    cout << "deleting data" << endl;
+    auto duration2 = std::chrono::duration_cast<std::chrono::seconds>(stop2 - start2);
+
+    cout << "Brute Force: " << duration2.count() << " seconds" << endl;
+
+    // int **NND = KNNGraph.extract_neighbors_to_list();
+    // int **BF = myGraph.extract_neighbors_to_list();
+
+    // compare_results(BF, NND, (int)N, K);
+
     delete_data(data, N);
 
     return 0;
 }
+
+// cout << "Brute Force" << endl;
+// for (int i = 0; i < (int)N; i++)
+// {
+//     for (int j = 0; j < K; j++)
+//     {
+//         cout << BF[i][j] << ' ';
+//     }
+//     cout << '\n';
+// }
+
+// cout << "\nNNDescent" << endl;
+// for (int i = 0; i < (int)N; i++)
+// {
+//     for (int j = 0; j < K; j++)
+//     {
+//         cout << NND[i][j] << ' ';
+//     }
+//     cout << '\n';
+// }

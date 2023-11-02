@@ -554,4 +554,5 @@ void remove_all(Set set)
     set->root = NULL; // κενό δέντρο
     set->size = 0;
 }
+
 // LCOV_EXCL_STOP

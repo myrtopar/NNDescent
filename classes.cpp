@@ -48,19 +48,62 @@ double compare_distances(Pointer a, Pointer b)
     return *(int *)n1->getid() - *(int *)n2->getid();
 }
 
-DataPoint::DataPoint(int _id, void *_datapoint) : id(_id), datapoint(_datapoint) {}
-
-int DataPoint::getId() const
+Set copy_set(Set set)
 {
-    return id;
+    Set newSet = set_create(compare_distances, delete_neighbor);
+    for (SetNode node = set_first(set); node != SET_EOF; node = set_next(set, node))
+    {
+        Neighbor *n = (Neighbor *)set_node_value(set, node);
+        Neighbor *newNeighbor = new Neighbor(*(n->getid()), *(n->getDistance()));
+        set_insert(newSet, newNeighbor);
+    }
+
+    return newSet;
 }
 
-void *DataPoint::getAddr() const
+Neighbor *furthest_neighbor(Set s)
 {
-    return datapoint;
+    SetNode lastNode = set_last(s);
+    if (lastNode != NULL)
+        return (Neighbor *)set_node_value(s, set_last(s));
+    return NULL;
 }
 
-Vertex::Vertex(DataPoint *_data) : data(_data)
+Neighbor *closest_neighbor(Set s)
+{
+    SetNode firstNode = set_first(s);
+    if (firstNode != NULL)
+        return (Neighbor *)set_node_value(s, set_first(s));
+    return NULL;
+}
+
+void compare_results(int **arrayBF, int **arrayNND, int N, int K)
+{
+    int count = 0;
+    for (int i = 0; i < N; i++)
+    {
+        for (int j = 0; j < K; j++)
+        {
+            int found = 0;
+            for (int k = 0; k < K; k++)
+            {
+                if (arrayNND[i][j] == arrayBF[i][k])
+                {
+                    found = 1;
+                    break;
+                }
+            }
+            if (found == 0)
+                count++;
+        }
+    }
+    int number_of_edegs = N * K;
+    double percent = (((double)number_of_edegs - (double)count) / (double)number_of_edegs) * 100;
+    cout << "\x1b[32msimilarity percent: " << percent << "%"
+         << "\x1b[0m" << endl;
+}
+
+Vertex::Vertex(void *_data) : datapoint(_data)
 {
     NN = set_create(compare_distances, delete_neighbor);
     RNN = set_create(compare_distances, delete_neighbor);
@@ -97,40 +140,40 @@ Set Vertex::getPotentialNeighbors() const
     return potentialNN;
 }
 
-Neighbor *Vertex::furthest_neighbor(Set s)
-{
-    SetNode lastNode = set_last(s);
-    if (lastNode != NULL)
-        return (Neighbor *)set_node_value(s, set_last(s));
-    return NULL;
-}
-
-Neighbor *Vertex::closest_neighbor(Set s)
-{
-    SetNode firstNode = set_first(s);
-    if (firstNode != NULL)
-        return (Neighbor *)set_node_value(s, set_first(s));
-    return NULL;
-}
-
 void Vertex::replaceNNSet(Set NewSet)
 {
     set_destroy(NN);
     NN = NewSet;
 }
 
-DataPoint *Vertex::getData() const
+void Vertex::replaceRNNSet(Set NewSet)
 {
-    return data;
+    set_destroy(RNN);
+    RNN = NewSet;
+}
+
+void Vertex::resetPNNSet()
+{
+    set_destroy(potentialNN);
+    potentialNN = set_create(compare_distances, delete_neighbor);
+}
+
+void Vertex::resetRNNSet()
+{
+    set_destroy(RNN);
+    RNN = set_create(compare_distances, delete_neighbor);
+}
+
+void *Vertex::getData() const
+{
+    return datapoint;
 }
 
 Vertex::~Vertex()
 {
-    cout << "deleting nn, rnn and pnn" << endl;
     set_destroy(NN);
     set_destroy(RNN);
     set_destroy(potentialNN);
-    delete data;
 }
 
 Neighbor::Neighbor(int _id, double _distance)

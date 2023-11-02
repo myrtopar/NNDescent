@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <cmath>
 #include <string>
+#include <chrono>
 #include "ADTSet.h"
 
 using namespace std;
@@ -16,50 +17,36 @@ double compare_distances(Pointer a, Pointer b);
 int *create_int(int n);
 void delete_data(float **data, uint32_t N);
 void delete_int(void *a);
+void delete_neighbor(void *a);
+Set copy_set(Set set);
+Neighbor *furthest_neighbor(Set s);
+Neighbor *closest_neighbor(Set s);
 
-struct MyTuple
-{
-    int num1;
-    int num2;
-    int num3;
-};
-
-// typedef double (*DistanceFunction)(const void* a, const void* b);
-
-class DataPoint
-{
-private:
-    int id;
-    void *datapoint;
-
-public:
-    DataPoint(int _id, void *_datapoint);
-
-    int getId() const;
-    void *getAddr() const;
-};
+void compare_results(int **array1, int **array2, int N, int K);
 
 class Vertex
 {
 private:
-    DataPoint *data;
+    void *datapoint;
     Set NN;
     Set RNN;
     Set potentialNN;
 
 public:
-    Vertex(DataPoint *_data);
+    Vertex(void *_data);
 
-    DataPoint *getData() const;
+    void *getData() const;
     void addNeighbor(Neighbor *neighbor);
     void addReverseNeighbor(Neighbor *neighbor);
     void addPotentialNeighbor(Neighbor *neighbor);
     Set getNeighbors() const;
     Set getReverseNeighbors() const;
     Set getPotentialNeighbors() const;
-    Neighbor *furthest_neighbor(Set s);
-    Neighbor *closest_neighbor(Set s);
+
     void replaceNNSet(Set set);
+    void replaceRNNSet(Set set);
+    void resetPNNSet();
+    void resetRNNSet();
 
     ~Vertex();
 };
