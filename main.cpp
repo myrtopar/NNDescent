@@ -6,14 +6,6 @@ using namespace std;
 typedef double (*DistanceFunction)(const float *, const float *, int);
 double calculateEuclideanDistance(const float *point1, const float *point2, int numDimensions)
 {
-    // cout << "\nPoint1: \n";
-    // for (int i = 0; i < numDimensions; i++) {
-    //     cout << point1[i] << " ";
-    // }
-    // cout << "\nPoint2: \n";
-    // for (int i = 0; i < numDimensions; i++) {
-    //     cout << point2[i] << " ";
-    // }
     double sum = 0.0;
     for (int i = 0; i < numDimensions; i++)
     {
@@ -28,7 +20,8 @@ int main(int argc, char *argv[])
 
     int K = atoi(argv[1]);
 
-    const char *file_path = "00010000-1.bin";
+    // const char *file_path = "00005000-1.bin";
+    const char *file_path = "datasets/00000020.bin";
 
     ifstream ifs;
     ifs.open(file_path, ios::binary);
@@ -65,19 +58,19 @@ int main(int argc, char *argv[])
 
     DistanceFunction distanceFunction = &calculateEuclideanDistance;
 
-    // auto start = std::chrono::high_resolution_clock::now();
+    // auto start1 = std::chrono::high_resolution_clock::now();
     // KNNDescent<float, DistanceFunction> KNNGraph(K, N, num_dimensions, data, distanceFunction);
     // KNNGraph.createKNNGraph();
-    // auto stop = std::chrono::high_resolution_clock::now();
+    // auto stop1 = std::chrono::high_resolution_clock::now();
 
-    // auto duration1 = std::chrono::duration_cast<std::chrono::seconds>(stop - start);
+    // auto duration1 = std::chrono::duration_cast<std::chrono::seconds>(stop1 - start1);
     // cout << "KNNDescent: " << duration1.count() << " seconds" << endl;
 
-    auto start = std::chrono::high_resolution_clock::now();
+    auto start2 = std::chrono::high_resolution_clock::now();
     KNNBruteForce<float, DistanceFunction> myGraph(K, N, num_dimensions, data, distanceFunction);
-    auto stop = std::chrono::high_resolution_clock::now();
+    auto stop2 = std::chrono::high_resolution_clock::now();
 
-    auto duration2 = std::chrono::duration_cast<std::chrono::seconds>(stop - start);
+    auto duration2 = std::chrono::duration_cast<std::chrono::seconds>(stop2 - start2);
 
     cout << "Brute Force: " << duration2.count() << " seconds" << endl;
 

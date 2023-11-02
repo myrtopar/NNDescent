@@ -64,7 +64,7 @@ KNNBruteForce<DataType, DistanceFunction>::KNNBruteForce(int _K, int _size, int 
     vertexArray = new Vertex *[size];
     for (int i = 0; i < size; i++)
     {
-        vertexArray[i] = new Vertex(new DataPoint(i, data[i]));
+        vertexArray[i] = new Vertex(data[i]);
     }
     calculateKNNBF();
 }
@@ -72,7 +72,7 @@ KNNBruteForce<DataType, DistanceFunction>::KNNBruteForce(int _K, int _size, int 
 template <typename DataType, typename DistanceFunction>
 void KNNBruteForce<DataType, DistanceFunction>::calculateKNNBF() const
 {
-    // cout << "\nBrute Force on graph to create KNN..." << endl;
+    cout << "\nConstructing a graph of " << size << " elements, looking for " << K << " nearest neighbors" << endl;
 
     for (int i = 0; i < size; i++)
     {
@@ -85,8 +85,8 @@ void KNNBruteForce<DataType, DistanceFunction>::calculateKNNBF() const
 
             Vertex *nvertex = vertexArray[j];
 
-            DataType *vertexData = static_cast<DataType *>(vertex->getData()->getAddr());
-            DataType *neighborData = static_cast<DataType *>(nvertex->getData()->getAddr());
+            DataType *vertexData = static_cast<DataType *>(vertex->getData());
+            DataType *neighborData = static_cast<DataType *>(nvertex->getData());
 
             double dist = distance(vertexData, neighborData, dimensions);
 
@@ -171,11 +171,12 @@ KNNBruteForce<DataType, DistanceFunction>::~KNNBruteForce()
 {
     for (int i = 0; i < size; i++)
     {
-        delete vertexArray[i]; // Delete each Vertex
+        delete vertexArray[i];
     }
-    delete[] vertexArray; // Delete the array of Vertex pointers
+    delete[] vertexArray;
 }
 
+/////////////////KNNDESCENT
 template <typename DataType, typename DistanceFunction>
 KNNDescent<DataType, DistanceFunction>::KNNDescent(int _K, int _size, int _dimensions, DataType **data, DistanceFunction _metricFunction) : K(_K), size(_size), dimensions(_dimensions), distance(_metricFunction)
 {
@@ -183,7 +184,7 @@ KNNDescent<DataType, DistanceFunction>::KNNDescent(int _K, int _size, int _dimen
     vertexArray = new Vertex *[size];
     for (int i = 0; i < size; i++)
     {
-        vertexArray[i] = new Vertex(new DataPoint(i, data[i]));
+        vertexArray[i] = new Vertex(data[i]);
     }
     createRandomGraph(K, vertexArray);
 }
@@ -195,7 +196,6 @@ void KNNDescent<DataType, DistanceFunction>::createRandomGraph(int K, Vertex **v
     // Connect each vertex with K random neighbors
     for (int i = 0; i < size; i++)
     {
-        // cout << "Vertex " << i << endl;
         Set usedIds = set_create(compare_ints, delete_int);
 
         for (int j = 0; j < K; j++)
@@ -208,13 +208,12 @@ void KNNDescent<DataType, DistanceFunction>::createRandomGraph(int K, Vertex **v
             // if the random generated index is the vertex itself, we find another random neighbor
             // if the random generated index has already been chosen as one of the k random nearest neighbors previously, we find another random neighbor
 
-            // cout << j << " random index: " << randomNeighborIndex << endl;
             int *randomId = create_int(randomNeighborIndex);
             set_insert(usedIds, randomId);
 
             // calculate distance
-            DataType *vertexData = static_cast<DataType *>(vertexArray[i]->getData()->getAddr());
-            DataType *neighborData = static_cast<DataType *>(vertexArray[randomNeighborIndex]->getData()->getAddr());
+            DataType *vertexData = static_cast<DataType *>(vertexArray[i]->getData());
+            DataType *neighborData = static_cast<DataType *>(vertexArray[randomNeighborIndex]->getData());
 
             double dist = distance(vertexData, neighborData, dimensions);
 
@@ -225,8 +224,6 @@ void KNNDescent<DataType, DistanceFunction>::createRandomGraph(int K, Vertex **v
             vertexArray[randomNeighborIndex]->addReverseNeighbor(newReverseNeighbor);
         }
         set_destroy(usedIds);
-
-        // cout << endl;
     }
 }
 
@@ -243,14 +240,12 @@ KNNDescent<DataType, DistanceFunction>::~KNNDescent()
 template <typename DataType, typename DistanceFunction>
 void KNNDescent<DataType, DistanceFunction>::calculatePotentialNewNeighbors()
 {
-    // cout << "\nCalculate Potential New Neighbors..." << endl;
     // Every calculatePotentialNewNeighbors call calculates the potential neighbors of each vector and prepares the graph for updates.
-    // Following the "friend of a friend" logic (local join between the NN and RNN sets), this call counts as one iteration through the vertices of the graph
 
     // for every vertex, we find its potential neighbors for update
     for (int i = 0; i < size; i++)
     {
-        Vertex *vertex = vertexArray[i]; // node X
+        Vertex *vertex = vertexArray[i];
         // cout << "Vertex " << i << endl;
 
         Set neighbors = vertex->getNeighbors();
@@ -283,17 +278,18 @@ void KNNDescent<DataType, DistanceFunction>::calculatePotentialNewNeighbors()
         {
             for (int k = 0; k < arraysize; k++)
             {
-                if (idArray[j] == idArray[k])
+                int id1 = idArray[j];
+                int id2 = idArray[k];
+
+                if (id1 == id2)
                     continue;
 
-                int id1 = idArray[j]; // 6
-                int id2 = idArray[k]; // 19
                 // cout << "comparing " << id1 << " and " << id2;
                 Vertex *v1 = vertexArray[id1];
                 Vertex *v2 = vertexArray[id2];
 
-                DataType *data1 = static_cast<DataType *>(v1->getData()->getAddr());
-                DataType *data2 = static_cast<DataType *>(v2->getData()->getAddr());
+                DataType *data1 = static_cast<DataType *>(v1->getData());
+                DataType *data2 = static_cast<DataType *>(v2->getData());
 
                 double dist = distance(data1, data2, dimensions);
                 Neighbor *furthest = furthest_neighbor(vertexArray[id1]->getNeighbors());
@@ -329,16 +325,6 @@ void KNNDescent<DataType, DistanceFunction>::updateGraph()
     {
         Set nn = vertexArray[i]->getNeighbors();
         Set pn = vertexArray[i]->getPotentialNeighbors();
-        // cout << "\nvertex " << i << " has potential new neighbors: ";
-        // for (SetNode node = set_first(pn); node != SET_EOF; node = set_next(pn, node))
-        // {
-        //     Neighbor *n = (Neighbor *)set_node_value(pn, node);
-        //     int nid = *n->getid();
-        //     double ndist = *n->getDistance();
-        //     cout << "\e[1;32m" << nid << "\e[0m"
-        //          << "(" << ndist << "), ";
-        // }
-        // cout << endl;
 
         if (set_size(pn) == 0)
             continue;
@@ -349,16 +335,15 @@ void KNNDescent<DataType, DistanceFunction>::updateGraph()
         Neighbor *furthestNeighbor = furthest_neighbor(nn);
         double furthestNeighborDistance = *furthestNeighbor->getDistance();
 
+        // keep updating the neighbors while there is room for update: while there are potential neighbors that are closer to the node than the furthest current neighbor, do the update
         while (closestPotentialDistance < furthestNeighborDistance)
         {
-            // cout << "\x1b[34minserting potential neighbor " << *closestPotential->getid() << "(" << *closestPotential->getDistance() << ")"
-            //  << "\x1b[0m" << endl;
-            Neighbor *newNeighbor = new Neighbor(*closestPotential->getid(), *closestPotential->getDistance());
-            set_insert(nn, newNeighbor);
-            // cout << "furthest neighbor about to be removed is " << *furthestNeighbor->getid() << "(" << *furthestNeighbor->getDistance() << ")" << endl;
 
-            set_remove(nn, furthestNeighbor);
-            set_remove(pn, closestPotential);
+            Neighbor *newNeighbor = new Neighbor(*closestPotential->getid(), *closestPotential->getDistance());
+            set_insert(nn, newNeighbor); // placing the new neighbor in the set
+
+            set_remove(nn, furthestNeighbor); // removing the furthest one
+            set_remove(pn, closestPotential); // updating the potential neighbor set
 
             if (set_size(pn) == 0)
                 break;
@@ -370,8 +355,6 @@ void KNNDescent<DataType, DistanceFunction>::updateGraph()
             furthestNeighbor = furthest_neighbor(nn);
             furthestNeighborDistance = *furthestNeighbor->getDistance();
             int furthestNeighborId = *furthestNeighbor->getid();
-
-            // cout << "after update, furthest neighbor: " << furthestNeighborId << "(" << furthestNeighborDistance << ") and closest potential neighbor: " << closestPotentialId << "(" << closestPotentialDistance << ")" << endl;
         }
 
         vertexArray[i]->resetPNNSet();
@@ -446,8 +429,8 @@ void KNNDescent<DataType, DistanceFunction>::test_update()
             double dist1 = *(n->getDistance());
             Vertex *nv = vertexArray[id];
 
-            DataType *data1 = static_cast<DataType *>(v->getData()->getAddr());
-            DataType *data2 = static_cast<DataType *>(nv->getData()->getAddr());
+            DataType *data1 = static_cast<DataType *>(v->getData());
+            DataType *data2 = static_cast<DataType *>(nv->getData());
 
             double dist2 = distance(data1, data2, dimensions);
 
@@ -479,8 +462,8 @@ void KNNDescent<DataType, DistanceFunction>::test_update()
             double dist1 = *(n->getDistance());
             Vertex *nv = vertexArray[id];
 
-            DataType *data1 = static_cast<DataType *>(v->getData()->getAddr());
-            DataType *data2 = static_cast<DataType *>(nv->getData()->getAddr());
+            DataType *data1 = static_cast<DataType *>(v->getData());
+            DataType *data2 = static_cast<DataType *>(nv->getData());
 
             double dist2 = distance(data1, data2, dimensions);
 
@@ -512,8 +495,8 @@ void KNNDescent<DataType, DistanceFunction>::test_update()
             double dist1 = *(n->getDistance());
             Vertex *nv = vertexArray[id];
 
-            DataType *data1 = static_cast<DataType *>(v->getData()->getAddr());
-            DataType *data2 = static_cast<DataType *>(nv->getData()->getAddr());
+            DataType *data1 = static_cast<DataType *>(v->getData());
+            DataType *data2 = static_cast<DataType *>(nv->getData());
 
             double dist2 = distance(data1, data2, dimensions);
 

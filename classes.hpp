@@ -23,31 +23,19 @@ Neighbor *furthest_neighbor(Set s);
 Neighbor *closest_neighbor(Set s);
 
 void compare_results(int **array1, int **array2, int N, int K);
-class DataPoint
-{
-private:
-    int id;
-    void *datapoint;
-
-public:
-    DataPoint(int _id, void *_datapoint);
-
-    int getId() const;
-    void *getAddr() const;
-};
 
 class Vertex
 {
 private:
-    DataPoint *data;
+    void *datapoint;
     Set NN;
     Set RNN;
     Set potentialNN;
 
 public:
-    Vertex(DataPoint *_data);
+    Vertex(void *_data);
 
-    DataPoint *getData() const;
+    void *getData() const;
     void addNeighbor(Neighbor *neighbor);
     void addReverseNeighbor(Neighbor *neighbor);
     void addPotentialNeighbor(Neighbor *neighbor);

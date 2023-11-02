@@ -61,55 +61,6 @@ Set copy_set(Set set)
     return newSet;
 }
 
-DataPoint::DataPoint(int _id, void *_datapoint) : id(_id), datapoint(_datapoint) {}
-
-int DataPoint::getId() const
-{
-    return id;
-}
-
-void *DataPoint::getAddr() const
-{
-    return datapoint;
-}
-
-Vertex::Vertex(DataPoint *_data) : data(_data)
-{
-    NN = set_create(compare_distances, delete_neighbor);
-    RNN = set_create(compare_distances, delete_neighbor);
-    potentialNN = set_create(compare_distances, delete_neighbor);
-}
-
-void Vertex::addNeighbor(Neighbor *neighbor)
-{
-    set_insert(NN, neighbor);
-}
-
-void Vertex::addReverseNeighbor(Neighbor *neighbor)
-{
-    set_insert(RNN, neighbor);
-}
-
-void Vertex::addPotentialNeighbor(Neighbor *neighbor)
-{
-    set_insert(potentialNN, neighbor);
-}
-
-Set Vertex::getNeighbors() const
-{
-    return NN;
-}
-
-Set Vertex::getReverseNeighbors() const
-{
-    return RNN;
-}
-
-Set Vertex::getPotentialNeighbors() const
-{
-    return potentialNN;
-}
-
 Neighbor *furthest_neighbor(Set s)
 {
     SetNode lastNode = set_last(s);
@@ -152,6 +103,43 @@ void compare_results(int **arrayBF, int **arrayNND, int N, int K)
          << "\x1b[0m" << endl;
 }
 
+Vertex::Vertex(void *_data) : datapoint(_data)
+{
+    NN = set_create(compare_distances, delete_neighbor);
+    RNN = set_create(compare_distances, delete_neighbor);
+    potentialNN = set_create(compare_distances, delete_neighbor);
+}
+
+void Vertex::addNeighbor(Neighbor *neighbor)
+{
+    set_insert(NN, neighbor);
+}
+
+void Vertex::addReverseNeighbor(Neighbor *neighbor)
+{
+    set_insert(RNN, neighbor);
+}
+
+void Vertex::addPotentialNeighbor(Neighbor *neighbor)
+{
+    set_insert(potentialNN, neighbor);
+}
+
+Set Vertex::getNeighbors() const
+{
+    return NN;
+}
+
+Set Vertex::getReverseNeighbors() const
+{
+    return RNN;
+}
+
+Set Vertex::getPotentialNeighbors() const
+{
+    return potentialNN;
+}
+
 void Vertex::replaceNNSet(Set NewSet)
 {
     set_destroy(NN);
@@ -176,9 +164,9 @@ void Vertex::resetRNNSet()
     RNN = set_create(compare_distances, delete_neighbor);
 }
 
-DataPoint *Vertex::getData() const
+void *Vertex::getData() const
 {
-    return data;
+    return datapoint;
 }
 
 Vertex::~Vertex()
@@ -186,7 +174,6 @@ Vertex::~Vertex()
     set_destroy(NN);
     set_destroy(RNN);
     set_destroy(potentialNN);
-    delete data;
 }
 
 Neighbor::Neighbor(int _id, double _distance)
