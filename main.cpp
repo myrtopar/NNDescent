@@ -20,8 +20,8 @@ int main(int argc, char *argv[])
 
     int K = atoi(argv[1]);
 
-    // const char *file_path = "00005000-1.bin";
-    const char *file_path = "datasets/00000020.bin";
+    const char *file_path = "datasets/00002000-1.bin";
+    // const char *file_path = "datasets/00000020.bin";
 
     ifstream ifs;
     ifs.open(file_path, ios::binary);
@@ -58,13 +58,13 @@ int main(int argc, char *argv[])
 
     DistanceFunction distanceFunction = &calculateEuclideanDistance;
 
-    // auto start1 = std::chrono::high_resolution_clock::now();
-    // KNNDescent<float, DistanceFunction> KNNGraph(K, N, num_dimensions, data, distanceFunction);
-    // KNNGraph.createKNNGraph();
-    // auto stop1 = std::chrono::high_resolution_clock::now();
+    auto start1 = std::chrono::high_resolution_clock::now();
+    KNNDescent<float, DistanceFunction> KNNGraph(K, N, num_dimensions, data, distanceFunction);
+    KNNGraph.createKNNGraph();
+    auto stop1 = std::chrono::high_resolution_clock::now();
 
-    // auto duration1 = std::chrono::duration_cast<std::chrono::seconds>(stop1 - start1);
-    // cout << "KNNDescent: " << duration1.count() << " seconds" << endl;
+    auto duration1 = std::chrono::duration_cast<std::chrono::seconds>(stop1 - start1);
+    cout << "KNNDescent: " << duration1.count() << " seconds" << endl;
 
     auto start2 = std::chrono::high_resolution_clock::now();
     KNNBruteForce<float, DistanceFunction> myGraph(K, N, num_dimensions, data, distanceFunction);
@@ -74,10 +74,10 @@ int main(int argc, char *argv[])
 
     cout << "Brute Force: " << duration2.count() << " seconds" << endl;
 
-    // int **NND = KNNGraph.extract_neighbors_to_list();
-    // int **BF = myGraph.extract_neighbors_to_list();
+    int **NND = KNNGraph.extract_neighbors_to_list();
+    int **BF = myGraph.extract_neighbors_to_list();
 
-    // compare_results(BF, NND, (int)N, K);
+    compare_results(BF, NND, (int)N, K);
 
     delete_data(data, N);
 

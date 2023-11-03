@@ -27,8 +27,7 @@ public:
     void printReverseNeighbors() const;
     void printPotentialNeighbors() const;
     void calculatePotentialNewNeighbors();
-    void updateGraph();
-    void restoreReverseNeighbors();
+    int updateGraph();
     void createKNNGraph();
     int **extract_neighbors_to_list();
 
@@ -219,6 +218,7 @@ void KNNDescent<DataType, DistanceFunction>::createRandomGraph(int K, Vertex **v
 
             Neighbor *newNeighbor = new Neighbor(randomNeighborIndex, dist);
             vertexArray[i]->addNeighbor(newNeighbor);
+            // vertexArray[i]->addDistance(randomNeighborIndex, dist);
 
             Neighbor *newReverseNeighbor = new Neighbor(i, dist);
             vertexArray[randomNeighborIndex]->addReverseNeighbor(newReverseNeighbor);
@@ -226,6 +226,8 @@ void KNNDescent<DataType, DistanceFunction>::createRandomGraph(int K, Vertex **v
         set_destroy(usedIds);
     }
 }
+
+// 	for (MapNode node = map_first(map); node != MAP_EOF; node = map_next(map, node)) {
 
 template <typename DataType, typename DistanceFunction>
 KNNDescent<DataType, DistanceFunction>::~KNNDescent()
@@ -288,10 +290,22 @@ void KNNDescent<DataType, DistanceFunction>::calculatePotentialNewNeighbors()
                 Vertex *v1 = vertexArray[id1];
                 Vertex *v2 = vertexArray[id2];
 
+                double dist;
+                // void *value = map_find(v1->getDistances(), &id2);
+                // if (value != NULL)
+                // {
+                //     // cout << "distance from " << id1 << " to " << id2 << " is already calculated: " << *(double *)value << endl;
+                //     dist = *(double *)value;
+                // }
+                // else
+                // {
+
                 DataType *data1 = static_cast<DataType *>(v1->getData());
                 DataType *data2 = static_cast<DataType *>(v2->getData());
 
-                double dist = distance(data1, data2, dimensions);
+                dist = distance(data1, data2, dimensions);
+                //}
+
                 Neighbor *furthest = furthest_neighbor(vertexArray[id1]->getNeighbors());
                 if (dist > *(furthest->getDistance()))
                 {
@@ -317,8 +331,9 @@ void KNNDescent<DataType, DistanceFunction>::calculatePotentialNewNeighbors()
 }
 
 template <typename DataType, typename DistanceFunction>
-void KNNDescent<DataType, DistanceFunction>::updateGraph()
+int KNNDescent<DataType, DistanceFunction>::updateGraph()
 {
+    int updated = 0;
 
     // for every vertex in the graph
     for (int i = 0; i < size; i++)
@@ -326,7 +341,7 @@ void KNNDescent<DataType, DistanceFunction>::updateGraph()
         Set nn = vertexArray[i]->getNeighbors();
         Set pn = vertexArray[i]->getPotentialNeighbors();
 
-        if (set_size(pn) == 0)
+        if (set_size(pn) == 0) // if there are no potential neighbors for update, move to the next vertex
             continue;
 
         Neighbor *closestPotential = closest_neighbor(pn);
@@ -341,6 +356,7 @@ void KNNDescent<DataType, DistanceFunction>::updateGraph()
 
             Neighbor *newNeighbor = new Neighbor(*closestPotential->getid(), *closestPotential->getDistance());
             set_insert(nn, newNeighbor); // placing the new neighbor in the set
+            updated++;
 
             set_remove(nn, furthestNeighbor); // removing the furthest one
             set_remove(pn, closestPotential); // updating the potential neighbor set
@@ -364,17 +380,8 @@ void KNNDescent<DataType, DistanceFunction>::updateGraph()
         {
             cout << "\e[1;31mMUST ABORT\e[0m" << endl;
         }
-    }
-}
 
-template <typename DataType, typename DistanceFunction>
-void KNNDescent<DataType, DistanceFunction>::restoreReverseNeighbors()
-{
-    //  fixing reverse neighbor sets
-
-    for (int i = 0; i < size; i++)
-    {
-        Set nn = vertexArray[i]->getNeighbors();
+        // RESTORE THE REVERSE NEIGBORS OF THE VERTEX
         for (SetNode node = set_first(nn); node != SET_EOF; node = set_next(nn, node))
         {
             Neighbor *n = (Neighbor *)set_node_value(nn, node);
@@ -385,26 +392,20 @@ void KNNDescent<DataType, DistanceFunction>::restoreReverseNeighbors()
             vertexArray[nid]->addReverseNeighbor(newReverse);
         }
     }
+
+    return updated;
 }
 
 template <typename DataType, typename DistanceFunction>
 void KNNDescent<DataType, DistanceFunction>::createKNNGraph()
 {
 
-    for (int i = 0; i < 5; i++)
+    for (int i = 0; i < 10; i++)
     {
         calculatePotentialNewNeighbors();
-        // printPotentialNeighbors();
-        // test_update();
-        updateGraph();
-        restoreReverseNeighbors();
-        // test_update();
-        // cout << endl
-        //<< "after update " << i + 1 << endl;
-        // printNeighbors();
+        if (updateGraph() == 0)
+            break;
     }
-
-    // cout << "THE END" << endl;
 }
 
 template <typename DataType, typename DistanceFunction>
