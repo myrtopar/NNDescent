@@ -3,127 +3,103 @@
 
 using namespace std;
 
-#define K 2
-
-
-// a simple euclidean distance calculator for 3D tuples
-// user can pass any other distance calctulator function
-// double calculateEuclideanDistance(const MyTuple& point1, const MyTuple& point2) {
-//     double dx = point2.num1 - point1.num1;
-//     double dy = point2.num2 - point1.num2;
-//     double dz = point2.num3 - point1.num3;
-
-//     // cout << "dx, dy, dz = " << dx << " " << dy << " " << dz << " \n";
-//     return std::sqrt(dx * dx + dy * dy + dz * dz);
-// }
-
-typedef double (*DistanceFunction)(const float*, const float*, int);
-double calculateEuclideanDistance(const float* point1, const float* point2, int numDimensions) {
-    // cout << "\nPoint1: \n";
-    // for (int i = 0; i < numDimensions; i++) {
-    //     cout << point1[i] << " ";
-    // }
-    // cout << "\nPoint2: \n";
-    // for (int i = 0; i < numDimensions; i++) {
-    //     cout << point2[i] << " ";
-    // }
-
+typedef double (*DistanceFunction)(const float *, const float *, int);
+double calculateEuclideanDistance(const float *point1, const float *point2, int numDimensions)
+{
     double sum = 0.0;
-    for (int i = 0; i < numDimensions; i++) {
+    for (int i = 0; i < numDimensions; i++)
+    {
         double diff = point1[i] - point2[i];
         sum += diff * diff;
     }
     return sqrt(sum);
 }
 
-int *create_int(int value)
+int main(int argc, char *argv[])
 {
-    int *p = new int;
-    *p = value;
-    return p;
-}
 
+    int K = atoi(argv[1]);
 
-int main() {
-
-    const char* file_path = "datasets/00000020.bin";
-    cout << "Reading Data: " << file_path << endl;
+    const char *file_path = "datasets/00002000-1.bin";
+    // const char *file_path = "datasets/00000020.bin";
 
     ifstream ifs;
     ifs.open(file_path, ios::binary);
-    if (!ifs.is_open()) {
+    if (!ifs.is_open())
+    {
         cout << "Failed to open the file." << endl;
         return 1;
     }
 
     // Read the number of points (N)
     uint32_t N;
-    ifs.read((char*)&N, sizeof(uint32_t));
-    cout << "# of points: " << N << endl;
+    ifs.read((char *)&N, sizeof(uint32_t));
 
     const int num_dimensions = 100;
 
     // Create arrays for storing the data
-    float** data = new float*[N];
-    for (uint32_t i = 0; i < N; i++) {
+    float **data = new float *[N];
+    for (uint32_t i = 0; i < N; i++)
+    {
         data[i] = new float[num_dimensions];
     }
 
-    for (uint32_t i = 0; i < N; i++) {
-        for (int d = 0; d < num_dimensions; d++) {
+    for (uint32_t i = 0; i < N; i++)
+    {
+        for (int d = 0; d < num_dimensions; d++)
+        {
             float value;
-            ifs.read((char*)(&value), sizeof(float));
+            ifs.read((char *)(&value), sizeof(float));
             data[i][d] = value;
         }
     }
 
     ifs.close();
-    cout << "Finish Reading Data" << endl;
-
-    // print data
-    for (uint32_t i = 0; i < N; i++) {
-        for (int d = 0; d < num_dimensions; d++) {
-            cout << data[i][d] << ", ";
-        }
-        cout << "\n\n";
-    }
 
     DistanceFunction distanceFunction = &calculateEuclideanDistance;
-    KNNGraphBruteForce<float, DistanceFunction> myGraph(K, N, num_dimensions, data, distanceFunction);
-    
-    for (uint32_t i = 0; i < N; i++) {
-        delete[] data[i];
-    }
-    delete[] data;
 
+    auto start1 = std::chrono::high_resolution_clock::now();
+    KNNDescent<float, DistanceFunction> KNNGraph(K, N, num_dimensions, data, distanceFunction);
+    KNNGraph.createKNNGraph();
+    auto stop1 = std::chrono::high_resolution_clock::now();
 
+    auto duration1 = std::chrono::duration_cast<std::chrono::seconds>(stop1 - start1);
+    cout << "KNNDescent: " << duration1.count() << " seconds" << endl;
 
+    auto start2 = std::chrono::high_resolution_clock::now();
+    KNNBruteForce<float, DistanceFunction> myGraph(K, N, num_dimensions, data, distanceFunction);
+    auto stop2 = std::chrono::high_resolution_clock::now();
 
-    // int arraySize = 10;
+    auto duration2 = std::chrono::duration_cast<std::chrono::seconds>(stop2 - start2);
 
-    // // Create an array of tuples (x, y, z)
-    // MyTuple myTuples[arraySize];
+    cout << "Brute Force: " << duration2.count() << " seconds" << endl;
 
-    // for (int i = 0; i < arraySize; ++i) {
-    //     myTuples[i].num1 = i + 1;
-    //     myTuples[i].num2 = 2 * (i + 1);
-    //     myTuples[i].num3 = 3 * (i + 1);
-    // }
+    int **NND = KNNGraph.extract_neighbors_to_list();
+    int **BF = myGraph.extract_neighbors_to_list();
 
-    // for (int i = 0; i < arraySize; ++i) {
-    //     std::cout << "Tuple " << i << ": (" << myTuples[i].num1 << ", " << myTuples[i].num2 << ", " << myTuples[i].num3 << ")\n";
-    // }
+    compare_results(BF, NND, (int)N, K);
 
-    // KNNGraphBruteForce<MyTuple, double (*)(const MyTuple&, const MyTuple&)> myGraph(K, arraySize, 2, myTuples, calculateEuclideanDistance);
-    // KNNGraph<MyTuple, double (*)(const MyTuple&, const MyTuple&)> myGraph(K, arraySize, myTuples, calculateEuclideanDistance);
-    // myGraph.printNeighbors();
-    
-
-    // KNNGraph<MyTuple, double (*)(const MyTuple &, const MyTuple &)> myGraph(K, arraySize, myTuples, calculateEuclideanDistance);
-    // myGraph.printNeighbors();
-    // myGraph.calculateKNN();
-    // myGraph.printPotentialNeighbors();
+    delete_data(data, N);
 
     return 0;
 }
 
+// cout << "Brute Force" << endl;
+// for (int i = 0; i < (int)N; i++)
+// {
+//     for (int j = 0; j < K; j++)
+//     {
+//         cout << BF[i][j] << ' ';
+//     }
+//     cout << '\n';
+// }
+
+// cout << "\nNNDescent" << endl;
+// for (int i = 0; i < (int)N; i++)
+// {
+//     for (int j = 0; j < K; j++)
+//     {
+//         cout << NND[i][j] << ' ';
+//     }
+//     cout << '\n';
+// }

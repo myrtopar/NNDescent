@@ -5,7 +5,6 @@
 /////////////////////////////////////////////////////////////////////////////
 
 #include <stdlib.h>
-#include <stdio.h>
 
 #include "ADTMap.h"
 
@@ -63,9 +62,7 @@ Map map_create(CompareFunc compare, DestroyFunc destroy_key, DestroyFunc destroy
 
     map->size = 0;
     map->deleted = 0;
-
     map->compare = compare;
-
     map->destroy_key = destroy_key;
     map->destroy_value = destroy_value;
 
@@ -128,6 +125,7 @@ void map_insert(Map map, Pointer key, Pointer value)
          map->array[pos].state != EMPTY;                // αν φτάσουμε σε EMPTY σταματάμε
          pos = (pos + 1) % map->capacity)
     { // linear probing, γυρνώντας στην αρχή όταν φτάσουμε στη τέλος του πίνακα
+
         if (map->array[pos].state == DELETED)
         {
             // Βρήκαμε DELETED θέση. Θα μπορούσαμε να βάλουμε το ζευγάρι εδώ, αλλά _μόνο_ αν το key δεν υπάρχει ήδη.
@@ -141,8 +139,7 @@ void map_insert(Map map, Pointer key, Pointer value)
             node = &map->array[pos]; // βρήκαμε το key, το ζευγάρι θα μπει αναγκαστικά εδώ (ακόμα και αν είχαμε προηγουμένως βρει DELETED θέση)
             break;                   // και δε χρειάζεται να συνεχίζουμε την αναζήτηση.
         }
-    }    
-
+    }
     if (node == NULL) // αν βρήκαμε EMPTY (όχι DELETED, ούτε το key), το node δεν έχει πάρει ακόμα τιμή
         node = &map->array[pos];
 
@@ -313,9 +310,8 @@ uint hash_string(Pointer value)
 
 uint hash_int(Pointer value)
 {
-    return *(int*)value;
+    return *(int *)value;
 }
-
 
 uint hash_pointer(Pointer value)
 {

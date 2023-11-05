@@ -6,14 +6,15 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include <stdio.h>
 
 #include "ADTSet.h"
 
 // Υλοποιούμε τον ADT Set μέσω AVL, οπότε το struct set είναι ένα AVL Δέντρο.
 struct set
 {
-    SetNode root;              // η ρίζα, NULL αν είναι κενό δέντρο
-    SetNode max;               // ο κομβος με το max value, για ευκολη εξαγωγη
+    SetNode root; // η ρίζα, NULL αν είναι κενό δέντρο
+    // SetNode max;               // ο κομβος με το max value, για ευκολη εξαγωγη
     int size;                  // μέγεθος, ώστε η set_size να είναι Ο(1)
     CompareFunc compare;       // η διάταξη
     DestroyFunc destroy_value; // Συνάρτηση που καταστρέφει ένα στοιχείο του set
@@ -395,7 +396,7 @@ Set set_create(CompareFunc compare, DestroyFunc destroy_value)
 {
     // assert(compare != NULL); // LCOV_EXCL_LINE
 
-    // δημιουργούμε το stuct
+    // δημιουργούμε το struct
     Set set = (Set)malloc(sizeof(*set));
     set->root = NULL; // κενό δέντρο
     set->size = 0;
@@ -544,18 +545,14 @@ void **set_to_array(Set set)
     return arr;
 }
 
-// void **pqueue_to_array(PriorityQueue pqueue)
-// {
-//     int size = pqueue_size(pqueue);
-//     void **arr = (void **)malloc(size * sizeof(void *));
-//     int i = 0;
-//     for (VectorNode node = vector_last(pqueue->vector); node != VECTOR_BOF; node = vector_previous(pqueue->vector, node))
-//     {
-//         arr[i] = vector_get_at(pqueue->vector, i);
-//         i++;
-//     }
+// αφαιρει ολα τα στοιχεια απο το set αλλα δεν καταστρεφει τη δομη, μπορει να ξαναχρησιμοποιηθει απλα ειναι αδειο
+void remove_all(Set set)
+{
+    node_destroy(set->root, set->destroy_value);
 
-//     return arr;
-// }
+    // επαναφερουμε το μεγεθος και τον δεικτη της ριζας στις αρχικες τους τιμες
+    set->root = NULL; // κενό δέντρο
+    set->size = 0;
+}
 
 // LCOV_EXCL_STOP
