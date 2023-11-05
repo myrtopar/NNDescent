@@ -17,7 +17,7 @@ jobs:
       run: chmod +x my_program
 
     - name: make run
-      run: make run CFLAGS=-fPIC ARGS=40
+      run: make tests CFLAGS=-fPIC 
 
     - name: make valgrind
       if: matrix.os == 'ubuntu-20.04'
