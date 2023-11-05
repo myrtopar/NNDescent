@@ -376,11 +376,6 @@ int KNNDescent<DataType, DistanceFunction>::updateGraph()
         vertexArray[i]->resetPNNSet();
         vertexArray[i]->resetRNNSet();
 
-        if ((set_size(vertexArray[i]->getPotentialNeighbors()) != 0) || (set_size(vertexArray[i]->getReverseNeighbors()) != 0))
-        {
-            cout << "\e[1;31mMUST ABORT\e[0m" << endl;
-        }
-
         // RESTORE THE REVERSE NEIGBORS OF THE VERTEX
         for (SetNode node = set_first(nn); node != SET_EOF; node = set_next(nn, node))
         {
