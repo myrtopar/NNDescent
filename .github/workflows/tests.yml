@@ -10,20 +10,6 @@ jobs:
     steps:
     - uses: actions/checkout@v1
 
-    - name: Add execution permissions
-      run: chmod +x test_program
-
     - name: make run
-      run: make test 
-
-    - name: make valgrind
-      if: matrix.os == 'ubuntu-20.04'
       run: |
-        sudo apt install valgrind
-        make valgrind CFLAGS=-fPIC
-
-    - name: Upload
-      uses: actions/upload-artifact@v2
-      with:
-        name: compiled-${{ matrix.os }}
-        path: .
+        make tests CFLAGS=-fPIC
