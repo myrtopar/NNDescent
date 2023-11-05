@@ -12,4 +12,4 @@ jobs:
 
     - name: make run
       run: |
-        make tests CFLAGS=-fPIC
+        make test CFLAGS=-fPIC
