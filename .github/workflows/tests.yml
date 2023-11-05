@@ -2,26 +2,27 @@ name: tests
 on: [push, pull_request]
 
 jobs:
-  build-deploy:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-20.04, macos-latest, windows-latest]
-
+  build:
+    runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v1
+      - name: Set up Environment
+        env:
+          LIBRARY_PATH: '/mnt/c/Users/danai/Documents/project2023'
+        run: |
+          echo "##[add-path]$env:LIBRARY_PATH"
+          # The rest of your build steps
 
-    - name: List files in the directory
-      run: ls
-
-    - name: Add execution permissions
-      run: chmod +x test_program
-
-    - name: make run
-      run: make tests 
-
-    - name: Upload
-      uses: actions/upload-artifact@v2
-      with:
-        name: compiled-${{ matrix.os }}
-        path: .
+      - name: List files in the directory
+        run: ls
+  
+      - name: Add execution permissions
+        run: chmod +x test_program
+  
+      - name: make run
+        run: make tests CFLAGS=-fPIC 
+  
+      - name: Upload
+        uses: actions/upload-artifact@v2
+        with:
+          name: compiled-${{ matrix.os }}
+          path: .
