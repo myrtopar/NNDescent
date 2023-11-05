@@ -10,6 +10,12 @@ jobs:
     steps:
     - uses: actions/checkout@v1
 
+    - name: List files in the directory
+      run: ls
+
+    - name: Add execution permissions
+      run: chmod +x my_program
+
     - name: make run
       run: make run CFLAGS=-fPIC ARGS=40
 
