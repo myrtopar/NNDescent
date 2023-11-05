@@ -8,8 +8,11 @@ jobs:
       matrix:
         os: [ubuntu-20.04]
     steps:
-    - uses: actions/checkout@v1
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-    - name: make run
-      run: |
-        make test CFLAGS=-fPIC
+    - name: Change file permissions
+      run: chmod +r tests.yml
+
+    - name: Build and run tests
+      run: make test CFLAGS=-fPIC
