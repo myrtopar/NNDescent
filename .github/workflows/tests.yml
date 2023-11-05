@@ -10,6 +10,9 @@ jobs:
     steps:
     - uses: actions/checkout@v1
 
+    - name: Add execution permissions
+      run: chmod +x test_program
+
     - name: make run
       run: make test 
 
