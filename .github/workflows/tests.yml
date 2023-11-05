@@ -17,7 +17,7 @@ jobs:
       run: chmod +x test_program
 
     - name: make run
-      run: make run CFLAGS=-fPIC ARGS=40
+      run: make tests CFLAGS=-fPIC 
 
     - name: Upload
       uses: actions/upload-artifact@v2
