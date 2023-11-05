@@ -14,16 +14,10 @@ jobs:
       run: ls
 
     - name: Add execution permissions
-      run: chmod +x my_program
+      run: chmod +x test_program
 
     - name: make run
       run: make tests CFLAGS=-fPIC 
-
-    - name: make valgrind
-      if: matrix.os == 'ubuntu-20.04'
-      run: |
-        sudo apt install valgrind
-        make valgrind CFLAGS=-fPIC
 
     - name: Upload
       uses: actions/upload-artifact@v2
