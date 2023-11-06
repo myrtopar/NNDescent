@@ -392,7 +392,7 @@ int **KNNDescent<DataType, DistanceFunction>::extract_neighbors_to_list()
     for (int i = 0; i < size; i++)
     {
         neighbors[i] = new int[K];
-    } // row col
+    }
 
     for (int i = 0; i < size; i++)
     {
