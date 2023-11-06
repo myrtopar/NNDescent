@@ -98,7 +98,7 @@ void compare_results(int **arrayBF, int **arrayNND, int N, int K)
     }
     int number_of_edegs = N * K;
     double percent = (((double)number_of_edegs - (double)count) / (double)number_of_edegs) * 100;
-    cout << "\x1b[32msimilarity percent: " << percent << "%"
+    cout << "\x1b[32msimilarity percentage: " << percent << "%"
          << "\x1b[0m" << endl;
 
     for (int i = 0; i < N; i++)
