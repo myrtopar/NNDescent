@@ -1,4 +1,5 @@
 name: tests
+
 on: [push, pull_request]
 
 jobs:
@@ -6,13 +7,14 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-20.04]
+        os: [ubuntu-latest]
+
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v1
 
     - name: Change file permissions
-      run: chmod +r tests.yml
+      run: chmod +r .github/workflows/tests.yml
 
     - name: Build and run tests
       run: make test CFLAGS=-fPIC
