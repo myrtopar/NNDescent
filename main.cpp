@@ -20,8 +20,7 @@ int main(int argc, char *argv[])
 
     int K = atoi(argv[1]);
 
-
-    const char *file_path = "datasets/00002000-1.bin";
+    const char *file_path = "datasets/00000200-1.bin";
 
     ifstream ifs;
     ifs.open(file_path, ios::binary);
@@ -81,8 +80,6 @@ int main(int argc, char *argv[])
     int **NND = KNNGraph.extract_neighbors_to_list();
     int **BF = myGraph.extract_neighbors_to_list();
     compare_results(BF, NND, (int)N, K);
-
-    // KNNGraph.NNSinglePoint(data[19]);
 
     delete_data(data, N);
 

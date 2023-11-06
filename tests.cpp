@@ -2,7 +2,7 @@
 #include "classes.hpp"
 #include "KNNGraph.hpp"
 
-const char *file_path = "datasets/00000050.bin";
+const char *file_path = "datasets/00000200.bin";
 uint32_t N;
 const int num_dimensions = 100;
 float **data;
@@ -20,7 +20,6 @@ double calculateEuclideanDistance(const float *point1, const float *point2, int 
     }
     return sqrt(sum);
 }
-
 
 void start_program() {
     cout << "\nReading Data: " << file_path << endl;
@@ -58,7 +57,6 @@ void start_program() {
     }
 
     ifs.close();
-
 }
 
 
@@ -73,7 +71,7 @@ void end_program(void)
 }
 
 
-// test pou tha pairnei ta sets me ta neighbors kai elegxei an oi apostaseis einai ontws autes
+// Tests if the neighbor sets hold the correct distaces
 void test_distances(void)
 {
     start_program();
@@ -151,20 +149,19 @@ void test_distances(void)
 
         if (KNNGraph.updateGraph() == 0)
             break;
-
     }
-    
-   
+
+    end_program();    
 }
 
 
 
-
+// Test if the potential neighbors set has been cleaned up, after updateGraph has been called 
 void test_potential() {
+
     start_program();
     
     DistanceFunction distanceFunction = &calculateEuclideanDistance;
-
     KNNDescent<float, DistanceFunction> KNNGraph(10, N, num_dimensions, data, distanceFunction);
 
     for (int i = 0; i < 10; i++) {
@@ -182,10 +179,8 @@ void test_potential() {
 }
 
 
-
-// Λίστα με όλα τα tests προς εκτέλεση
 TEST_LIST = {
     {"test distances", test_distances},
-    {"test_a", test_potential},
-    {NULL, NULL} // τερματίζουμε τη λίστα με NULL
+    {"test_potential", test_potential},
+    {NULL, NULL} 
 };
