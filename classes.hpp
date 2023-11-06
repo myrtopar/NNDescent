@@ -44,9 +44,7 @@ public:
     Set getPotentialNeighbors() const;
 
     void replaceNNSet(Set set);
-    void replaceRNNSet(Set set);
     void resetPNNSet();
-    void resetRNNSet();
 
     ~Vertex();
 };
