@@ -21,6 +21,7 @@ double calculateEuclideanDistance(const float *point1, const float *point2, int 
     return sqrt(sum);
 }
 
+
 void start_program() {
     cout << "\nReading Data: " << file_path << endl;
 
