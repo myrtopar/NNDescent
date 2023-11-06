@@ -66,7 +66,6 @@ int main(int argc, char *argv[])
     auto duration1 = std::chrono::duration_cast<std::chrono::seconds>(stop1 - start1);
     cout << "KNNDescent: " << duration1.count() << " seconds" << endl;
 
-
     // brute force method
     auto start2 = std::chrono::high_resolution_clock::now();
     KNNBruteForce<float, DistanceFunction> myGraph(K, N, num_dimensions, data, distanceFunction);
@@ -74,7 +73,6 @@ int main(int argc, char *argv[])
 
     auto duration2 = std::chrono::duration_cast<std::chrono::seconds>(stop2 - start2);
     cout << "Brute Force: " << duration2.count() << " seconds" << endl;
-
 
     // extract knn descent and brute force method results into a list and compare them, to find similarity percentage
     int **NND = KNNGraph.extract_neighbors_to_list();

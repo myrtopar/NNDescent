@@ -217,7 +217,6 @@ void KNNDescent<DataType, DistanceFunction>::createRandomGraph(int K, Vertex **v
 
             Neighbor *newNeighbor = new Neighbor(randomNeighborIndex, dist);
             vertexArray[i]->addNeighbor(newNeighbor);
-            // vertexArray[i]->addDistance(randomNeighborIndex, dist);
 
             Neighbor *newReverseNeighbor = new Neighbor(i, dist);
             vertexArray[randomNeighborIndex]->addReverseNeighbor(newReverseNeighbor);
@@ -417,7 +416,6 @@ void **KNNDescent<DataType, DistanceFunction>::NNSinglePoint(void *data)
 
     for (int i = 0; i < size; i++)
     {
-        cout << "Vertex " << i << endl;
         Vertex *v = vertexArray[i];
         DataType *vertexData = static_cast<DataType *>(v->getData());
 

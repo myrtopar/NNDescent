@@ -4,7 +4,7 @@ sdi2000261 - Μυρτώ Παράφορου
 K23α - Ανάπτυξη Λογισμικού Για Πληροφοριακά Συστήματα
 Άσκηση 1
 
-- CONSEPT:
+- CONCEPT:
 Nearest neighbor search (NSS) is an optimization problem that aims to find the point in a given dataset that is closest to a specific data point, by measuring the distance using a metric function.
 The project consists of 2 KNSS methods, Brute-Force and NN-Descent.
 
@@ -42,3 +42,7 @@ ADTSet is based on the open-source code of the k08 class (https://github.com/cha
 - HOW TO RUN:
 make run ARG=X : Runs the main function for K = X
 make test : Runs the tests
+
+Some datasets are uploaded on this repository under the directory "datasets". The user's distance metric function
+must be present on the file main.cpp. There is already an euclidean distance metric (for an arbitrary number of dimensions) in main.cpp.
+
