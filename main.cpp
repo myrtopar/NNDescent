@@ -20,8 +20,8 @@ int main(int argc, char *argv[])
 
     int K = atoi(argv[1]);
 
-    // const char *file_path = "datasets/00001000-1.bin";
-    const char *file_path = "datasets/00000020.bin";
+
+    const char *file_path = "datasets/00002000-1.bin";
 
     ifstream ifs;
     ifs.open(file_path, ios::binary);
@@ -58,6 +58,7 @@ int main(int argc, char *argv[])
 
     DistanceFunction distanceFunction = &calculateEuclideanDistance;
 
+    // knn descent method
     auto start1 = std::chrono::high_resolution_clock::now();
     KNNDescent<float, DistanceFunction> KNNGraph(K, N, num_dimensions, data, distanceFunction);
     KNNGraph.createKNNGraph();
@@ -66,17 +67,19 @@ int main(int argc, char *argv[])
     auto duration1 = std::chrono::duration_cast<std::chrono::seconds>(stop1 - start1);
     cout << "KNNDescent: " << duration1.count() << " seconds" << endl;
 
+
+    // brute force method
     auto start2 = std::chrono::high_resolution_clock::now();
     KNNBruteForce<float, DistanceFunction> myGraph(K, N, num_dimensions, data, distanceFunction);
     auto stop2 = std::chrono::high_resolution_clock::now();
 
     auto duration2 = std::chrono::duration_cast<std::chrono::seconds>(stop2 - start2);
-
     cout << "Brute Force: " << duration2.count() << " seconds" << endl;
 
+
+    // extract knn descent and brute force method results into a list and compare them, to find similarity percentage
     int **NND = KNNGraph.extract_neighbors_to_list();
     int **BF = myGraph.extract_neighbors_to_list();
-
     compare_results(BF, NND, (int)N, K);
 
     // KNNGraph.NNSinglePoint(data[19]);

@@ -38,3 +38,7 @@ Neighbor class keeps a pointer to an integer representing the ID of the neighbor
 
 - DISCLAIMER: 
 ADTSet is based on the open-source code of the k08 class (https://github.com/chatziko-k08/lecture-code).
+
+- HOW TO RUN:
+make run ARG=X : Runs the main function for K = X
+make test : Runs the tests
