@@ -142,22 +142,10 @@ void Vertex::replaceNNSet(Set NewSet)
     NN = NewSet;
 }
 
-void Vertex::replaceRNNSet(Set NewSet)
-{
-    set_destroy(RNN);
-    RNN = NewSet;
-}
-
 void Vertex::resetPNNSet()
 {
     set_destroy(potentialNN);
     potentialNN = set_create(compare_distances, delete_neighbor);
-}
-
-void Vertex::resetRNNSet()
-{
-    set_destroy(RNN);
-    RNN = set_create(compare_distances, delete_neighbor);
 }
 
 void *Vertex::getData() const
