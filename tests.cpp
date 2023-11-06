@@ -18,7 +18,7 @@ double calculateEuclideanDistance(const float *point1, const float *point2, int 
 // test pou tha pairnei ta sets me ta neighbors kai elegxei an oi apostaseis einai ontws autes
 void test_distances(void)
 {
-    const char *file_path = "00000020.bin";
+    const char *file_path = "datasets/00000020.bin";
     cout << "Reading Data: " << file_path << endl;
 
     ifstream ifs;

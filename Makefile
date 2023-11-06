@@ -4,8 +4,8 @@ CFLAGS = -Wall
 CXXFLAGS = -std=c++11 -Wall -g -Wno-unused-variable
 LDFLAGS =
 
-SOURCES = main.cpp classes.cpp ADTSet.c ADTMap.c
-HEADERS = KNNGraph.hpp classes.hpp common_types.h ADTSet.h ADTMap.h
+SOURCES = main.cpp classes.cpp ADTSet.c
+HEADERS = KNNGraph.hpp classes.hpp common_types.h ADTSet.h
 EXECUTABLE = my_program
 
 all: $(EXECUTABLE)

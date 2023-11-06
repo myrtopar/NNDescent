@@ -20,8 +20,8 @@ int main(int argc, char *argv[])
 
     int K = atoi(argv[1]);
 
-    const char *file_path = "datasets/00002000-1.bin";
-    // const char *file_path = "datasets/00000020.bin";
+    // const char *file_path = "datasets/00001000-1.bin";
+    const char *file_path = "datasets/00000020.bin";
 
     ifstream ifs;
     ifs.open(file_path, ios::binary);
@@ -79,27 +79,9 @@ int main(int argc, char *argv[])
 
     compare_results(BF, NND, (int)N, K);
 
+    // KNNGraph.NNSinglePoint(data[19]);
+
     delete_data(data, N);
 
     return 0;
 }
-
-// cout << "Brute Force" << endl;
-// for (int i = 0; i < (int)N; i++)
-// {
-//     for (int j = 0; j < K; j++)
-//     {
-//         cout << BF[i][j] << ' ';
-//     }
-//     cout << '\n';
-// }
-
-// cout << "\nNNDescent" << endl;
-// for (int i = 0; i < (int)N; i++)
-// {
-//     for (int j = 0; j < K; j++)
-//     {
-//         cout << NND[i][j] << ' ';
-//     }
-//     cout << '\n';
-// }
