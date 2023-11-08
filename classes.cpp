@@ -13,11 +13,14 @@ void delete_int(void *a)
     delete (int *)a;
 }
 
+<<<<<<< HEAD
 void delete_double(void *a)
 {
     delete (double *)a;
 }
 
+=======
+>>>>>>> ebdf46bbcb35040e5ef0c96143b4685392b4a7c8
 void delete_neighbor(void *a)
 {
     delete (Neighbor *)a;
@@ -30,6 +33,7 @@ int *create_int(int n)
     return x;
 }
 
+<<<<<<< HEAD
 double *create_double(double n)
 {
     double *x = new double;
@@ -37,6 +41,8 @@ double *create_double(double n)
     return x;
 }
 
+=======
+>>>>>>> ebdf46bbcb35040e5ef0c96143b4685392b4a7c8
 void delete_data(float **data, uint32_t N)
 {
     for (uint32_t i = 0; i < N; i++)
@@ -116,8 +122,11 @@ Vertex::Vertex(void *_data) : datapoint(_data)
     NN = set_create(compare_distances, delete_neighbor);
     RNN = set_create(compare_distances, delete_neighbor);
     potentialNN = set_create(compare_distances, delete_neighbor);
+<<<<<<< HEAD
     distances = map_create(compare_ints, delete_int, delete_double);
     map_set_hash_function(distances, hash_string);
+=======
+>>>>>>> ebdf46bbcb35040e5ef0c96143b4685392b4a7c8
 }
 
 void Vertex::addNeighbor(Neighbor *neighbor)
@@ -135,6 +144,7 @@ void Vertex::addPotentialNeighbor(Neighbor *neighbor)
     set_insert(potentialNN, neighbor);
 }
 
+<<<<<<< HEAD
 void Vertex::addDistance(int id, double dist)
 {
     int *nid = create_int(id);
@@ -142,6 +152,8 @@ void Vertex::addDistance(int id, double dist)
     map_insert(distances, nid, ndist);
 }
 
+=======
+>>>>>>> ebdf46bbcb35040e5ef0c96143b4685392b4a7c8
 Set Vertex::getNeighbors() const
 {
     return NN;
@@ -157,35 +169,44 @@ Set Vertex::getPotentialNeighbors() const
     return potentialNN;
 }
 
+<<<<<<< HEAD
 Map Vertex::getDistances() const
 {
     return distances;
 }
 
+=======
+>>>>>>> ebdf46bbcb35040e5ef0c96143b4685392b4a7c8
 void Vertex::replaceNNSet(Set NewSet)
 {
     set_destroy(NN);
     NN = NewSet;
 }
 
+<<<<<<< HEAD
 void Vertex::replaceRNNSet(Set NewSet)
 {
     set_destroy(RNN);
     RNN = NewSet;
 }
 
+=======
+>>>>>>> ebdf46bbcb35040e5ef0c96143b4685392b4a7c8
 void Vertex::resetPNNSet()
 {
     set_destroy(potentialNN);
     potentialNN = set_create(compare_distances, delete_neighbor);
 }
 
+<<<<<<< HEAD
 void Vertex::resetRNNSet()
 {
     set_destroy(RNN);
     RNN = set_create(compare_distances, delete_neighbor);
 }
 
+=======
+>>>>>>> ebdf46bbcb35040e5ef0c96143b4685392b4a7c8
 void *Vertex::getData() const
 {
     return datapoint;
@@ -196,7 +217,10 @@ Vertex::~Vertex()
     set_destroy(NN);
     set_destroy(RNN);
     set_destroy(potentialNN);
+<<<<<<< HEAD
     map_destroy(distances);
+=======
+>>>>>>> ebdf46bbcb35040e5ef0c96143b4685392b4a7c8
 }
 
 Neighbor::Neighbor(int _id, double _distance)
