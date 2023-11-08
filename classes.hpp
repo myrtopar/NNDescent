@@ -7,10 +7,6 @@
 #include <string>
 #include <chrono>
 #include "ADTSet.h"
-<<<<<<< HEAD
-#include "ADTMap.h"
-=======
->>>>>>> ebdf46bbcb35040e5ef0c96143b4685392b4a7c8
 
 using namespace std;
 
@@ -34,10 +30,6 @@ private:
     Set NN;
     Set RNN;
     Set potentialNN;
-<<<<<<< HEAD
-    Map distances;
-=======
->>>>>>> ebdf46bbcb35040e5ef0c96143b4685392b4a7c8
 
 public:
     Vertex(void *_data);
@@ -46,26 +38,13 @@ public:
     void addNeighbor(Neighbor *neighbor);
     void addReverseNeighbor(Neighbor *neighbor);
     void addPotentialNeighbor(Neighbor *neighbor);
-<<<<<<< HEAD
-    void addDistance(int id, double dist);
-=======
->>>>>>> ebdf46bbcb35040e5ef0c96143b4685392b4a7c8
 
     Set getNeighbors() const;
     Set getReverseNeighbors() const;
     Set getPotentialNeighbors() const;
-<<<<<<< HEAD
-    Map getDistances() const;
-
-    void replaceNNSet(Set set);
-    void replaceRNNSet(Set set);
-    void resetPNNSet();
-    void resetRNNSet();
-=======
 
     void replaceNNSet(Set set);
     void resetPNNSet();
->>>>>>> ebdf46bbcb35040e5ef0c96143b4685392b4a7c8
 
     ~Vertex();
 };

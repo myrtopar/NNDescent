@@ -20,11 +20,7 @@ int main(int argc, char *argv[])
 
     int K = atoi(argv[1]);
 
-<<<<<<< HEAD
-    const char *file_path = "datasets/00000200-1.bin";
-=======
-    const char *file_path = "datasets/00000200.bin";
->>>>>>> ebdf46bbcb35040e5ef0c96143b4685392b4a7c8
+    const char *file_path = "datasets/00005000-1.bin";
 
     ifstream ifs;
     ifs.open(file_path, ios::binary);
