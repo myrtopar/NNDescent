@@ -112,7 +112,7 @@ void test_distances(void)
                 double exactDistance = calculateEuclideanDistance(data[i], data[*id], num_dimensions);
                 nodeDistancesNN[i][j] = *dist;
                 cout << "\e[1;32m" << *id << "\e[0m"
-                    << "(" << *dist << " = " << exactDistance << "), ";
+                    << "(" << *dist << "), ";
                 TEST_ASSERT((exactDistance - *dist) == 0);
                 j++;
             }
@@ -179,8 +179,63 @@ void test_potential() {
 }
 
 
+void test_result() {
+    start_program();
+
+    int K = 50;
+    DistanceFunction distanceFunction = &calculateEuclideanDistance;
+
+    // knn descent method
+    auto start1 = std::chrono::high_resolution_clock::now();
+    KNNDescent<float, DistanceFunction> KNNGraph(K, N, num_dimensions, data, distanceFunction);
+    KNNGraph.createKNNGraph();
+    auto stop1 = std::chrono::high_resolution_clock::now();
+
+    auto duration1 = std::chrono::duration_cast<std::chrono::seconds>(stop1 - start1);
+    cout << "KNNDescent: " << duration1.count() << " seconds" << endl;
+
+
+    // brute force method
+    auto start2 = std::chrono::high_resolution_clock::now();
+    KNNBruteForce<float, DistanceFunction> myGraph(K, N, num_dimensions, data, distanceFunction);
+    auto stop2 = std::chrono::high_resolution_clock::now();
+
+    auto duration2 = std::chrono::duration_cast<std::chrono::seconds>(stop2 - start2);
+    cout << "Brute Force: " << duration2.count() << " seconds" << endl;
+
+
+    // extract knn descent and brute force method results into a list and compare them, to find similarity percentage
+    int **NND = KNNGraph.extract_neighbors_to_list();
+    int **BF = myGraph.extract_neighbors_to_list();
+    
+    int count = 0;
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < K; j++) {
+            int found = 0;
+            for (int k = 0; k < K; k++) {
+                if (NND[i][j] == BF[i][k]) {
+                    found = 1;
+                    break;
+                }
+            }
+            if (found == 0)
+                count++;
+        }
+    }
+
+    int number_of_edegs = N * K;
+    double percent = (((double)number_of_edegs - (double)count) / (double)number_of_edegs) * 100;
+    cout << "\x1b[32msimilarity percentage: " << percent << "%"
+         << "\x1b[0m" << endl;
+    TEST_ASSERT((percent > 90.0));
+
+    end_program();
+}
+
+
 TEST_LIST = {
     {"test distances", test_distances},
     {"test_potential", test_potential},
+    {"test_result", test_result},
     {NULL, NULL} 
 };

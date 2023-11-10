@@ -22,6 +22,7 @@ int main(int argc, char *argv[])
 
     const char *file_path = "datasets/00001000-1.bin";
 
+
     ifstream ifs;
     ifs.open(file_path, ios::binary);
     if (!ifs.is_open())

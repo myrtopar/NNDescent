@@ -383,6 +383,7 @@ void KNNDescent<DataType, DistanceFunction>::createKNNGraph()
 
     for (int i = 0; i < 10; i++)
     {
+        cout << "iteration " << i << endl;
         calculatePotentialNewNeighbors();
         if (updateGraph() == 0)
             break;
