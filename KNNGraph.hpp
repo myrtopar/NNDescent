@@ -190,7 +190,6 @@ KNNDescent<DataType, DistanceFunction>::KNNDescent(int _K, int _size, int _dimen
 template <typename DataType, typename DistanceFunction>
 void KNNDescent<DataType, DistanceFunction>::createRandomGraph(int K, Vertex **vertexArray)
 {
-
     // Connect each vertex with K random neighbors
     for (int i = 0; i < size; i++)
     {
@@ -283,7 +282,6 @@ void KNNDescent<DataType, DistanceFunction>::calculatePotentialNewNeighbors()
         {
             for (SetNode node2 = set_first(id_union); node2 != SET_EOF; node2 = set_next(id_union, node2))
             {
-
 
                 // int id1 = idArray[j];
                 // int id2 = idArray[k];
