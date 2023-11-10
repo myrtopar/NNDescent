@@ -190,7 +190,6 @@ KNNDescent<DataType, DistanceFunction>::KNNDescent(int _K, int _size, int _dimen
 template <typename DataType, typename DistanceFunction>
 void KNNDescent<DataType, DistanceFunction>::createRandomGraph(int K, Vertex **vertexArray)
 {
-
     // Connect each vertex with K random neighbors
     for (int i = 0; i < size; i++)
     {
@@ -250,34 +249,44 @@ void KNNDescent<DataType, DistanceFunction>::calculatePotentialNewNeighbors()
         Set reverseNeighbors = vertex->getReverseNeighbors();
 
         // UNION
-        int arraysize = set_size(neighbors) + set_size(reverseNeighbors);
-        int idArray[arraysize];
+        // int arraysize = set_size(neighbors) + set_size(reverseNeighbors);
+        // int idArray[arraysize];
+        Set id_union = set_create(compare_ints, delete_int);
 
-        int x = 0;
+        // int x = 0;
         for (SetNode node = set_first(neighbors); node != SET_EOF; node = set_next(neighbors, node))
         {
             Neighbor *n = (Neighbor *)set_node_value(neighbors, node);
             int n_id = *(n->getid());
-            idArray[x] = n_id;
-            x++;
+            set_insert(id_union, create_int(n_id));
+            // idArray[x] = n_id;
+            // x++;
         }
 
         for (SetNode node = set_first(reverseNeighbors); node != SET_EOF; node = set_next(reverseNeighbors, node))
         {
             Neighbor *n = (Neighbor *)set_node_value(reverseNeighbors, node);
             int rn_id = *(n->getid());
-            idArray[x] = rn_id;
-            x++;
+            set_insert(id_union, create_int(rn_id));
+            // idArray[x] = rn_id;
+            // x++;
         }
 
         // local join in sets neighborArray and ReverseNeighborArray
 
-        for (int j = 0; j < arraysize; j++)
+        // for (int j = 0; j < arraysize; j++)
+        // {
+        //     for (int k = 0; k < arraysize; k++)
+        //     {
+        for (SetNode node1 = set_first(id_union); node1 != SET_EOF; node1 = set_next(id_union, node1))
         {
-            for (int k = 0; k < arraysize; k++)
+            for (SetNode node2 = set_first(id_union); node2 != SET_EOF; node2 = set_next(id_union, node2))
             {
-                int id1 = idArray[j];
-                int id2 = idArray[k];
+
+                // int id1 = idArray[j];
+                // int id2 = idArray[k];
+                int id1 = *(int *)set_node_value(id_union, node1);
+                int id2 = *(int *)set_node_value(id_union, node2);
 
                 if (id1 == id2)
                     continue;
