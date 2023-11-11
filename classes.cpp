@@ -86,8 +86,16 @@ void compare_results(int **arrayBF, int **arrayNND, int N, int K)
     }
     int number_of_edegs = N * K;
     double percent = (((double)number_of_edegs - (double)count) / (double)number_of_edegs) * 100;
-    cout << "\x1b[32msimilarity percentage: " << percent << "%"
-         << "\x1b[0m" << endl;
+    if (percent > 90.0)
+    {
+        cout << "\x1b[32msimilarity percentage: " << percent << "%"
+             << "\x1b[0m" << endl;
+    }
+    else
+    {
+        cout << "\x1b[31msimilarity percentage: " << percent << "%"
+             << "\x1b[0m" << endl;
+    }
 
     for (int i = 0; i < N; i++)
     {
@@ -166,6 +174,7 @@ Neighbor::Neighbor(int _id, double _distance)
     *id = _id;
     distance = new double;
     *distance = _distance;
+    flag = 1;
 }
 
 int *Neighbor::getid()
@@ -176,6 +185,16 @@ int *Neighbor::getid()
 double *Neighbor::getDistance()
 {
     return distance;
+}
+
+int Neighbor::getFlag()
+{
+    return flag;
+}
+
+void Neighbor::setFalse()
+{
+    flag = 0;
 }
 
 Neighbor::~Neighbor()
