@@ -249,73 +249,67 @@ void KNNDescent<DataType, DistanceFunction>::calculatePotentialNewNeighbors()
         Set reverseNeighbors = vertex->getReverseNeighbors();
 
         // UNION
-        // int arraysize = set_size(neighbors) + set_size(reverseNeighbors);
-        // int idArray[arraysize];
-        Set id_union = set_create(compare_ints, delete_int);
+        Set id_union = set_create(compare_distances, NULL);
 
-        // int x = 0;
         for (SetNode node = set_first(neighbors); node != SET_EOF; node = set_next(neighbors, node))
         {
             Neighbor *n = (Neighbor *)set_node_value(neighbors, node);
-            int n_id = *(n->getid());
-            set_insert(id_union, create_int(n_id));
-            // idArray[x] = n_id;
-            // x++;
+            // int n_id = *(n->getid());
+            // set_insert(id_union, create_int(n_id));
+            set_insert(id_union, n);
         }
 
         for (SetNode node = set_first(reverseNeighbors); node != SET_EOF; node = set_next(reverseNeighbors, node))
         {
-            Neighbor *n = (Neighbor *)set_node_value(reverseNeighbors, node);
-            int rn_id = *(n->getid());
-            set_insert(id_union, create_int(rn_id));
-            // idArray[x] = rn_id;
-            // x++;
+            Neighbor *rn = (Neighbor *)set_node_value(reverseNeighbors, node);
+            // int rn_id = *(rn->getid());
+            // set_insert(id_union, create_int(rn_id));
+            set_insert(id_union, rn);
         }
 
         // local join in sets neighborArray and ReverseNeighborArray
-
-        // for (int j = 0; j < arraysize; j++)
-        // {
-        //     for (int k = 0; k < arraysize; k++)
-        //     {
+        int j = 0;
         for (SetNode node1 = set_first(id_union); node1 != SET_EOF; node1 = set_next(id_union, node1))
         {
             for (SetNode node2 = set_first(id_union); node2 != SET_EOF; node2 = set_next(id_union, node2))
             {
 
-                // int id1 = idArray[j];
-                // int id2 = idArray[k];
-                int id1 = *(int *)set_node_value(id_union, node1);
-                int id2 = *(int *)set_node_value(id_union, node2);
+                Neighbor *n1 = (Neighbor *)set_node_value(id_union, node1);
+                Neighbor *n2 = (Neighbor *)set_node_value(id_union, node2);
+
+                int id1 = *(n1->getid());
+                int id2 = *(n2->getid());
 
                 if (id1 == id2)
                     continue;
 
-                Vertex *v1 = vertexArray[id1];
-                Vertex *v2 = vertexArray[id2];
-
-                double dist;
-
-                DataType *data1 = static_cast<DataType *>(v1->getData());
-                DataType *data2 = static_cast<DataType *>(v2->getData());
-
-                dist = distance(data1, data2, dimensions);
-
-                Neighbor *furthest = furthest_neighbor(vertexArray[id1]->getNeighbors());
-                if (dist > *(furthest->getDistance()))
+                if ((n1->getFlag() == 1) || (n2->getFlag() == 1))
                 {
-                    continue;
-                }
+                    Vertex *v1 = vertexArray[id1];
+                    Vertex *v2 = vertexArray[id2];
 
-                Neighbor *newNeighbor = new Neighbor(id2, dist);
-                if (set_find_node(vertexArray[id1]->getNeighbors(), newNeighbor) != NULL)
-                {
-                    // the pontential neighbor we are about to insert is already a neighbor of id1, so we skip this part
-                    delete newNeighbor;
-                }
-                else
-                {
-                    v1->addPotentialNeighbor(newNeighbor);
+                    double dist;
+
+                    DataType *data1 = static_cast<DataType *>(v1->getData());
+                    DataType *data2 = static_cast<DataType *>(v2->getData());
+
+                    dist = distance(data1, data2, dimensions);
+                    n1->setFalse();
+
+                    Neighbor *furthest = furthest_neighbor(v1->getNeighbors());
+                    if (dist < *(furthest->getDistance()))
+                    {
+                        Neighbor *newNeighbor = new Neighbor(id2, dist);
+                        if (set_find_node(v1->getNeighbors(), newNeighbor) != NULL)
+                        {
+                            // the pontential neighbor we are about to insert is already a neighbor of id1, so we skip this part
+                            delete newNeighbor;
+                        }
+                        else
+                        {
+                            v1->addPotentialNeighbor(newNeighbor);
+                        }
+                    }
                 }
             }
         }

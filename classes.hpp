@@ -53,11 +53,14 @@ class Neighbor
 {
 private:
     int *id;
+    int flag;
     double *distance;
 
 public:
     Neighbor(int _id, double _distance);
     int *getid();
     double *getDistance();
+    int getFlag();
+    void setFalse();
     ~Neighbor();
 };
