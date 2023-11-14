@@ -64,7 +64,7 @@ Neighbor *closest_neighbor(Set s)
     return NULL;
 }
 
-void compare_results(int **arrayBF, int **arrayNND, int N, int K)
+double compare_results(int **arrayBF, int **arrayNND, int N, int K)
 {
     int count = 0;
     for (int i = 0; i < N; i++)
@@ -86,16 +86,16 @@ void compare_results(int **arrayBF, int **arrayNND, int N, int K)
     }
     int number_of_edegs = N * K;
     double percent = (((double)number_of_edegs - (double)count) / (double)number_of_edegs) * 100;
-    if (percent > 90.0)
-    {
-        cout << "\x1b[32msimilarity percentage: " << percent << "%"
-             << "\x1b[0m" << endl;
-    }
-    else
-    {
-        cout << "\x1b[31msimilarity percentage: " << percent << "%"
-             << "\x1b[0m" << endl;
-    }
+    // if (percent > 90.0)
+    // {
+    //     cout << "\x1b[32msimilarity percentage: " << percent << "%"
+    //          << "\x1b[0m" << endl;
+    // }
+    // else
+    // {
+    //     cout << "\x1b[31msimilarity percentage: " << percent << "%"
+    //          << "\x1b[0m" << endl;
+    // }
 
     for (int i = 0; i < N; i++)
     {
@@ -105,6 +105,8 @@ void compare_results(int **arrayBF, int **arrayNND, int N, int K)
 
     delete[] arrayNND;
     delete[] arrayBF;
+    
+    return percent;
 }
 
 Vertex::Vertex(void *_data) : datapoint(_data)

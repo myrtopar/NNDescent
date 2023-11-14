@@ -21,7 +21,7 @@ void delete_neighbor(void *a);
 Neighbor *furthest_neighbor(Set s);
 Neighbor *closest_neighbor(Set s);
 
-void compare_results(int **array1, int **array2, int N, int K);
+double compare_results(int **array1, int **array2, int N, int K);
 
 class Vertex
 {
