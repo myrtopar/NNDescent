@@ -14,7 +14,8 @@
 struct set
 {
     SetNode root; // η ρίζα, NULL αν είναι κενό δέντρο
-    // SetNode max;               // ο κομβος με το max value, για ευκολη εξαγωγη
+    SetNode max;  // ο κομβος με το max value, για ευκολη εξαγωγη
+    SetNode min;
     int size;                  // μέγεθος, ώστε η set_size να είναι Ο(1)
     CompareFunc compare;       // η διάταξη
     DestroyFunc destroy_value; // Συνάρτηση που καταστρέφει ένα στοιχείο του set
@@ -199,6 +200,11 @@ static SetNode node_find_max(SetNode node)
                : node;                      // Αλλιώς η μεγαλύτερη τιμή είναι στο ίδιο το node
 }
 
+static SetNode node_find_max2(Set set)
+{
+    return set->max;
+}
+
 // Επιστρέφει τον προηγούμενο (στη σειρά διάταξης) του κόμβου target στο υποδέντρο με ρίζα node,
 // ή NULL αν ο target είναι ο μικρότερος του υποδέντρου. Το υποδέντρο πρέπει να περιέχει τον κόμβο
 // target, οπότε δεν μπορεί να είναι κενό.
@@ -257,13 +263,23 @@ static SetNode node_find_next(SetNode node, CompareFunc compare, SetNode target)
 // νέο κόμβο με τιμή value. Επιστρέφει τη νέα ρίζα του υποδέντρου, και θέτει το *inserted σε true
 // αν έγινε προσθήκη, ή false αν έγινε ενημέρωση.
 
-static SetNode node_insert(SetNode node, CompareFunc compare, Pointer value, bool *inserted, Pointer *old_value)
+static SetNode node_insert(Set set, SetNode node, CompareFunc compare, Pointer value, bool *inserted, Pointer *old_value)
 {
     // Αν το υποδέντρο είναι κενό, δημιουργούμε νέο κόμβο ο οποίος γίνεται ρίζα του υποδέντρου
     if (node == NULL)
     {
         *inserted = true; // κάναμε προσθήκη
-        return node_create(value);
+        SetNode created = node_create(value);
+
+        if (set->max == NULL)
+        {
+            set->max = created;
+        }
+        else if (set->max != NULL && compare(value, set->max->value) > 0)
+        {
+            set->max = created;
+        }
+        return created;
     }
 
     // Το πού θα γίνει η προσθήκη εξαρτάται από τη διάταξη της τιμής
@@ -273,6 +289,7 @@ static SetNode node_insert(SetNode node, CompareFunc compare, Pointer value, boo
     if (compare_res == 0)
     {
         // βρήκαμε ισοδύναμη τιμή, κάνουμε update
+
         *inserted = false;
         *old_value = node->value;
         node->value = value;
@@ -280,12 +297,12 @@ static SetNode node_insert(SetNode node, CompareFunc compare, Pointer value, boo
     else if (compare_res < 0)
     {
         // value < node->value, συνεχίζουμε αριστερά.
-        node->left = node_insert(node->left, compare, value, inserted, old_value);
+        node->left = node_insert(set, node->left, compare, value, inserted, old_value);
     }
     else
     {
         // value > node->value, συνεχίζουμε δεξιά
-        node->right = node_insert(node->right, compare, value, inserted, old_value);
+        node->right = node_insert(set, node->right, compare, value, inserted, old_value);
     }
 
     return node_repair_balance(node); // AVL
@@ -315,7 +332,7 @@ static SetNode node_remove_min(SetNode node, SetNode *min_node)
 // Διαγράφει το κόμβο με τιμή ισοδύναμη της value, αν υπάρχει. Επιστρέφει τη νέα ρίζα του
 // υποδέντρου, και θέτει το *removed σε true αν έγινε πραγματικά διαγραφή.
 
-static SetNode node_remove(SetNode node, CompareFunc compare, Pointer value, bool *removed, Pointer *old_value)
+static SetNode node_remove(Set set, SetNode node, CompareFunc compare, Pointer value, bool *removed, Pointer *old_value)
 {
     if (node == NULL)
     {
@@ -329,6 +346,22 @@ static SetNode node_remove(SetNode node, CompareFunc compare, Pointer value, boo
         // Βρέθηκε ισοδύναμη τιμή στον node, οπότε τον διαγράφουμε. Το πώς θα γίνει αυτό εξαρτάται από το αν έχει παιδιά.
         *removed = true;
         *old_value = node->value;
+
+        // Αν ο κομβος προς αφαιρεση ειναι ο max, αντικατεστησε το max με τον επομενο μεγαλυτερο κομβο
+        if (compare(node->value, set->max->value) == 0)
+        {
+            // CASE 1
+            // Αν υπαρχει αριστερο υποδεντρο, ο επομενος μεγαλυτερος κομβος ειναι ο max αυτου
+            if (node->left != NULL)
+            {
+                set->max = node_find_max(node->left);
+            }
+            // Αν δεν υπαρχει αριστερο υποδεντρο, βρισκομαστε στη ριζα
+            else if (node->left == NULL && node->right == NULL && set_size(set) == 1)
+            {
+                set->max = NULL;
+            }
+        }
 
         if (node->left == NULL)
         {
@@ -364,9 +397,28 @@ static SetNode node_remove(SetNode node, CompareFunc compare, Pointer value, boo
 
     // compare_res != 0, συνεχίζουμε στο αριστερό ή δεξί υποδέντρο, η ρίζα δεν αλλάζει.
     if (compare_res < 0)
-        node->left = node_remove(node->left, compare, value, removed, old_value);
+    {
+        // if(compare(node->left->value, ))
+        node->left = node_remove(set, node->left, compare, value, removed, old_value);
+    }
     else
-        node->right = node_remove(node->right, compare, value, removed, old_value);
+    {
+        // CASE 2
+        // Αν ο κομβος προς αφαιρεση ειναι ο max
+        if (compare(set->max->value, value) == 0)
+        {
+            // Αν το δεξι παιδι του τρεχοντος κομβου ειναι ο max
+            if (node->right != NULL && compare(node->right->value, set->max->value) == 0)
+            {
+                // Αν το δεξι παιδι (max) δεν εχει καποιο παιδι στα αριστερα δηλαδη καποιον αμεσως μικροτερο, ο αμεσως μικροτερος ειναι ο τρεχων κομβος
+                if (node->right->left == NULL)
+                {
+                    set->max = node;
+                }
+            }
+        }
+        node->right = node_remove(set, node->right, compare, value, removed, old_value);
+    }
 
     return node_repair_balance(node); // AVL
 }
@@ -399,6 +451,8 @@ Set set_create(CompareFunc compare, DestroyFunc destroy_value)
     // δημιουργούμε το struct
     Set set = (Set)malloc(sizeof(*set));
     set->root = NULL; // κενό δέντρο
+    set->max = NULL;
+    set->min = NULL;
     set->size = 0;
     set->compare = compare;
     set->destroy_value = destroy_value;
@@ -415,7 +469,7 @@ void set_insert(Set set, Pointer value)
 {
     bool inserted;
     Pointer old_value;
-    set->root = node_insert(set->root, set->compare, value, &inserted, &old_value);
+    set->root = node_insert(set, set->root, set->compare, value, &inserted, &old_value);
 
     // Το size αλλάζει μόνο αν μπει νέος κόμβος. Στα updates κάνουμε destroy την παλιά τιμή
     if (inserted)
@@ -428,7 +482,7 @@ bool set_remove(Set set, Pointer value)
 {
     bool removed;
     Pointer old_value = NULL;
-    set->root = node_remove(set->root, set->compare, value, &removed, &old_value);
+    set->root = node_remove(set, set->root, set->compare, value, &removed, &old_value);
 
     // Το size αλλάζει μόνο αν πραγματικά αφαιρεθεί ένας κόμβος
     if (removed)
@@ -469,6 +523,11 @@ SetNode set_first(Set set)
 SetNode set_last(Set set)
 {
     return node_find_max(set->root);
+}
+
+SetNode set_max(Set set)
+{
+    return node_find_max2(set);
 }
 
 SetNode set_previous(Set set, SetNode node)

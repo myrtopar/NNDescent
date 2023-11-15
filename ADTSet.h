@@ -68,6 +68,9 @@ typedef struct set_node *SetNode;
 SetNode set_first(Set set);
 SetNode set_last(Set set);
 
+// Ιδια δουλεια με την set_last, με efficient τροπο
+SetNode set_max(Set set);
+
 // Επιστρέφουν τον επόμενο και τον προηγούμενο κομβο του node, ή SET_EOF / SET_BOF
 // αντίστοιχα αν ο node δεν έχει επόμενο / προηγούμενο.
 

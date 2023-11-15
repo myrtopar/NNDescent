@@ -42,17 +42,22 @@ double compare_distances(Pointer a, Pointer b)
     double *distance1 = n1->getDistance();
     double *distance2 = n2->getDistance();
 
+    int *id1 = (int *)n1->getid();
+    int *id2 = (int *)n2->getid();
+
     if (*distance1 != *distance2)
+    {
         return 1000000 * (*distance1 - *distance2);
+    }
 
     return *(int *)n1->getid() - *(int *)n2->getid();
 }
 
 Neighbor *furthest_neighbor(Set s)
 {
-    SetNode lastNode = set_last(s);
+    SetNode lastNode = set_max(s);
     if (lastNode != NULL)
-        return (Neighbor *)set_node_value(s, set_last(s));
+        return (Neighbor *)set_node_value(s, lastNode);
     return NULL;
 }
 
