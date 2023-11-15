@@ -760,9 +760,6 @@ void test_compare_results()
 
 TEST_LIST = {
     // {"testNNSinglePoint", testNNSinglePoint},
-    // {"test distances", test_distances},
-    // {"test_potential", test_potential},
-    // {"test_result", test_result},
 
     {"test distances", test_distances},
     {"test_potential", test_potential},
