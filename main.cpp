@@ -15,13 +15,31 @@ double calculateEuclideanDistance(const float *point1, const float *point2, int 
     return sqrt(sum);
 }
 
+typedef double (*DistanceFunction)(const float *, const float *, int);
+double calculateManhattanDistance(const float *point1, const float *point2, int numDimensions)
+{
+    double sum = 0.0;
+    for (int i = 0; i < numDimensions; i++)
+    {
+        sum += fabs(point1[i] - point2[i]);
+    }
+    return sum;
+}
+
+
 int main(int argc, char *argv[])
 {
 
-    int K = atoi(argv[1]);
+    if(argc != 5) {
+        cout << "Error wrong amount of arguments.\n";
+        return -1;
+    }
 
-    const char *file_path = "datasets/00005000-1.bin";
-    // const char *file_path = "datasets/00000200.bin";
+
+    int K = atoi(argv[1]);
+    int p = atoi(argv[2]);
+    int metric = atoi(argv[3]); // to encode
+    char *file_path = argv[4];
 
     ifstream ifs;
     ifs.open(file_path, ios::binary);
@@ -55,8 +73,16 @@ int main(int argc, char *argv[])
     }
 
     ifs.close();
-
-    DistanceFunction distanceFunction = &calculateEuclideanDistance;
+    
+    DistanceFunction distanceFunction;
+    if(metric == 1)
+        distanceFunction = &calculateEuclideanDistance;
+    else if(metric == 2)
+        distanceFunction = &calculateManhattanDistance;
+    else {
+        cout << "Error. Calculate Distance Function doesn't exist.";
+        return -1;
+    }
 
     // knn descent method
     auto start1 = std::chrono::high_resolution_clock::now();
@@ -78,7 +104,17 @@ int main(int argc, char *argv[])
     // extract knn descent and brute force method results into a list and compare them, to find similarity percentage
     int **NND = KNNGraph.extract_neighbors_to_list();
     int **BF = myGraph.extract_neighbors_to_list();
-    compare_results(BF, NND, (int)N, K);
+    double percentage = compare_results(BF, NND, (int)N, K);
+    if (percentage > 90.0)
+    {
+        cout << "\x1b[32msimilarity percentage: " << percentage << "%"
+             << "\x1b[0m" << endl;
+    }
+    else
+    {
+        cout << "\x1b[31msimilarity percentage: " << percentage << "%"
+             << "\x1b[0m" << endl;
+    }
 
     // void **narray = KNNGraph.NNSinglePoint(data[10]);
 
