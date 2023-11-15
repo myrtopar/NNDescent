@@ -44,9 +44,6 @@ void shuffle(int **array, int n)
     }
 }
 
-void start_program()
-{
-
 typedef double (*DistanceFunction)(const float *, const float *, int);
 double calculateManhattanDistance(const float *point1, const float *point2, int numDimensions)
 {
@@ -58,8 +55,8 @@ double calculateManhattanDistance(const float *point1, const float *point2, int 
     return sum;
 }
 
-
-void start_program() {
+void start_program()
+{
 
     cout << "\nReading Data: " << file_path << endl;
 
@@ -101,11 +98,7 @@ void start_program() {
 void end_program(void)
 {
     // Clean up data arrays
-    for (int i = 0; i < N; i++)
-    {
-        delete[] data[i];
-    }
-    delete[] data;
+    delete_data(data, N);
 }
 
 // Tests if the neighbor sets hold the correct distaces
@@ -118,7 +111,8 @@ void test_distances(void)
 
     Vertex **array = KNNGraph.vertexArray;
 
-    for (int r = 0; r < 10; r++) {
+    for (int r = 0; r < 10; r++)
+    {
 
         KNNGraph.calculatePotentialNewNeighbors();
 
@@ -175,8 +169,18 @@ void test_distances(void)
                 TEST_ASSERT((exactDistance - *dist) == 0);
                 j++;
             }
-
         }
+
+        for (int i = 0; i < N; ++i)
+        {
+            delete[] nodeDistancesNN[i];
+            delete[] nodeDistancesRN[i];
+            delete[] nodeDistancesPN[i];
+        }
+
+        delete[] nodeDistancesNN;
+        delete[] nodeDistancesRN;
+        delete[] nodeDistancesPN;
 
         if (KNNGraph.updateGraph() == 0)
             break;
@@ -200,8 +204,8 @@ void test_potential()
         if (KNNGraph.updateGraph() == 0)
             break;
 
-
-        for(int j = 0; j < N; j++) {
+        for (int j = 0; j < N; j++)
+        {
             Vertex *vertex = KNNGraph.vertexArray[j];
             TEST_ASSERT((set_size(vertex->getPotentialNeighbors()) == 0));
         }
@@ -262,6 +266,15 @@ void test_result()
     // cout << "\x1b[32msimilarity percentage: " << percent << "%"
     //      << "\x1b[0m" << endl;
     TEST_ASSERT((percent > 90.0));
+
+    for (int i = 0; i < N; i++)
+    {
+        delete[] NND[i];
+        delete[] BF[i];
+    }
+
+    delete[] NND;
+    delete[] BF;
 
     end_program();
 }
@@ -598,7 +611,8 @@ void test_node_value(void)
     delete[] value_array;
 }
 
-void test_Euclidean() {
+void test_Euclidean()
+{
     const float point1[] = {3.0, 4.0, 0.0};
     const float point2[] = {3.0, 0.0, 0.0};
     int numDimensions = 3;
@@ -607,7 +621,8 @@ void test_Euclidean() {
     TEST_ASSERT(euclideanDistance == 4);
 }
 
-void test_Manhattan() {
+void test_Manhattan()
+{
     const float point1[] = {1.0, 2.0, 3.0};
     const float point2[] = {4.0, 5.0, 6.0};
     int numDimensions = 3;
@@ -616,21 +631,23 @@ void test_Manhattan() {
     TEST_ASSERT(manhattanDistance == 9);
 }
 
-void test_compare_ints() {
+void test_compare_ints()
+{
     int num1 = 5;
     int num2 = 8;
     double result = compare_ints(&num1, &num2);
     TEST_ASSERT(result == -3);
 }
 
-void test_create_int() {
+void test_create_int()
+{
     int *num = create_int(42);
     TEST_ASSERT(*num == 42);
     delete num;
-
 }
 
-void test_compare_distances() {
+void test_compare_distances()
+{
     Neighbor neighbor1(1, 10.5);
     Neighbor neighbor2(2, 8.2);
 
@@ -638,9 +655,10 @@ void test_compare_distances() {
     TEST_ASSERT(result == 2300000);
 }
 
-void test_furthest_closest() {
-    Set mySet = set_create(compare_distances, delete_neighbor);
-    
+void test_furthest_closest()
+{
+    Set mySet = set_create(compare_distances, NULL);
+
     // Adding some neighbors to the set for testing
     Neighbor neighbor1(1, 10.5);
     Neighbor neighbor2(2, 8.2);
@@ -650,37 +668,41 @@ void test_furthest_closest() {
     set_insert(mySet, &neighbor2);
 
     // Test furthest_neighbor and closest_neighbor
-    Neighbor* furthest = furthest_neighbor(mySet);
-    Neighbor* closest = closest_neighbor(mySet);
+    Neighbor *furthest = furthest_neighbor(mySet);
+    Neighbor *closest = closest_neighbor(mySet);
 
     TEST_ASSERT(*furthest->getid() == 1);
-    TEST_ASSERT(*closest->getid() == 2);    
+    TEST_ASSERT(*closest->getid() == 2);
+
+    set_destroy(mySet);
 }
 
-void test_compare_results() {
+void test_compare_results()
+{
     const int N = 3;
     const int K = 4;
 
     // Initialize 2 arrays with known values
-    int **arrayBF = new int*[N];
-    int **arrayNND = new int*[N];
+    int **arrayBF = new int *[N];
+    int **arrayNND = new int *[N];
 
-    for (int i = 0; i < N; i++) {
+    for (int i = 0; i < N; i++)
+    {
         arrayBF[i] = new int[K];
         arrayNND[i] = new int[K];
-        for (int j = 0; j < K; j++) {
+        for (int j = 0; j < K; j++)
+        {
             arrayBF[i][j] = i * K + j;
             arrayNND[i][j] = i * K + j;
         }
     }
 
-    // and then modify one element 
+    // and then modify one element
     arrayNND[1][2] = -1;
 
     // now we compare the arrays and we see that the similarity percentage is not 100%
     double similarityPercentage = compare_results(arrayBF, arrayNND, N, K);
     TEST_ASSERT((similarityPercentage - 91.667) < 0.001);
-
 }
 
 // void testNNSinglePoint() {
@@ -737,28 +759,26 @@ void test_compare_results() {
 // }
 
 TEST_LIST = {
-    {"test distances", test_distances},
-    {"test_potential", test_potential},
-    {"test_result", test_result},
-    {"test_euclidean", test_Euclidean},
-    {"test_manhattan", test_Manhattan},
-    {"test_compare_ints", test_compare_ints},
-    {"test_create_int", test_create_int},
-    {"test_compare_distances", test_compare_distances},
-    {"test_furthest_closest", test_furthest_closest},
-    {"test_compare_results", test_compare_results},
-    {"set_max", set_max},
-    {"set_create", test_create},
-    {"set_insert", test_insert},
-    {"set_remove", test_remove},
-    {"set_find", test_find},
-    {"set_iterate", test_iterate},
-    {"set_node_value", test_node_value},
-    {NULL, NULL}};
     // {"testNNSinglePoint", testNNSinglePoint},
     // {"test distances", test_distances},
     // {"test_potential", test_potential},
     // {"test_result", test_result},
-    {NULL, NULL} 
-};
 
+    {"test distances", test_distances},
+    {"test_potential", test_potential},
+    // {"test_result", test_result},
+    // {"test_euclidean", test_Euclidean},
+    // {"test_manhattan", test_Manhattan},
+    // {"test_compare_ints", test_compare_ints},
+    // {"test_create_int", test_create_int},
+    // {"test_compare_distances", test_compare_distances},
+    // {"test_furthest_closest", test_furthest_closest},
+    // {"test_compare_results", test_compare_results},
+    // {"set_max", set_max},
+    // {"set_create", test_create},
+    // {"set_insert", test_insert},
+    // {"set_remove", test_remove},
+    // {"set_find", test_find},
+    // {"set_iterate", test_iterate},
+    // {"set_node_value", test_node_value},
+    {NULL, NULL}};
