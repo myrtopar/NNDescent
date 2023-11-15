@@ -35,6 +35,7 @@ int main(int argc, char *argv[])
         return -1;
     }
 
+
     int K = atoi(argv[1]);
     int p = atoi(argv[2]);
     int metric = atoi(argv[3]); // to encode
