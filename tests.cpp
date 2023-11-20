@@ -7,6 +7,7 @@ int N;
 const int num_dimensions = 100;
 float **data;
 int K;
+float p = 0.5;
 
 bool set_is_proper(Set set);
 
@@ -107,7 +108,7 @@ void test_distances(void)
     start_program();
     DistanceFunction distanceFunction = &calculateEuclideanDistance;
 
-    KNNDescent<float, DistanceFunction> KNNGraph(10, N, num_dimensions, data, distanceFunction);
+    KNNDescent<float, DistanceFunction> KNNGraph(10, N, p, num_dimensions, data, distanceFunction);
 
     Vertex **array = KNNGraph.vertexArray;
 
@@ -196,7 +197,7 @@ void test_potential()
     start_program();
 
     DistanceFunction distanceFunction = &calculateEuclideanDistance;
-    KNNDescent<float, DistanceFunction> KNNGraph(10, N, num_dimensions, data, distanceFunction);
+    KNNDescent<float, DistanceFunction> KNNGraph(10, N, p, num_dimensions, data, distanceFunction);
 
     for (int i = 0; i < 10; i++)
     {
@@ -223,7 +224,7 @@ void test_result()
 
     // knn descent method
     auto start1 = std::chrono::high_resolution_clock::now();
-    KNNDescent<float, DistanceFunction> KNNGraph(K, N, num_dimensions, data, distanceFunction);
+    KNNDescent<float, DistanceFunction> KNNGraph(K, N, p, num_dimensions, data, distanceFunction);
     KNNGraph.createKNNGraph();
     auto stop1 = std::chrono::high_resolution_clock::now();
 
@@ -736,7 +737,7 @@ void test_compare_results()
 //     }
 
 //     DistanceFunction distanceFunction = &calculateEuclideanDistance;
-//     KNNDescent<float, DistanceFunction> KNNGraph(10, N, num_dimensions, data, distanceFunction);
+//     KNNDescent<float, DistanceFunction> KNNGraph(10, N, p, num_dimensions, data, distanceFunction);
 
 //     // Run the NNSinglePoint function
 //     void** nearestNeighborDataArray = KNNGraph.NNSinglePoint(data[5]);

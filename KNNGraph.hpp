@@ -16,11 +16,12 @@ class KNNDescent
 private:
     int K;
     int size;
+    float sampling;
     int dimensions;
     DistanceFunction distance;
 
 public:
-    KNNDescent(int _K, int _size, int dimensions, DataType **myTuples, DistanceFunction _distance);
+    KNNDescent(int _K, int _size, float _sampling, int dimensions, DataType **myTuples, DistanceFunction _distance);
 
     void createRandomGraph(int K, Vertex **vertexArray);
     void calculatePotentialNewNeighbors();
@@ -110,8 +111,6 @@ void KNNBruteForce<DataType, DistanceFunction>::calculateKNNBF() const
     }
 }
 
-
-
 template <typename DataType, typename DistanceFunction>
 int **KNNBruteForce<DataType, DistanceFunction>::extract_neighbors_to_list()
 {
@@ -148,10 +147,9 @@ KNNBruteForce<DataType, DistanceFunction>::~KNNBruteForce()
     delete[] vertexArray;
 }
 
-
 ////////////////////////////////// KNNDESCENT //////////////////////////////////
 template <typename DataType, typename DistanceFunction>
-KNNDescent<DataType, DistanceFunction>::KNNDescent(int _K, int _size, int _dimensions, DataType **data, DistanceFunction _metricFunction) : K(_K), size(_size), dimensions(_dimensions), distance(_metricFunction)
+KNNDescent<DataType, DistanceFunction>::KNNDescent(int _K, int _size, float _sampling, int _dimensions, DataType **data, DistanceFunction _metricFunction) : K(_K), size(_size), sampling(_sampling), dimensions(_dimensions), distance(_metricFunction)
 {
     cout << "\nConstructing a graph of " << size << " elements, looking for " << K << " nearest neighbors" << endl;
     vertexArray = new Vertex *[size];
@@ -284,6 +282,7 @@ void KNNDescent<DataType, DistanceFunction>::calculatePotentialNewNeighbors()
                 }
             }
         }
+        set_destroy(id_union);
     }
 }
 

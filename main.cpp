@@ -26,20 +26,25 @@ double calculateManhattanDistance(const float *point1, const float *point2, int 
     return sum;
 }
 
-
 int main(int argc, char *argv[])
 {
 
-    if(argc != 5) {
+    if (argc != 5)
+    {
         cout << "Error wrong amount of arguments.\n";
         return -1;
     }
 
-
     int K = atoi(argv[1]);
-    int p = atoi(argv[2]);
+    float p = stof(argv[2]);
     int metric = atoi(argv[3]); // to encode
     char *file_path = argv[4];
+
+    if (p > 1.0)
+    {
+        cout << "Error wrong sampling percent." << endl;
+        return -1;
+    }
 
     ifstream ifs;
     ifs.open(file_path, ios::binary);
@@ -73,20 +78,28 @@ int main(int argc, char *argv[])
     }
 
     ifs.close();
-    
+
+    if (K > (int)N)
+    {
+        cout << "Error. Invalid K." << endl;
+        delete_data(data, N);
+        return -1;
+    }
+
     DistanceFunction distanceFunction;
-    if(metric == 1)
+    if (metric == 1)
         distanceFunction = &calculateEuclideanDistance;
-    else if(metric == 2)
+    else if (metric == 2)
         distanceFunction = &calculateManhattanDistance;
-    else {
+    else
+    {
         cout << "Error. Calculate Distance Function doesn't exist.";
         return -1;
     }
 
     // knn descent method
     auto start1 = std::chrono::high_resolution_clock::now();
-    KNNDescent<float, DistanceFunction> KNNGraph(K, N, num_dimensions, data, distanceFunction);
+    KNNDescent<float, DistanceFunction> KNNGraph(K, N, p, num_dimensions, data, distanceFunction);
     KNNGraph.createKNNGraph();
     auto stop1 = std::chrono::high_resolution_clock::now();
 
