@@ -13,11 +13,6 @@ void delete_int(void *a)
     delete (int *)a;
 }
 
-void delete_double(void *a)
-{
-    delete (double *)a;
-}
-
 void delete_neighbor(void *a)
 {
     delete (Neighbor *)a;
@@ -26,13 +21,6 @@ void delete_neighbor(void *a)
 int *create_int(int n)
 {
     int *x = new int;
-    *x = n;
-    return x;
-}
-
-double *create_double(double n)
-{
-    double *x = new double;
     *x = n;
     return x;
 }
@@ -76,7 +64,7 @@ Neighbor *closest_neighbor(Set s)
     return NULL;
 }
 
-void compare_results(int **arrayBF, int **arrayNND, int N, int K)
+double compare_results(int **arrayBF, int **arrayNND, int N, int K)
 {
     int count = 0;
     for (int i = 0; i < N; i++)
@@ -98,8 +86,16 @@ void compare_results(int **arrayBF, int **arrayNND, int N, int K)
     }
     int number_of_edegs = N * K;
     double percent = (((double)number_of_edegs - (double)count) / (double)number_of_edegs) * 100;
-    cout << "\x1b[32msimilarity percentage: " << percent << "%"
-         << "\x1b[0m" << endl;
+    // if (percent > 90.0)
+    // {
+    //     cout << "\x1b[32msimilarity percentage: " << percent << "%"
+    //          << "\x1b[0m" << endl;
+    // }
+    // else
+    // {
+    //     cout << "\x1b[31msimilarity percentage: " << percent << "%"
+    //          << "\x1b[0m" << endl;
+    // }
 
     for (int i = 0; i < N; i++)
     {
@@ -109,6 +105,8 @@ void compare_results(int **arrayBF, int **arrayNND, int N, int K)
 
     delete[] arrayNND;
     delete[] arrayBF;
+    
+    return percent;
 }
 
 Vertex::Vertex(void *_data) : datapoint(_data)
@@ -116,8 +114,6 @@ Vertex::Vertex(void *_data) : datapoint(_data)
     NN = set_create(compare_distances, delete_neighbor);
     RNN = set_create(compare_distances, delete_neighbor);
     potentialNN = set_create(compare_distances, delete_neighbor);
-    distances = map_create(compare_ints, delete_int, delete_double);
-    map_set_hash_function(distances, hash_string);
 }
 
 void Vertex::addNeighbor(Neighbor *neighbor)
@@ -135,13 +131,6 @@ void Vertex::addPotentialNeighbor(Neighbor *neighbor)
     set_insert(potentialNN, neighbor);
 }
 
-void Vertex::addDistance(int id, double dist)
-{
-    int *nid = create_int(id);
-    double *ndist = create_double(dist);
-    map_insert(distances, nid, ndist);
-}
-
 Set Vertex::getNeighbors() const
 {
     return NN;
@@ -157,33 +146,16 @@ Set Vertex::getPotentialNeighbors() const
     return potentialNN;
 }
 
-Map Vertex::getDistances() const
-{
-    return distances;
-}
-
 void Vertex::replaceNNSet(Set NewSet)
 {
     set_destroy(NN);
     NN = NewSet;
 }
 
-void Vertex::replaceRNNSet(Set NewSet)
-{
-    set_destroy(RNN);
-    RNN = NewSet;
-}
-
 void Vertex::resetPNNSet()
 {
     set_destroy(potentialNN);
     potentialNN = set_create(compare_distances, delete_neighbor);
-}
-
-void Vertex::resetRNNSet()
-{
-    set_destroy(RNN);
-    RNN = set_create(compare_distances, delete_neighbor);
 }
 
 void *Vertex::getData() const
@@ -196,7 +168,6 @@ Vertex::~Vertex()
     set_destroy(NN);
     set_destroy(RNN);
     set_destroy(potentialNN);
-    map_destroy(distances);
 }
 
 Neighbor::Neighbor(int _id, double _distance)
@@ -205,6 +176,7 @@ Neighbor::Neighbor(int _id, double _distance)
     *id = _id;
     distance = new double;
     *distance = _distance;
+    flag = 1;
 }
 
 int *Neighbor::getid()
@@ -215,6 +187,16 @@ int *Neighbor::getid()
 double *Neighbor::getDistance()
 {
     return distance;
+}
+
+int Neighbor::getFlag()
+{
+    return flag;
+}
+
+void Neighbor::setFalse()
+{
+    flag = 0;
 }
 
 Neighbor::~Neighbor()
