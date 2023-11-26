@@ -5,6 +5,8 @@
 #include <string>
 #include "ADTSet.h"
 #include "classes.hpp"
+#include <sstream>
+#include <fstream>
 
 using namespace std;
 
@@ -16,11 +18,12 @@ class KNNDescent
 private:
     int K;
     int size;
+    float sampling;
     int dimensions;
     DistanceFunction distance;
 
 public:
-    KNNDescent(int _K, int _size, int dimensions, DataType **myTuples, DistanceFunction _distance);
+    KNNDescent(int _K, int _size, float _sampling, int dimensions, DataType **myTuples, DistanceFunction _distance);
 
     void createRandomGraph(int K, Vertex **vertexArray);
     void calculatePotentialNewNeighbors();
@@ -110,8 +113,6 @@ void KNNBruteForce<DataType, DistanceFunction>::calculateKNNBF() const
     }
 }
 
-
-
 template <typename DataType, typename DistanceFunction>
 int **KNNBruteForce<DataType, DistanceFunction>::extract_neighbors_to_list()
 {
@@ -148,10 +149,9 @@ KNNBruteForce<DataType, DistanceFunction>::~KNNBruteForce()
     delete[] vertexArray;
 }
 
-
 ////////////////////////////////// KNNDESCENT //////////////////////////////////
 template <typename DataType, typename DistanceFunction>
-KNNDescent<DataType, DistanceFunction>::KNNDescent(int _K, int _size, int _dimensions, DataType **data, DistanceFunction _metricFunction) : K(_K), size(_size), dimensions(_dimensions), distance(_metricFunction)
+KNNDescent<DataType, DistanceFunction>::KNNDescent(int _K, int _size, float _sampling, int _dimensions, DataType **data, DistanceFunction _metricFunction) : K(_K), size(_size), sampling(_sampling), dimensions(_dimensions), distance(_metricFunction)
 {
     cout << "\nConstructing a graph of " << size << " elements, looking for " << K << " nearest neighbors" << endl;
     vertexArray = new Vertex *[size];
@@ -225,25 +225,19 @@ void KNNDescent<DataType, DistanceFunction>::calculatePotentialNewNeighbors()
 
         // UNION
         Set id_union = set_create(compare_distances, NULL);
-
-        for (SetNode node = set_first(neighbors); node != SET_EOF; node = set_next(neighbors, node))
-        {
+        for (SetNode node = set_first(neighbors); node != SET_EOF; node = set_next(neighbors, node)) {
             Neighbor *n = (Neighbor *)set_node_value(neighbors, node);
             set_insert(id_union, n);
         }
-
-        for (SetNode node = set_first(reverseNeighbors); node != SET_EOF; node = set_next(reverseNeighbors, node))
-        {
+        for (SetNode node = set_first(reverseNeighbors); node != SET_EOF; node = set_next(reverseNeighbors, node)) {
             Neighbor *rn = (Neighbor *)set_node_value(reverseNeighbors, node);
             set_insert(id_union, rn);
         }
 
-        // local join in sets neighborArray and ReverseNeighborArray
+        // LOCAL JOIN in sets neighborArray and ReverseNeighborArray
         int j = 0;
-        for (SetNode node1 = set_first(id_union); node1 != SET_EOF; node1 = set_next(id_union, node1))
-        {
-            for (SetNode node2 = set_first(id_union); node2 != SET_EOF; node2 = set_next(id_union, node2))
-            {
+        for (SetNode node1 = set_first(id_union); node1 != SET_EOF; node1 = set_next(id_union, node1)) {
+            for (SetNode node2 = set_first(id_union); node2 != SET_EOF; node2 = set_next(id_union, node2)) {
 
                 Neighbor *n1 = (Neighbor *)set_node_value(id_union, node1);
                 Neighbor *n2 = (Neighbor *)set_node_value(id_union, node2);
@@ -254,8 +248,7 @@ void KNNDescent<DataType, DistanceFunction>::calculatePotentialNewNeighbors()
                 if (id1 == id2)
                     continue;
 
-                if ((n1->getFlag() == 1) || (n2->getFlag() == 1))
-                {
+                if ((n1->getFlag() == 1) || (n2->getFlag() == 1)) {    // if one of the two neighbors is new, go for it
                     Vertex *v1 = vertexArray[id1];
                     Vertex *v2 = vertexArray[id2];
 
@@ -265,25 +258,24 @@ void KNNDescent<DataType, DistanceFunction>::calculatePotentialNewNeighbors()
                     DataType *data2 = static_cast<DataType *>(v2->getData());
 
                     dist = distance(data1, data2, dimensions);
-                    n1->setFalse();
+                    n1->setFalse();   // later, set one of them false 
 
                     Neighbor *furthest = furthest_neighbor(v1->getNeighbors());
                     if (dist < *(furthest->getDistance()))
                     {
                         Neighbor *newNeighbor = new Neighbor(id2, dist);
-                        if (set_find_node(v1->getNeighbors(), newNeighbor) != NULL)
-                        {
+                        if (set_find_node(v1->getNeighbors(), newNeighbor) != NULL) {
                             // the pontential neighbor we are about to insert is already a neighbor of id1, so we skip this part
                             delete newNeighbor;
                         }
-                        else
-                        {
+                        else {
                             v1->addPotentialNeighbor(newNeighbor);
                         }
                     }
                 }
             }
         }
+        set_destroy(id_union);
     }
 }
 
@@ -338,7 +330,12 @@ int KNNDescent<DataType, DistanceFunction>::updateGraph()
             furthestNeighborId = *furthestNeighbor->getid();
         }
         vertexArray[i]->resetPNNSet();
-    }
+    }                
+    double d = 0.001;
+    double term = d*K*size;
+    cout << "Updated " << updated << " neighbors - " << term << endl;
+    if(updated < term)
+        return 0;
     return updated;
 }
 
