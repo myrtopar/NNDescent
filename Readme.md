@@ -43,11 +43,15 @@ The similarity between the brute force calculated graph and the NNDescent graph 
 In main, 2 calculations take place. First the brute force graph and then the NN Descent graph, and later the similarity is calculated.
 In order to finc the nearest neighbors of a single point only, run the method NNSinglePoint of the class KNNDescent. The result is an array of void pointers to the nearest data of the dataset. (uncomment line 82 to run this method, example for the 11th datapoint of the dataset)
 
+Sampling Improvement:
+Due to the the high computational cost of local joins with a large K, we add a sampling strategy. This involves, marking nodes for comparison and constructing sampled lists of neighbors. User can adjust p (the second argument) to balance between precision and time.
+
+One more improvement in the k-nearest neighbors algorithm is that when the dataset size (N) is below or equal to 5000, the program uses a precomputed graph that we store in a file. This precomputed graph is retrieved and used to avoid redundant calculations.
 
 - DISCLAIMER: 
 ADTSet is based on the open-source code of the k08 class (https://github.com/chatziko-k08/lecture-code).
 
 - HOW TO RUN:
-make run ARG=X : Runs the main function for K = X
+make run ARG='100 0.5 1 datasets/00002000-1.bin' : Runs the main function for K = 100, SamplingFactor = 0.5, DatasetPath = datasets/00002000-1.bin
 make test : Runs the tests
 
