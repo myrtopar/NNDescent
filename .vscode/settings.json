@@ -3,6 +3,8 @@
         "unordered_set": "cpp",
         "iostream": "cpp",
         "ostream": "cpp",
-        "chrono": "cpp"
+        "chrono": "cpp",
+        "string": "cpp",
+        "string_view": "cpp"
     }
 }
