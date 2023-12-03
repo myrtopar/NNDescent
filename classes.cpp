@@ -91,16 +91,6 @@ double compare_results(int **arrayBF, int **arrayNND, int N, int K)
     }
     int number_of_edegs = N * K;
     double percent = (((double)number_of_edegs - (double)count) / (double)number_of_edegs) * 100;
-    // if (percent > 90.0)
-    // {
-    //     cout << "\x1b[32msimilarity percentage: " << percent << "%"
-    //          << "\x1b[0m" << endl;
-    // }
-    // else
-    // {
-    //     cout << "\x1b[31msimilarity percentage: " << percent << "%"
-    //          << "\x1b[0m" << endl;
-    // }
 
     for (int i = 0; i < N; i++)
     {
@@ -110,8 +100,23 @@ double compare_results(int **arrayBF, int **arrayNND, int N, int K)
 
     delete[] arrayNND;
     delete[] arrayBF;
-    
+
     return percent;
+}
+
+int contains(Neighbor *id_union[], int size, int targetId)
+{
+    for (int i = 0; i < size; i++)
+    {
+        // Check if the Neighbor object's ID matches the target ID
+        if (id_union[i] == NULL)
+            return 0;
+        if (*(id_union[i]->getid()) == targetId)
+        {
+            return 1; // The ID is found in the array
+        }
+    }
+    return 0; // The ID is not found in the array
 }
 
 Vertex::Vertex(void *_data) : datapoint(_data)
@@ -133,7 +138,8 @@ void Vertex::addReverseNeighbor(Neighbor *neighbor)
 
 void Vertex::addPotentialNeighbor(Neighbor *neighbor)
 {
-    set_insert(potentialNN, neighbor);
+    if (!set_insert(potentialNN, neighbor))
+        delete neighbor;
 }
 
 Set Vertex::getNeighbors() const
