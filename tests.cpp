@@ -760,7 +760,6 @@ void test_contains()
 }
 
 TEST_LIST = {
-
     {"test distances", test_distances},
     {"test_potential", test_potential},
     {"test_contains", test_contains},
