@@ -52,6 +52,6 @@ One more improvement in the k-nearest neighbors algorithm is that when the datas
 ADTSet is based on the open-source code of the k08 class (https://github.com/chatziko-k08/lecture-code).
 
 - HOW TO RUN:
-make run ARG='100 0.5 1 datasets/00002000-1.bin' : Runs the main function for K = 100, SamplingFactor = 0.5, DatasetPath = datasets/00002000-1.bin
-make test : Runs the tests
+make run ARG='100 0.5 1 datasets/00002000-1.bin 0.01' : Runs the main function for K = 100, SamplingFactor = 0.5, DatasetPath = datasets/00002000-1.bin, Delta = 0.01
+make tests : Runs the tests
 
