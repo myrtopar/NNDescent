@@ -124,9 +124,7 @@ double dot_product(const float *point1, const float *point2, int numDimensions)
     double prod = 0.0;
     for (int i = 0; i < numDimensions; i++)
     {
-        double prod1 = point1[i] * point2[i];
-        // cout << point1[i] << "*" << point2[i] << " = " << prod1 << endl;
-        prod += prod1;
+        prod += point1[i] * point2[i];
     }
     return prod;
 }
