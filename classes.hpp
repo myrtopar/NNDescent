@@ -23,6 +23,8 @@ Neighbor *furthest_neighbor(Set s);
 Neighbor *closest_neighbor(Set s);
 double compare_results(int **array1, int **array2, int N, int K);
 int contains(Neighbor *id_union[], int size, int targetId);
+double dot_product(const float *point1, const float *point2, int numDimensions);
+int compare_doubles(double a, double b);
 
 class Vertex
 {
