@@ -3,7 +3,6 @@
 
 using namespace std;
 
-typedef float (*DistanceFunction)(const float *, const float *, int);
 float calculateEuclideanDistance(const float *point1, const float *point2, int numDimensions)
 {
     double sum = 0.0;

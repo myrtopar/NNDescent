@@ -119,6 +119,23 @@ int contains(Neighbor *id_union[], int size, int targetId)
     return 0; // The ID is not found in the array
 }
 
+double dot_product(const float *point1, const float *point2, int numDimensions)
+{
+    double prod = 0.0;
+    for (int i = 0; i < numDimensions; i++)
+    {
+        double prod1 = point1[i] * point2[i];
+        // cout << point1[i] << "*" << point2[i] << " = " << prod1 << endl;
+        prod += prod1;
+    }
+    return prod;
+}
+
+int compare_doubles(double a, double b)
+{
+    return 10000 * a - 10000 * b;
+}
+
 Vertex::Vertex(void *_data) : datapoint(_data)
 {
     NN = set_create(compare_distances, delete_neighbor);

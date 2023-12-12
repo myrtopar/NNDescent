@@ -760,6 +760,36 @@ void test_contains()
     }
 }
 
+void test_dot_product()
+{
+    float *vector1 = new float[5];
+    for (int i = 0; i < 5; i++)
+    {
+        vector1[i] = 0.1 + i * 0.1;
+    }
+
+    float *vector2 = new float[5];
+    for (int i = 0; i < 5; i++)
+    {
+        vector2[i] = 0.4 + i * 0.1;
+    }
+
+    TEST_ASSERT(compare_doubles(dot_product(vector1, vector2, 5), (double)1) == 0);
+
+    vector1[0] = 0.1;
+    vector1[1] = 0.35;
+    vector1[2] = 0.61;
+    vector1[3] = 0.23;
+    vector1[4] = 0.157;
+    vector2[0] = 0.82;
+    vector2[1] = 0.5;
+    vector2[2] = 0.21;
+    vector2[3] = 0.07;
+    vector2[4] = 0.07;
+
+    TEST_ASSERT(compare_doubles(dot_product(vector1, vector2, 5), (double)0.41219) == 0);
+}
+
 TEST_LIST = {
     {"test distances", test_distances},
     {"test_potential", test_potential},
@@ -779,4 +809,5 @@ TEST_LIST = {
     {"set_find", test_find},
     {"set_iterate", test_iterate},
     {"set_node_value", test_node_value},
+    {"test_dot_product", test_dot_product},
     {NULL, NULL}};

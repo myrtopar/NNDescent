@@ -55,7 +55,6 @@ void KNNBruteForce::calculateKNNBF() const
     }
 }
 
-// template <typename float, typename DistanceFunction>
 int **KNNBruteForce::extract_neighbors_to_list()
 {
     int **neighbors = new int *[size];
@@ -81,7 +80,6 @@ int **KNNBruteForce::extract_neighbors_to_list()
     return neighbors;
 }
 
-// template <typename float, typename DistanceFunction>
 void KNNBruteForce::printNeighbors()
 {
     cout << "\033[1;31m BRUTE FORCE NEIGHBORS\033[0m" << endl;
@@ -100,7 +98,6 @@ void KNNBruteForce::printNeighbors()
     }
 }
 
-// template <typename float, typename DistanceFunction>
 KNNBruteForce::~KNNBruteForce()
 {
     for (int i = 0; i < size; i++)
@@ -334,7 +331,6 @@ int KNNDescent::updateGraph()
     return updated;
 }
 
-// template <typename float, typename DistanceFunction>
 void KNNDescent::createKNNGraph()
 {
 
@@ -349,7 +345,6 @@ void KNNDescent::createKNNGraph()
     }
 }
 
-// template <typename float, typename DistanceFunction>
 int **KNNDescent::extract_neighbors_to_list()
 {
     int **neighbors = new int *[size];
@@ -375,7 +370,6 @@ int **KNNDescent::extract_neighbors_to_list()
     return neighbors;
 }
 
-// template <typename float, typename DistanceFunction>
 void **KNNDescent::NNSinglePoint(void *data)
 {
     createKNNGraph();
@@ -409,7 +403,6 @@ void **KNNDescent::NNSinglePoint(void *data)
     return nearest_neighbor_data_array;
 }
 
-// template <typename float, typename DistanceFunction>
 void KNNDescent::printPotential()
 {
     cout << "\033[1;31mPOTENTIAL NEIGHBORS\033[0m" << endl;
@@ -429,7 +422,6 @@ void KNNDescent::printPotential()
     }
 }
 
-// template <typename float, typename DistanceFunction>
 void KNNDescent::printNeighbors()
 {
     cout << "\033[1;31mNEIGHBORS\033[0m" << endl;
@@ -448,7 +440,6 @@ void KNNDescent::printNeighbors()
     }
 }
 
-// template <typename float, typename DistanceFunction>
 void KNNDescent::printReverse()
 {
     cout << "\033[1;31mREVERSE NEIGHBORS\033[0m" << endl;

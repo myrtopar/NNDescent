@@ -8,6 +8,8 @@
 
 using namespace std;
 
+typedef float (*DistanceFunction)(const float *, const float *, int);
+
 class KNNDescent
 {
 private:
@@ -59,36 +61,3 @@ public:
 
     ~KNNBruteForce();
 };
-
-// KNNBruteForce::KNNBruteForce(int _K, int _size, int _dimensions, float** data, DistanceFunction _distance) : K(_K), size(_size), dimensions(_dimensions), distance(_distance);
-
-// void KNNBruteForce::calculateKNNBF() const;
-
-// int **KNNBruteForce::extract_neighbors_to_list();
-
-// void KNNBruteForce::printNeighbors();
-
-// KNNBruteForce::~KNNBruteForce();
-
-// ////////////////////////////////// KNNDESCENT //////////////////////////////////
-// KNNDescent::KNNDescent(int _K, int _size, float _sampling, int _dimensions, float **data, DistanceFunction _metricFunction, double _delta) : K(_K), size(_size), sampling(_sampling), dimensions(_dimensions), distance(_metricFunction), delta(_delta);
-
-// void KNNDescent::createRandomGraph(int K, Vertex **vertexArray);
-
-// KNNDescent::~KNNDescent();
-
-// void KNNDescent::calculatePotentialNewNeighbors4();
-
-// int KNNDescent::updateGraph();
-
-// void KNNDescent::createKNNGraph();
-
-// int **KNNDescent::extract_neighbors_to_list();
-
-// void **KNNDescent::NNSinglePoint(void *data);
-
-// void KNNDescent::printPotential();
-
-// void KNNDescent::printNeighbors();
-
-// void KNNDescent::printReverse();
