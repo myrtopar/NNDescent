@@ -3,8 +3,8 @@
 
 using namespace std;
 
-typedef double (*DistanceFunction)(const float *, const float *, int);
-double calculateEuclideanDistance(const float *point1, const float *point2, int numDimensions)
+typedef float (*DistanceFunction)(const float *, const float *, int);
+float calculateEuclideanDistance(const float *point1, const float *point2, int numDimensions)
 {
     double sum = 0.0;
     for (int i = 0; i < numDimensions; i++)
@@ -15,7 +15,7 @@ double calculateEuclideanDistance(const float *point1, const float *point2, int 
     return sqrt(sum);
 }
 
-double calculateManhattanDistance(const float *point1, const float *point2, int numDimensions)
+float calculateManhattanDistance(const float *point1, const float *point2, int numDimensions)
 {
     double sum = 0.0;
     for (int i = 0; i < numDimensions; i++)
@@ -28,7 +28,7 @@ double calculateManhattanDistance(const float *point1, const float *point2, int 
 int main(int argc, char *argv[])
 {
 
-    if (argc != 5)
+    if (argc != 6)
     {
         cout << "Error wrong amount of arguments.\n";
         return -1;
@@ -38,10 +38,11 @@ int main(int argc, char *argv[])
     float p = stof(argv[2]);
     int metric = atoi(argv[3]); // to encode
     char *file_path = argv[4];
+    double delta = stof(argv[5]);
 
     if (p > 1.0)
     {
-        cout << "Error, wrong sampling percent." << endl;
+        cout << "Error. Wrong sampling percent." << endl;
         return EXIT_FAILURE;
     }
 
@@ -98,7 +99,7 @@ int main(int argc, char *argv[])
 
     // knn descent method
     auto start1 = std::chrono::high_resolution_clock::now();
-    KNNDescent<float, DistanceFunction> KNNGraph(K, N, p, num_dimensions, data, distanceFunction);
+    KNNDescent KNNGraph(K, N, p, num_dimensions, data, distanceFunction, delta);
     KNNGraph.createKNNGraph();
     auto stop1 = std::chrono::high_resolution_clock::now();
 
@@ -166,7 +167,7 @@ int main(int argc, char *argv[])
 
             // brute force method, when the results are not already saved
             auto start2 = std::chrono::high_resolution_clock::now();
-            KNNBruteForce<float, DistanceFunction> myGraph(K, N, num_dimensions, data, distanceFunction);
+            KNNBruteForce myGraph(K, N, num_dimensions, data, distanceFunction);
             auto stop2 = std::chrono::high_resolution_clock::now();
             auto duration2 = std::chrono::duration_cast<std::chrono::seconds>(stop2 - start2);
 

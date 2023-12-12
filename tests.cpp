@@ -11,10 +11,9 @@ float p = 0.5;
 
 bool set_is_proper(Set set);
 
-typedef double (*DistanceFunction)(const float *, const float *, int);
-double calculateEuclideanDistance(const float *point1, const float *point2, int numDimensions)
+typedef float (*DistanceFunction)(const float *, const float *, int);
+float calculateEuclideanDistance(const float *point1, const float *point2, int numDimensions)
 {
-
     double sum = 0.0;
     for (int i = 0; i < numDimensions; i++)
     {
@@ -45,7 +44,7 @@ void shuffle(int **array, int n)
     }
 }
 
-typedef double (*DistanceFunction)(const float *, const float *, int);
+typedef float (*DistanceFunction)(const float *, const float *, int);
 double calculateManhattanDistance(const float *point1, const float *point2, int numDimensions)
 {
     double sum = 0.0;
@@ -105,10 +104,11 @@ void end_program(void)
 // Tests if the neighbor sets hold the correct distaces
 void test_distances(void)
 {
+    int delta = 0.01;
     start_program();
     DistanceFunction distanceFunction = &calculateEuclideanDistance;
 
-    KNNDescent<float, DistanceFunction> KNNGraph(10, N, p, num_dimensions, data, distanceFunction);
+    KNNDescent KNNGraph(10, N, p, num_dimensions, data, distanceFunction, delta);
 
     Vertex **array = KNNGraph.vertexArray;
 
@@ -193,11 +193,11 @@ void test_distances(void)
 // Test if the potential neighbors set has been cleaned up, after updateGraph has been called
 void test_potential()
 {
-
+    int delta = 0.01;
     start_program();
 
     DistanceFunction distanceFunction = &calculateEuclideanDistance;
-    KNNDescent<float, DistanceFunction> KNNGraph(10, N, p, num_dimensions, data, distanceFunction);
+    KNNDescent KNNGraph(10, N, p, num_dimensions, data, distanceFunction, delta);
 
     for (int i = 0; i < 10; i++)
     {
@@ -220,11 +220,12 @@ void test_result()
     start_program();
 
     int K = 40;
+    double delta = 0.01;
     DistanceFunction distanceFunction = &calculateEuclideanDistance;
 
     // knn descent method
     auto start1 = std::chrono::high_resolution_clock::now();
-    KNNDescent<float, DistanceFunction> KNNGraph(K, N, p, num_dimensions, data, distanceFunction);
+    KNNDescent KNNGraph(K, N, p, num_dimensions, data, distanceFunction, delta);
     KNNGraph.createKNNGraph();
     auto stop1 = std::chrono::high_resolution_clock::now();
 
@@ -233,7 +234,7 @@ void test_result()
 
     // brute force method
     auto start2 = std::chrono::high_resolution_clock::now();
-    KNNBruteForce<float, DistanceFunction> myGraph(K, N, num_dimensions, data, distanceFunction);
+    KNNBruteForce myGraph(K, N, num_dimensions, data, distanceFunction);
     auto stop2 = std::chrono::high_resolution_clock::now();
 
     auto duration2 = std::chrono::duration_cast<std::chrono::seconds>(stop2 - start2);
