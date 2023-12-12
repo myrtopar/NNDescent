@@ -291,8 +291,8 @@ static SetNode node_insert(Set set, SetNode node, CompareFunc compare, Pointer v
         // βρήκαμε ισοδύναμη τιμή, κάνουμε update
 
         *inserted = false;
-        *old_value = node->value;
-        node->value = value;
+        // *old_value = node->value;
+        // node->value = value;
     }
     else if (compare_res < 0)
     {
@@ -465,7 +465,7 @@ int set_size(Set set)
     return set->size;
 }
 
-void set_insert(Set set, Pointer value)
+int set_insert(Set set, Pointer value)
 {
     bool inserted;
     Pointer old_value;
@@ -473,9 +473,13 @@ void set_insert(Set set, Pointer value)
 
     // Το size αλλάζει μόνο αν μπει νέος κόμβος. Στα updates κάνουμε destroy την παλιά τιμή
     if (inserted)
+    {
         set->size++;
-    else if (set->destroy_value != NULL)
-        set->destroy_value(old_value);
+        return 1;
+    }
+    return 0;
+    // else if (set->destroy_value != NULL)
+    //     set->destroy_value(old_value);
 }
 
 bool set_remove(Set set, Pointer value)

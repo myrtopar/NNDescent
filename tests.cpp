@@ -30,7 +30,7 @@ void insert_and_test(Set set, Pointer value)
 
     set_insert(set, value);
     TEST_ASSERT(set_is_proper(set));
-    TEST_ASSERT(set_find(set, value) == value);
+    // TEST_ASSERT(set_find(set, value) == value);
 }
 
 // Βοηθητική συνάρτηση για το ανακάτεμα του πίνακα τιμών
@@ -114,23 +114,24 @@ void test_distances(void)
 
     for (int r = 0; r < 10; r++)
     {
-        KNNGraph.calculatePotentialNewNeighbors();
+
+        KNNGraph.calculatePotentialNewNeighbors4();
 
         // array to store distances for each node
         double **nodeDistancesNN = new double *[N];
-        // double **nodeDistancesRN = new double *[N];
-        // double **nodeDistancesPN = new double *[N];
+        double **nodeDistancesRN = new double *[N];
+        double **nodeDistancesPN = new double *[N];
 
         for (int i = 0; i < N; i++)
         {
             Vertex *v = array[i];
             Set nn = v->getNeighbors();
-            // Set rn = v->getReverseNeighbors();
-            // Set pn = v->getPotentialNeighbors();
+            Set rn = v->getReverseNeighbors();
+            Set pn = v->getPotentialNeighbors();
 
             nodeDistancesNN[i] = new double[set_size(nn)];
-            // nodeDistancesRN[i] = new double[set_size(rn)];
-            // nodeDistancesPN[i] = new double[set_size(pn)];
+            nodeDistancesRN[i] = new double[set_size(rn)];
+            nodeDistancesPN[i] = new double[set_size(pn)];
 
             int j = 0;
             for (SetNode node = set_first(nn); node != SET_EOF; node = set_next(nn, node))
@@ -140,45 +141,47 @@ void test_distances(void)
                 double *dist = n->getDistance();
                 double exactDistance = calculateEuclideanDistance(data[i], data[*id], num_dimensions);
                 nodeDistancesNN[i][j] = *dist;
+
                 TEST_ASSERT((exactDistance - *dist) == 0);
                 j++;
             }
 
-            // j = 0;
-            // for (SetNode node = set_first(rn); node != SET_EOF; node = set_next(rn, node))
-            // {
-            //     Neighbor *n = (Neighbor *)set_node_value(rn, node);
-            //     int *id = n->getid();
-            //     double *dist = n->getDistance();
-            //     double exactDistance = calculateEuclideanDistance(data[i], data[*id], num_dimensions);
-            //     nodeDistancesRN[i][j] = *dist;
-            //     TEST_ASSERT((exactDistance - *dist) == 0);
-            //     j++;
-            // }
+            j = 0;
+            for (SetNode node = set_first(rn); node != SET_EOF; node = set_next(rn, node))
+            {
+                Neighbor *n = (Neighbor *)set_node_value(rn, node);
+                int *id = n->getid();
+                double *dist = n->getDistance();
+                double exactDistance = calculateEuclideanDistance(data[i], data[*id], num_dimensions);
+                nodeDistancesRN[i][j] = *dist;
 
-            // j = 0;
-            // for (SetNode node = set_first(pn); node != SET_EOF; node = set_next(pn, node))
-            // {
-            //     Neighbor *n = (Neighbor *)set_node_value(pn, node);
-            //     int *id = n->getid();
-            //     double *dist = n->getDistance();
-            //     double exactDistance = calculateEuclideanDistance(data[i], data[*id], num_dimensions);
-            //     nodeDistancesPN[i][j] = *dist;
-            //     TEST_ASSERT((exactDistance - *dist) == 0);
-            //     j++;
-            // }
+                TEST_ASSERT((exactDistance - *dist) == 0);
+                j++;
+            }
+
+            j = 0;
+            for (SetNode node = set_first(pn); node != SET_EOF; node = set_next(pn, node))
+            {
+                Neighbor *n = (Neighbor *)set_node_value(pn, node);
+                int *id = n->getid();
+                double *dist = n->getDistance();
+                double exactDistance = calculateEuclideanDistance(data[i], data[*id], num_dimensions);
+                nodeDistancesPN[i][j] = *dist;
+                TEST_ASSERT((exactDistance - *dist) == 0);
+                j++;
+            }
         }
 
         for (int i = 0; i < N; ++i)
         {
             delete[] nodeDistancesNN[i];
-            // delete[] nodeDistancesRN[i];
-            // delete[] nodeDistancesPN[i];
+            delete[] nodeDistancesRN[i];
+            delete[] nodeDistancesPN[i];
         }
 
         delete[] nodeDistancesNN;
-        // delete[] nodeDistancesRN;
-        // delete[] nodeDistancesPN;
+        delete[] nodeDistancesRN;
+        delete[] nodeDistancesPN;
 
         if (KNNGraph.updateGraph() == 0)
             break;
@@ -198,7 +201,7 @@ void test_potential()
 
     for (int i = 0; i < 10; i++)
     {
-        KNNGraph.calculatePotentialNewNeighbors();
+        KNNGraph.calculatePotentialNewNeighbors4();
         if (KNNGraph.updateGraph() == 0)
             break;
 
@@ -216,7 +219,7 @@ void test_result()
 {
     start_program();
 
-    int K = 50;
+    int K = 40;
     DistanceFunction distanceFunction = &calculateEuclideanDistance;
 
     // knn descent method
@@ -609,63 +612,8 @@ void test_node_value(void)
     delete[] value_array;
 }
 
-
-
-
-// void testNNSinglePoint() {
-
-//     // N = 100; // Adjust as needed
-//     // data = new float*[N];
-//     // for (int i = 0; i < N; ++i) {
-//     //     data[i] = new float[3]; // Adjust dimensions as needed
-//     //     // Initialize with mock values
-//     //     for (int j = 0; j < 3; ++j) {
-//     //         data[i][j] = i * 3.0 + j + 1.0; // Adjust as needed
-//     //     }
-//     // }
-
-//     const int num_dimensions = 100;
-//     N = 200;
-
-//     // Create arrays for storing the data
-//     data = new float *[N];
-//     for (int i = 0; i < N; i++)
-//     {
-//         data[i] = new float[num_dimensions];
-//     }
-
-//     for (int i = 0; i < N; i++)
-//     {
-//         for (int d = 0; d < num_dimensions; d++)
-//         {
-//             data[i][d] = i * 3.0 + d + 1.0;;
-//         }
-//     }
-
-//     DistanceFunction distanceFunction = &calculateEuclideanDistance;
-//     KNNDescent<float, DistanceFunction> KNNGraph(10, N, num_dimensions, data, distanceFunction);
-
-//     // Run the NNSinglePoint function
-//     void** nearestNeighborDataArray = KNNGraph.NNSinglePoint(data[5]);
-
-//     // Print or assert the results
-//     if (nearestNeighborDataArray != nullptr) {
-//         std::cout << "Nearest neighbors found:" << std::endl;
-//         for (int i = 0; nearestNeighborDataArray[i] != nullptr; ++i) {
-//             // Print or process the nearest neighbor data
-//             // Adjust this part based on the type of data your vertices hold
-//             float* neighborData = static_cast<float*>(nearestNeighborDataArray[i]);
-//             std::cout << "Neighbor " << i << ": [" << neighborData[0] << ", " << neighborData[1] << ", " << neighborData[2] << "]" << std::endl;
-//         }
-
-//         // Clean up the allocated memory
-//         delete[] nearestNeighborDataArray;
-//     } else {
-//         std::cout << "No nearest neighbors found." << std::endl;
-//     }
-// }
-
-void test_Euclidean() {
+void test_Euclidean()
+{
     const float point1[] = {3.0, 4.0, 0.0};
     const float point2[] = {3.0, 0.0, 0.0};
     int numDimensions = 3;
@@ -674,7 +622,8 @@ void test_Euclidean() {
     TEST_ASSERT(euclideanDistance == 4);
 }
 
-void test_Manhattan() {
+void test_Manhattan()
+{
     const float point1[] = {1.0, 2.0, 3.0};
     const float point2[] = {4.0, 5.0, 6.0};
     int numDimensions = 3;
@@ -683,21 +632,23 @@ void test_Manhattan() {
     TEST_ASSERT(manhattanDistance == 9);
 }
 
-void test_compare_ints() {
+void test_compare_ints()
+{
     int num1 = 5;
     int num2 = 8;
     double result = compare_ints(&num1, &num2);
     TEST_ASSERT(result == -3);
 }
 
-void test_create_int() {
+void test_create_int()
+{
     int *num = create_int(42);
     TEST_ASSERT(*num == 42);
     delete num;
-
 }
 
-void test_compare_distances() {
+void test_compare_distances()
+{
     Neighbor neighbor1(1, 10.5);
     Neighbor neighbor2(2, 8.2);
 
@@ -705,9 +656,10 @@ void test_compare_distances() {
     TEST_ASSERT(result == 2300000);
 }
 
-void test_furthest_closest() {
-    Set mySet = set_create(compare_distances, delete_neighbor);
-    
+void test_furthest_closest()
+{
+    Set mySet = set_create(compare_distances, NULL);
+
     // Adding some neighbors to the set for testing
     Neighbor neighbor1(1, 10.5);
     Neighbor neighbor2(2, 8.2);
@@ -717,97 +669,100 @@ void test_furthest_closest() {
     set_insert(mySet, &neighbor2);
 
     // Test furthest_neighbor and closest_neighbor
-    Neighbor* furthest = furthest_neighbor(mySet);
-    Neighbor* closest = closest_neighbor(mySet);
+    Neighbor *furthest = furthest_neighbor(mySet);
+    Neighbor *closest = closest_neighbor(mySet);
 
     TEST_ASSERT(*furthest->getid() == 1);
-    TEST_ASSERT(*closest->getid() == 2);    
+    TEST_ASSERT(*closest->getid() == 2);
+
+    set_destroy(mySet);
 }
 
-void test_compare_results() {
-    const int N = 3;
-    const int K = 4;
+void test_compare_results()
+{
+    const int N = 50;
+    const int K = 2;
 
     // Initialize 2 arrays with known values
-    int **arrayBF = new int*[N];
-    int **arrayNND = new int*[N];
+    int **arrayBF = new int *[N];
+    int **arrayNND = new int *[N];
 
-    for (int i = 0; i < N; i++) {
+    int m = 0;
+
+    for (int i = 0; i < N; i++)
+    {
         arrayBF[i] = new int[K];
         arrayNND[i] = new int[K];
-        for (int j = 0; j < K; j++) {
-            arrayBF[i][j] = i * K + j;
-            arrayNND[i][j] = i * K + j;
+        for (int j = 0; j < K; j++)
+        {
+            arrayBF[i][j] = m;
+            arrayNND[i][j] = m;
+            m++;
         }
     }
 
-    // and then modify one element 
-    arrayNND[1][2] = -1;
+    // and then modify one element
+    arrayNND[1][0] = -1;
 
     // now we compare the arrays and we see that the similarity percentage is not 100%
     double similarityPercentage = compare_results(arrayBF, arrayNND, N, K);
-    TEST_ASSERT((similarityPercentage - 91.667) < 0.001);
+    TEST_ASSERT(similarityPercentage == 99);
 
+    arrayBF = new int *[N];
+    arrayNND = new int *[N];
+
+    m = 0;
+
+    for (int i = 0; i < N; i++)
+    {
+        arrayBF[i] = new int[K];
+        arrayNND[i] = new int[K];
+        for (int j = 0; j < K; j++)
+        {
+            arrayBF[i][j] = m;
+            arrayNND[i][j] = m;
+            m++;
+        }
+    }
+
+    arrayNND[1][0] = -1;
+    arrayNND[2][1] = -1;
+    arrayNND[4][0] = -1;
+    arrayNND[4][1] = -1;
+
+    // now we compare the arrays and we see that the similarity percentage is not 100%
+    similarityPercentage = compare_results(arrayBF, arrayNND, N, K);
+    TEST_ASSERT(similarityPercentage == 96);
 }
 
-// void testNNSinglePoint() {
+void test_contains()
+{
+    Neighbor *narray[20];
+    for (int i = 0; i < 20; i++)
+    {
+        narray[i] = new Neighbor(i, 0);
+    }
 
-//     // N = 100; // Adjust as needed
-//     // data = new float*[N];
-//     // for (int i = 0; i < N; ++i) {
-//     //     data[i] = new float[3]; // Adjust dimensions as needed
-//     //     // Initialize with mock values
-//     //     for (int j = 0; j < 3; ++j) {
-//     //         data[i][j] = i * 3.0 + j + 1.0; // Adjust as needed
-//     //     }
-//     // }
+    for (int i = 0; i < 20; i++)
+    {
+        TEST_ASSERT(contains(narray, 20, i));
+    }
 
-//     const int num_dimensions = 100;
-//     N = 200;
+    for (int i = 21; i < 30; i++)
+    {
+        TEST_ASSERT(!contains(narray, 20, i));
+    }
 
-//     // Create arrays for storing the data
-//     data = new float *[N];
-//     for (int i = 0; i < N; i++)
-//     {
-//         data[i] = new float[num_dimensions];
-//     }
-
-//     for (int i = 0; i < N; i++)
-//     {
-//         for (int d = 0; d < num_dimensions; d++)
-//         {
-//             data[i][d] = i * 3.0 + d + 1.0;;
-//         }
-//     }
-
-//     DistanceFunction distanceFunction = &calculateEuclideanDistance;
-//     KNNDescent<float, DistanceFunction> KNNGraph(10, N, p, num_dimensions, data, distanceFunction);
-
-//     // Run the NNSinglePoint function
-//     void** nearestNeighborDataArray = KNNGraph.NNSinglePoint(data[5]);
-
-//     // Print or assert the results
-//     if (nearestNeighborDataArray != nullptr) {
-//         std::cout << "Nearest neighbors found:" << std::endl;
-//         for (int i = 0; nearestNeighborDataArray[i] != nullptr; ++i) {
-//             // Print or process the nearest neighbor data
-//             // Adjust this part based on the type of data your vertices hold
-//             float* neighborData = static_cast<float*>(nearestNeighborDataArray[i]);
-//             std::cout << "Neighbor " << i << ": [" << neighborData[0] << ", " << neighborData[1] << ", " << neighborData[2] << "]" << std::endl;
-//         }
-
-//         // Clean up the allocated memory
-//         delete[] nearestNeighborDataArray;
-//     } else {
-//         std::cout << "No nearest neighbors found." << std::endl;
-//     }
-// }
+    for (int i = 0; i < 20; i++)
+    {
+        delete narray[i];
+    }
+}
 
 TEST_LIST = {
-    // {"testNNSinglePoint", testNNSinglePoint},
-
     {"test distances", test_distances},
     {"test_potential", test_potential},
+    {"test_contains", test_contains},
     {"test_result", test_result},
     {"test_euclidean", test_Euclidean},
     {"test_manhattan", test_Manhattan},

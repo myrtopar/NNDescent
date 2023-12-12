@@ -6,6 +6,7 @@
 #include <cmath>
 #include <string>
 #include <chrono>
+#include <cstring> // For memset
 #include "ADTSet.h"
 
 using namespace std;
@@ -20,8 +21,8 @@ void delete_int(void *a);
 void delete_neighbor(void *a);
 Neighbor *furthest_neighbor(Set s);
 Neighbor *closest_neighbor(Set s);
-
 double compare_results(int **array1, int **array2, int N, int K);
+int contains(Neighbor *id_union[], int size, int targetId);
 
 class Vertex
 {
