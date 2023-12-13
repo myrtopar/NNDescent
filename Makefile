@@ -4,11 +4,11 @@ CFLAGS = -Wall
 CXXFLAGS = -std=c++11 -Wall -g -Wno-unused-variable
 LDFLAGS =
 
-HEADERS = KNNGraph.hpp classes.hpp common_types.h ADTSet.h
-SOURCES = main.cpp classes.cpp ADTSet.c KNNGraph.cpp   
+HEADERS = KNNGraph.hpp classes.hpp common_types.h ADTSet.h rp_trees.hpp
+SOURCES = main.cpp classes.cpp ADTSet.c KNNGraph.cpp rp_trees.cpp
 EXECUTABLE = my_program
 
-TEST_SOURCES = tests.cpp classes.cpp ADTSet.c KNNGraph.cpp   
+TEST_SOURCES = tests.cpp classes.cpp ADTSet.c KNNGraph.cpp rp_trees.cpp
 TEST_EXECUTABLE = test_program  
 
 INCLUDES = -I.
