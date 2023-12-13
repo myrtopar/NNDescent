@@ -1,10 +1,6 @@
-#include <iostream>
-#include <fstream>
-#include <cstdlib>
-#include <cmath>
-#include <string>
 #include "ADTSet.h"
 #include "classes.hpp"
+#include "rp_trees.hpp"
 
 using namespace std;
 

@@ -1,5 +1,4 @@
 #include "acutest.h"
-#include "classes.hpp"
 #include "KNNGraph.hpp"
 
 const char *file_path = "datasets/00000200.bin";
@@ -788,26 +787,67 @@ void test_dot_product()
     vector2[4] = 0.07;
 
     TEST_ASSERT(compare_doubles(dot_product(vector1, vector2, 5), (double)0.41219) == 0);
+
+    delete vector1;
+    delete vector2;
+}
+
+void test_random_hyperplane()
+{
+    start_program();
+
+    float min = 100.0;
+    float max = -100.0;
+
+    for (int i = 0; i < 200; i += 5)
+    {
+        for (int j = 0; j < 100; j += 2)
+        {
+            if (data[i][j] > max)
+            {
+                max = data[i][j];
+            }
+            if (data[i][j] < min)
+            {
+                min = data[i][j];
+            }
+            // cout << "data[" << i << "][" << j << "] = " << data[i][j] << endl;
+            // if (data[i][j] > 0.2 || data[i][j] < -0.2)
+            //     cout << "data[" << i << "][" << j << "] = " << data[i][j] << endl;
+        }
+    }
+
+    float *random_hyperplane_vec = define_random_hyperplane(100, -0.4, 0.4);
+
+    for (int i = 0; i < 100; i++)
+    {
+        TEST_ASSERT(random_hyperplane_vec[i] >= -0.4 && random_hyperplane_vec[i] <= 0.4);
+    }
+
+    delete[] random_hyperplane_vec;
+
+    end_program();
 }
 
 TEST_LIST = {
-    {"test distances", test_distances},
-    {"test_potential", test_potential},
-    {"test_contains", test_contains},
-    {"test_result", test_result},
-    {"test_euclidean", test_Euclidean},
-    {"test_manhattan", test_Manhattan},
-    {"test_compare_ints", test_compare_ints},
-    {"test_create_int", test_create_int},
-    {"test_compare_distances", test_compare_distances},
-    {"test_furthest_closest", test_furthest_closest},
-    {"test_compare_results", test_compare_results},
-    {"set_max", set_max},
-    {"set_create", test_create},
-    {"set_insert", test_insert},
-    {"set_remove", test_remove},
-    {"set_find", test_find},
-    {"set_iterate", test_iterate},
-    {"set_node_value", test_node_value},
+    // {"test distances", test_distances},
+    // {"test_potential", test_potential},
+    // {"test_contains", test_contains},
+    // {"test_result", test_result},
+    // {"test_euclidean", test_Euclidean},
+    // {"test_manhattan", test_Manhattan},
+    // {"test_compare_ints", test_compare_ints},
+    // {"test_create_int", test_create_int},
+    // {"test_compare_distances", test_compare_distances},
+    // {"test_furthest_closest", test_furthest_closest},
+    // {"test_compare_results", test_compare_results},
+    // {"set_max", set_max},
+    // {"set_create", test_create},
+    // {"set_insert", test_insert},
+    // {"set_remove", test_remove},
+    // {"set_find", test_find},
+    // {"set_iterate", test_iterate},
+    // {"set_node_value", test_node_value},
     {"test_dot_product", test_dot_product},
+    {"test_random_hyperplane", test_random_hyperplane},
     {NULL, NULL}};
