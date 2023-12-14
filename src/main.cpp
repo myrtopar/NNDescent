@@ -1,5 +1,5 @@
 #include <iostream>
-#include "KNNGraph.hpp"
+#include "headers/KNNGraph.hpp"
 
 using namespace std;
 
