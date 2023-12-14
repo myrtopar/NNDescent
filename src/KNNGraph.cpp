@@ -28,7 +28,7 @@ void KNNBruteForce::calculateKNNBF() const
             float *vertexData = static_cast<float *>(vertex->getData());
             float *neighborData = static_cast<float *>(nvertex->getData());
 
-            double dist = distance(vertexData, neighborData, dimensions);
+            double dist = distanceResults[i][j];
 
             Neighbor *newNeighbor = new Neighbor(j, dist);
             vertex->addNeighbor(newNeighbor);
@@ -143,7 +143,7 @@ void KNNDescent::createRandomGraph(int K, Vertex **vertexArray)
             float *vertexData = static_cast<float *>(vertexArray[i]->getData());
             float *neighborData = static_cast<float *>(vertexArray[randomNeighborIndex]->getData());
 
-            double dist = distance(vertexData, neighborData, dimensions);
+            double dist = distanceResults[i][randomNeighborIndex];
 
             Neighbor *newNeighbor = new Neighbor(randomNeighborIndex, dist);
             vertexArray[i]->addNeighbor(newNeighbor);
@@ -231,12 +231,10 @@ void KNNDescent::calculatePotentialNewNeighbors4()
                     Vertex *v1 = vertexArray[id1];
                     Vertex *v2 = vertexArray[id2];
 
-                    double dist;
-
                     float *data1 = static_cast<float *>(v1->getData());
                     float *data2 = static_cast<float *>(v2->getData());
 
-                    dist = distance(data1, data2, dimensions);
+                    double dist = distanceResults[id1][id2];
 
                     Neighbor *furthest = furthest_neighbor(v1->getNeighbors());
                     if (dist < *(furthest->getDistance()))

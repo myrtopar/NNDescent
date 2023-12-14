@@ -2,6 +2,7 @@
 #include "headers/KNNGraph.hpp"
 
 using namespace std;
+float **distanceResults;
 
 float calculateEuclideanDistance(const float *point1, const float *point2, int numDimensions)
 {
@@ -22,6 +23,23 @@ float calculateManhattanDistance(const float *point1, const float *point2, int n
         sum += fabs(point1[i] - point2[i]);
     }
     return sum;
+}
+
+void calculateALLdistances(float **data, int N, int num_dimensions)
+{
+    distanceResults = new float *[N * N];
+    for (int i = 0; i < N; ++i)
+    {
+        distanceResults[i] = new float[N];
+    }
+
+    for (int i = 0; i < N; i++)
+    {
+        for (int j = 0; j < N; j++)
+        {
+            distanceResults[i][j] = calculateEuclideanDistance(data[i], data[j], num_dimensions);
+        }
+    }
 }
 
 int main(int argc, char *argv[])
@@ -96,6 +114,8 @@ int main(int argc, char *argv[])
         cout << "Error. Calculate Distance Function doesn't exist.";
         return -1;
     }
+
+    calculateALLdistances(data, N, num_dimensions);
 
     // knn descent method
     auto start1 = std::chrono::high_resolution_clock::now();

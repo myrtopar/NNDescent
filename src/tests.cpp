@@ -8,6 +8,8 @@ float **data;
 int K;
 float p = 0.5;
 
+float **distanceResults;
+
 bool set_is_proper(Set set);
 
 typedef float (*DistanceFunction)(const float *, const float *, int);
@@ -20,6 +22,23 @@ float calculateEuclideanDistance(const float *point1, const float *point2, int n
         sum += diff * diff;
     }
     return sqrt(sum);
+}
+
+void calculateALLdistances(float **data, int N, int num_dimensions)
+{
+    distanceResults = new float *[N * N];
+    for (int i = 0; i < N; ++i)
+    {
+        distanceResults[i] = new float[N];
+    }
+
+    for (int i = 0; i < N; i++)
+    {
+        for (int j = 0; j < N; j++)
+        {
+            distanceResults[i][j] = calculateEuclideanDistance(data[i], data[j], num_dimensions);
+        }
+    }
 }
 
 // Έλεγχος της insert σε λιγότερο χώρο
@@ -42,7 +61,6 @@ void shuffle(int **array, int n)
     }
 }
 
-typedef float (*DistanceFunction)(const float *, const float *, int);
 double calculateManhattanDistance(const float *point1, const float *point2, int numDimensions)
 {
     double sum = 0.0;
@@ -55,7 +73,6 @@ double calculateManhattanDistance(const float *point1, const float *point2, int 
 
 void start_program()
 {
-
     cout << "\nReading Data: " << file_path << endl;
 
     ifstream ifs;
@@ -91,6 +108,7 @@ void start_program()
     }
 
     ifs.close();
+    calculateALLdistances(data, N, num_dimensions);
 }
 
 void end_program(void)
@@ -112,7 +130,6 @@ void test_distances(void)
 
     for (int r = 0; r < 10; r++)
     {
-
         KNNGraph.calculatePotentialNewNeighbors4();
 
         // array to store distances for each node
@@ -758,6 +775,58 @@ void test_contains()
     }
 }
 
+void test_distance_results()
+{
+    const int N = 10;
+    const int num_dimensions = 20;
+
+    float **data = new float *[N];
+    for (int i = 0; i < N; ++i)
+    {
+        data[i] = new float[num_dimensions];
+        for (int j = 0; j < num_dimensions; ++j)
+        {
+            data[i][j] = static_cast<float>(rand()) / RAND_MAX;
+        }
+    }
+
+    float **distResults;
+    distResults = new float *[N * N];
+    for (int i = 0; i < N; ++i)
+    {
+        distResults[i] = new float[N];
+    }
+
+    for (int i = 0; i < N; i++)
+    {
+        for (int j = 0; j < N; j++)
+        {
+            distResults[i][j] = calculateEuclideanDistance(data[i], data[j], num_dimensions);
+        }
+    }
+
+    srand(time(nullptr));
+
+    for (int i = 0; i < 20; i++)
+    {
+        int point1 = rand() % N;
+        int point2 = rand() % N;
+
+        // bool testResult = testRandomPoints(data, distResults, num_dimensions, point1, point2);
+        float calculatedDistance = calculateEuclideanDistance(data[point1], data[point2], num_dimensions);
+        float storedDistance = distResults[point1][point2];
+        TEST_ASSERT(calculatedDistance == storedDistance);
+    }
+
+    for (int i = 0; i < N; ++i)
+    {
+        delete[] data[i];
+        delete[] distResults[i];
+    }
+    delete[] data;
+    delete[] distResults;
+}
+
 void test_dot_product()
 {
     float *vector1 = new float[5];
@@ -835,6 +904,8 @@ void test_tree_rec()
         }
     }
 
+    srand(time(nullptr));
+
     TreeNode rp_root = new tree_node(100, _data, 50, 4);
     rp_root->rp_tree_rec();
 
@@ -851,6 +922,7 @@ TEST_LIST = {
     {"test_contains", test_contains},
     {"test_result", test_result},
     {"test_euclidean", test_Euclidean},
+    {"test_distance_results", test_distance_results},
     {"test_manhattan", test_Manhattan},
     {"test_compare_ints", test_compare_ints},
     {"test_create_int", test_create_int},
