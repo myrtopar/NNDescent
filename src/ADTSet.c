@@ -8,7 +8,7 @@
 #include <assert.h>
 #include <stdio.h>
 
-#include "ADTSet.h"
+#include "headers/ADTSet.h"
 
 // Υλοποιούμε τον ADT Set μέσω AVL, οπότε το struct set είναι ένα AVL Δέντρο.
 struct set

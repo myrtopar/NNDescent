@@ -1,15 +1,19 @@
 CC = gcc
 CXX = g++
 CFLAGS = -Wall
-CXXFLAGS = -std=c++11 -Wall -g -Wno-unused-variable
+CXXFLAGS = -std=c++11 -Wall -g -Wno-unused-variable -Wno-reorder
 LDFLAGS =
 
-HEADERS = KNNGraph.hpp classes.hpp common_types.h ADTSet.h rp_trees.hpp
-SOURCES = main.cpp classes.cpp ADTSet.c KNNGraph.cpp rp_trees.cpp
+SRC_DIR = src
+HEADERS_DIR = headers
+
+# File paths
+HEADERS = $(HEADERS_DIR)/KNNGraph.hpp $(HEADERS_DIR)/classes.hpp $(HEADERS_DIR)/common_types.h $(HEADERS_DIR)/ADTSet.h $(HEADERS_DIR)/rp_trees.hpp
+SOURCES = $(SRC_DIR)/main.cpp $(SRC_DIR)/classes.cpp $(SRC_DIR)/ADTSet.c $(SRC_DIR)/KNNGraph.cpp $(SRC_DIR)/rp_trees.cpp
 EXECUTABLE = my_program
 
-TEST_SOURCES = tests.cpp classes.cpp ADTSet.c KNNGraph.cpp rp_trees.cpp
-TEST_EXECUTABLE = test_program  
+TEST_SOURCES = $(SRC_DIR)/tests.cpp $(SRC_DIR)/classes.cpp $(SRC_DIR)/ADTSet.c $(SRC_DIR)/KNNGraph.cpp $(SRC_DIR)/rp_trees.cpp
+TEST_EXECUTABLE = test_program
 
 INCLUDES = -I.
 

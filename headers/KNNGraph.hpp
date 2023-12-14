@@ -14,12 +14,13 @@ private:
     int size;
     float sampling;
     int dimensions;
+    int rp_limit;
     using DistanceFunction = float (*)(const float *, const float *, int);
     DistanceFunction distance;
     double delta;
 
 public:
-    KNNDescent(int _K, int _size, float _sampling, int dimensions, float **myTuples, DistanceFunction _distance, double delta);
+    KNNDescent(int _K, int _size, float _sampling, int dimensions, float **data, DistanceFunction _distance, double delta, int rp_limit);
 
     void createRandomGraph(int K, Vertex **vertexArray);
     void calculatePotentialNewNeighbors4(); // sampling version

@@ -1,5 +1,5 @@
 #include <iostream>
-#include "KNNGraph.hpp"
+#include "headers/KNNGraph.hpp"
 
 using namespace std;
 float **distanceResults;
@@ -25,24 +25,27 @@ float calculateManhattanDistance(const float *point1, const float *point2, int n
     return sum;
 }
 
-
-void calculateALLdistances(float **data, int N, int num_dimensions) {
-    distanceResults = new float*[N*N];
-    for (int i = 0; i < N; ++i) {
+void calculateALLdistances(float **data, int N, int num_dimensions)
+{
+    distanceResults = new float *[N * N];
+    for (int i = 0; i < N; ++i)
+    {
         distanceResults[i] = new float[N];
     }
 
-    for(int i = 0; i < N; i++) {
-        for(int j = 0; j < N; j++) {
+    for (int i = 0; i < N; i++)
+    {
+        for (int j = 0; j < N; j++)
+        {
             distanceResults[i][j] = calculateEuclideanDistance(data[i], data[j], num_dimensions);
         }
     }
 }
 
-
 int main(int argc, char *argv[])
 {
-    if (argc != 6)
+
+    if (argc != 7)
     {
         cout << "Error wrong amount of arguments.\n";
         return -1;
@@ -53,6 +56,7 @@ int main(int argc, char *argv[])
     int metric = atoi(argv[3]); // to encode
     char *file_path = argv[4];
     double delta = stof(argv[5]);
+    int rp_limit = atoi(argv[6]);
 
     if (p > 1.0)
     {
@@ -115,7 +119,7 @@ int main(int argc, char *argv[])
 
     // knn descent method
     auto start1 = std::chrono::high_resolution_clock::now();
-    KNNDescent KNNGraph(K, N, p, num_dimensions, data, distanceFunction, delta);
+    KNNDescent KNNGraph(K, N, p, num_dimensions, data, distanceFunction, delta, rp_limit);
     KNNGraph.createKNNGraph();
     auto stop1 = std::chrono::high_resolution_clock::now();
 
