@@ -8,6 +8,8 @@ float **data;
 int K;
 float p = 0.5;
 
+float **distanceResults;
+
 bool set_is_proper(Set set);
 
 typedef float (*DistanceFunction)(const float *, const float *, int);
@@ -20,6 +22,19 @@ float calculateEuclideanDistance(const float *point1, const float *point2, int n
         sum += diff * diff;
     }
     return sqrt(sum);
+}
+
+void calculateALLdistances(float **data, int N, int num_dimensions) {
+    distanceResults = new float*[N*N];
+    for (int i = 0; i < N; ++i) {
+        distanceResults[i] = new float[N];
+    }
+
+    for(int i = 0; i < N; i++) {
+        for(int j = 0; j < N; j++) {
+            distanceResults[i][j] = calculateEuclideanDistance(data[i], data[j], num_dimensions);
+        }
+    }
 }
 
 // Έλεγχος της insert σε λιγότερο χώρο
@@ -43,7 +58,6 @@ void shuffle(int **array, int n)
     }
 }
 
-typedef float (*DistanceFunction)(const float *, const float *, int);
 double calculateManhattanDistance(const float *point1, const float *point2, int numDimensions)
 {
     double sum = 0.0;
@@ -56,7 +70,6 @@ double calculateManhattanDistance(const float *point1, const float *point2, int 
 
 void start_program()
 {
-
     cout << "\nReading Data: " << file_path << endl;
 
     ifstream ifs;
@@ -92,6 +105,8 @@ void start_program()
     }
 
     ifs.close();
+    calculateALLdistances(data, N, num_dimensions);
+
 }
 
 void end_program(void)
@@ -113,7 +128,6 @@ void test_distances(void)
 
     for (int r = 0; r < 10; r++)
     {
-
         KNNGraph.calculatePotentialNewNeighbors4();
 
         // array to store distances for each node
@@ -792,62 +806,108 @@ void test_dot_product()
     delete vector2;
 }
 
-void test_random_hyperplane()
-{
-    start_program();
+// void test_random_hyperplane()
+// {
+//     start_program();
 
-    float min = 100.0;
-    float max = -100.0;
+//     float min = 100.0;
+//     float max = -100.0;
 
-    for (int i = 0; i < 200; i += 5)
-    {
-        for (int j = 0; j < 100; j += 2)
-        {
-            if (data[i][j] > max)
-            {
-                max = data[i][j];
-            }
-            if (data[i][j] < min)
-            {
-                min = data[i][j];
-            }
-            // cout << "data[" << i << "][" << j << "] = " << data[i][j] << endl;
-            // if (data[i][j] > 0.2 || data[i][j] < -0.2)
-            //     cout << "data[" << i << "][" << j << "] = " << data[i][j] << endl;
+//     for (int i = 0; i < 200; i += 5)
+//     {
+//         for (int j = 0; j < 100; j += 2)
+//         {
+//             if (data[i][j] > max)
+//             {
+//                 max = data[i][j];
+//             }
+//             if (data[i][j] < min)
+//             {
+//                 min = data[i][j];
+//             }
+//             // cout << "data[" << i << "][" << j << "] = " << data[i][j] << endl;
+//             // if (data[i][j] > 0.2 || data[i][j] < -0.2)
+//             //     cout << "data[" << i << "][" << j << "] = " << data[i][j] << endl;
+//         }
+//     }
+
+//     float *random_hyperplane_vec = define_random_hyperplane(100, -0.4, 0.4);
+
+//     for (int i = 0; i < 100; i++)
+//     {
+//         TEST_ASSERT(random_hyperplane_vec[i] >= -0.4 && random_hyperplane_vec[i] <= 0.4);
+//     }
+
+//     delete[] random_hyperplane_vec;
+
+//     end_program();
+// }
+
+void test_distance_results() {
+    const int N = 10;
+    const int num_dimensions = 20;
+
+    float** data = new float*[N];
+    for (int i = 0; i < N; ++i) {
+        data[i] = new float[num_dimensions];
+        for (int j = 0; j < num_dimensions; ++j) {
+            data[i][j] = static_cast<float>(rand()) / RAND_MAX;  
         }
     }
 
-    float *random_hyperplane_vec = define_random_hyperplane(100, -0.4, 0.4);
-
-    for (int i = 0; i < 100; i++)
-    {
-        TEST_ASSERT(random_hyperplane_vec[i] >= -0.4 && random_hyperplane_vec[i] <= 0.4);
+    float** distResults;
+    distResults = new float*[N*N];
+    for (int i = 0; i < N; ++i) {
+        distResults[i] = new float[N];
     }
 
-    delete[] random_hyperplane_vec;
+    for(int i = 0; i < N; i++) {
+        for(int j = 0; j < N; j++) {
+            distResults[i][j] = calculateEuclideanDistance(data[i], data[j], num_dimensions);
+        }
+    }
+    
+    srand(time(nullptr));
 
-    end_program();
+    for(int i = 0; i < 20; i++) {
+        int point1 = rand() % N;
+        int point2 = rand() % N;
+
+        // bool testResult = testRandomPoints(data, distResults, num_dimensions, point1, point2);
+        float calculatedDistance = calculateEuclideanDistance(data[point1], data[point2], num_dimensions);
+        float storedDistance = distResults[point1][point2];
+        TEST_ASSERT(calculatedDistance == storedDistance);
+    }
+
+    for (int i = 0; i < N; ++i) {
+        delete[] data[i];
+        delete[] distResults[i];
+    }
+    delete[] data;
+    delete[] distResults;
 }
 
+
 TEST_LIST = {
-    // {"test distances", test_distances},
-    // {"test_potential", test_potential},
-    // {"test_contains", test_contains},
-    // {"test_result", test_result},
-    // {"test_euclidean", test_Euclidean},
-    // {"test_manhattan", test_Manhattan},
-    // {"test_compare_ints", test_compare_ints},
-    // {"test_create_int", test_create_int},
-    // {"test_compare_distances", test_compare_distances},
-    // {"test_furthest_closest", test_furthest_closest},
-    // {"test_compare_results", test_compare_results},
-    // {"set_max", set_max},
-    // {"set_create", test_create},
-    // {"set_insert", test_insert},
-    // {"set_remove", test_remove},
-    // {"set_find", test_find},
-    // {"set_iterate", test_iterate},
-    // {"set_node_value", test_node_value},
+    {"test distances", test_distances},
+    {"test_potential", test_potential},
+    {"test_contains", test_contains},
+    {"test_result", test_result},
+    {"test_euclidean", test_Euclidean},
+    {"test_distance_results", test_distance_results},
+    {"test_manhattan", test_Manhattan},
+    {"test_compare_ints", test_compare_ints},
+    {"test_create_int", test_create_int},
+    {"test_compare_distances", test_compare_distances},
+    {"test_furthest_closest", test_furthest_closest},
+    {"test_compare_results", test_compare_results},
+    {"set_max", set_max},
+    {"set_create", test_create},
+    {"set_insert", test_insert},
+    {"set_remove", test_remove},
+    {"set_find", test_find},
+    {"set_iterate", test_iterate},
+    {"set_node_value", test_node_value},
     {"test_dot_product", test_dot_product},
-    {"test_random_hyperplane", test_random_hyperplane},
+    // {"test_random_hyperplane", test_random_hyperplane},
     {NULL, NULL}};

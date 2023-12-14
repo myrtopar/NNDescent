@@ -4,7 +4,8 @@
 
 using namespace std;
 
-typedef float (*DistanceFunction)(const float *, const float *, int);
+using DistanceFunction = float (*)(const float*, const float*, int);
+extern float **distanceResults;
 
 class KNNDescent
 {
