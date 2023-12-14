@@ -27,7 +27,7 @@ float calculateManhattanDistance(const float *point1, const float *point2, int n
 int main(int argc, char *argv[])
 {
 
-    if (argc != 6)
+    if (argc != 7)
     {
         cout << "Error wrong amount of arguments.\n";
         return -1;
@@ -38,6 +38,7 @@ int main(int argc, char *argv[])
     int metric = atoi(argv[3]); // to encode
     char *file_path = argv[4];
     double delta = stof(argv[5]);
+    int rp_limit = atoi(argv[6]);
 
     if (p > 1.0)
     {
@@ -98,7 +99,7 @@ int main(int argc, char *argv[])
 
     // knn descent method
     auto start1 = std::chrono::high_resolution_clock::now();
-    KNNDescent KNNGraph(K, N, p, num_dimensions, data, distanceFunction, delta);
+    KNNDescent KNNGraph(K, N, p, num_dimensions, data, distanceFunction, delta, rp_limit);
     KNNGraph.createKNNGraph();
     auto stop1 = std::chrono::high_resolution_clock::now();
 

@@ -1,5 +1,5 @@
-#include "acutest.h"
-#include "KNNGraph.hpp"
+#include "headers/acutest.h"
+#include "headers/KNNGraph.hpp"
 
 const char *file_path = "datasets/00000200.bin";
 int N;
@@ -25,7 +25,6 @@ float calculateEuclideanDistance(const float *point1, const float *point2, int n
 // Έλεγχος της insert σε λιγότερο χώρο
 void insert_and_test(Set set, Pointer value)
 {
-
     set_insert(set, value);
     TEST_ASSERT(set_is_proper(set));
     // TEST_ASSERT(set_find(set, value) == value);
@@ -107,7 +106,7 @@ void test_distances(void)
     start_program();
     DistanceFunction distanceFunction = &calculateEuclideanDistance;
 
-    KNNDescent KNNGraph(10, N, p, num_dimensions, data, distanceFunction, delta);
+    KNNDescent KNNGraph(10, N, p, num_dimensions, data, distanceFunction, delta, 10);
 
     Vertex **array = KNNGraph.vertexArray;
 
@@ -196,7 +195,7 @@ void test_potential()
     start_program();
 
     DistanceFunction distanceFunction = &calculateEuclideanDistance;
-    KNNDescent KNNGraph(10, N, p, num_dimensions, data, distanceFunction, delta);
+    KNNDescent KNNGraph(10, N, p, num_dimensions, data, distanceFunction, delta, 10);
 
     for (int i = 0; i < 10; i++)
     {
@@ -224,7 +223,7 @@ void test_result()
 
     // knn descent method
     auto start1 = std::chrono::high_resolution_clock::now();
-    KNNDescent KNNGraph(K, N, p, num_dimensions, data, distanceFunction, delta);
+    KNNDescent KNNGraph(K, N, p, num_dimensions, data, distanceFunction, delta, 10);
     KNNGraph.createKNNGraph();
     auto stop1 = std::chrono::high_resolution_clock::now();
 
@@ -794,30 +793,8 @@ void test_dot_product()
 
 void test_random_hyperplane()
 {
-    start_program();
-
-    float min = 100.0;
-    float max = -100.0;
-
-    for (int i = 0; i < 200; i += 5)
-    {
-        for (int j = 0; j < 100; j += 2)
-        {
-            if (data[i][j] > max)
-            {
-                max = data[i][j];
-            }
-            if (data[i][j] < min)
-            {
-                min = data[i][j];
-            }
-            // cout << "data[" << i << "][" << j << "] = " << data[i][j] << endl;
-            // if (data[i][j] > 0.2 || data[i][j] < -0.2)
-            //     cout << "data[" << i << "][" << j << "] = " << data[i][j] << endl;
-        }
-    }
-
-    float *random_hyperplane_vec = define_random_hyperplane(100, -0.4, 0.4);
+    float *random_hyperplane_vec = new float[100];
+    define_random_hyperplane(random_hyperplane_vec, 100, -0.4, 0.4);
 
     for (int i = 0; i < 100; i++)
     {
@@ -825,29 +802,70 @@ void test_random_hyperplane()
     }
 
     delete[] random_hyperplane_vec;
+}
+
+void test_random_split()
+{
+    srand(time(NULL));
+    start_program();
+    TreeNode rp_root = new tree_node(100, data, N, 20);
+    rp_root->random_projection_split();
+
+    TreeNode _left_sub = rp_root->left_sub();
+    TreeNode _right_sub = rp_root->right_sub();
+
+    TEST_ASSERT(_left_sub->numDataPoints > 0 && _left_sub->numDataPoints < rp_root->numDataPoints);
+    TEST_ASSERT(_right_sub->numDataPoints > 0 && _right_sub->numDataPoints < rp_root->numDataPoints);
+
+    TEST_ASSERT(_left_sub->left_sub() == NULL && _left_sub->right_sub() == NULL);
+    TEST_ASSERT(_right_sub->left_sub() == NULL && _right_sub->right_sub() == NULL);
 
     end_program();
 }
 
+void test_tree_rec()
+{
+    float **_data = new float *[50];
+    for (int i = 0; i < 50; ++i)
+    {
+        _data[i] = new float[3];
+        for (int j = 0; j < 3; j++)
+        {
+            data[i][j] = generate_random_float(-0.4, 0.4);
+        }
+    }
+
+    TreeNode rp_root = new tree_node(100, _data, 50, 4);
+    rp_root->rp_tree_rec();
+
+    for (int i = 0; i < 50; ++i)
+    {
+        delete _data[i];
+    }
+    delete[] _data;
+}
+
 TEST_LIST = {
-    // {"test distances", test_distances},
-    // {"test_potential", test_potential},
-    // {"test_contains", test_contains},
-    // {"test_result", test_result},
-    // {"test_euclidean", test_Euclidean},
-    // {"test_manhattan", test_Manhattan},
-    // {"test_compare_ints", test_compare_ints},
-    // {"test_create_int", test_create_int},
-    // {"test_compare_distances", test_compare_distances},
-    // {"test_furthest_closest", test_furthest_closest},
-    // {"test_compare_results", test_compare_results},
-    // {"set_max", set_max},
-    // {"set_create", test_create},
-    // {"set_insert", test_insert},
-    // {"set_remove", test_remove},
-    // {"set_find", test_find},
-    // {"set_iterate", test_iterate},
-    // {"set_node_value", test_node_value},
+    {"test distances", test_distances},
+    {"test_potential", test_potential},
+    {"test_contains", test_contains},
+    {"test_result", test_result},
+    {"test_euclidean", test_Euclidean},
+    {"test_manhattan", test_Manhattan},
+    {"test_compare_ints", test_compare_ints},
+    {"test_create_int", test_create_int},
+    {"test_compare_distances", test_compare_distances},
+    {"test_furthest_closest", test_furthest_closest},
+    {"test_compare_results", test_compare_results},
+    {"set_max", set_max},
+    {"set_create", test_create},
+    {"set_insert", test_insert},
+    {"set_remove", test_remove},
+    {"set_find", test_find},
+    {"set_iterate", test_iterate},
+    {"set_node_value", test_node_value},
     {"test_dot_product", test_dot_product},
     {"test_random_hyperplane", test_random_hyperplane},
+    {"test_random_split", test_random_split},
+    // {"test_tree_rec", test_tree_rec},
     {NULL, NULL}};

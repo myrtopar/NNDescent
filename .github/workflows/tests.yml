@@ -17,4 +17,4 @@ jobs:
       run: chmod +r .github/workflows/tests.yml
 
     - name: Build and run tests
-      run: make test CFLAGS=-fPIC
+      run: make tests CFLAGS=-fPIC

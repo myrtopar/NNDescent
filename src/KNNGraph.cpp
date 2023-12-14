@@ -1,4 +1,4 @@
-#include "KNNGraph.hpp"
+#include "headers/KNNGraph.hpp"
 
 KNNBruteForce::KNNBruteForce(int _K, int _size, int _dimensions, float **data, DistanceFunction _distance) : K(_K), size(_size), dimensions(_dimensions), distance(_distance)
 {
@@ -108,7 +108,7 @@ KNNBruteForce::~KNNBruteForce()
 }
 
 ////////////////////////////////// KNNDESCENT //////////////////////////////////
-KNNDescent::KNNDescent(int _K, int _size, float _sampling, int _dimensions, float **data, DistanceFunction _metricFunction, double _delta) : K(_K), size(_size), sampling(_sampling), dimensions(_dimensions), distance(_metricFunction), delta(_delta)
+KNNDescent::KNNDescent(int _K, int _size, float _sampling, int _dimensions, float **data, DistanceFunction _metricFunction, double _delta, int _rp_limit) : K(_K), size(_size), sampling(_sampling), dimensions(_dimensions), distance(_metricFunction), delta(_delta), rp_limit(_rp_limit)
 {
     cout << "\nConstructing a graph of " << size << " elements, looking for " << K << " nearest neighbors" << endl;
     vertexArray = new Vertex *[size];
