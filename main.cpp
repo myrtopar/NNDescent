@@ -3,17 +3,8 @@
 
 using namespace std;
 
+float **distanceResults;
 typedef float (*DistanceFunction)(const float *, const float *, int);
-float calculateEuclideanDistance(const float *point1, const float *point2, int numDimensions)
-{
-    double sum = 0.0;
-    for (int i = 0; i < numDimensions; i++)
-    {
-        double diff = point1[i] - point2[i];
-        sum += diff * diff;
-    }
-    return sqrt(sum);
-}
 
 float calculateManhattanDistance(const float *point1, const float *point2, int numDimensions)
 {
@@ -24,6 +15,34 @@ float calculateManhattanDistance(const float *point1, const float *point2, int n
     }
     return sum;
 }
+
+
+float calculateEuclideanDistance(const float *point1, const float *point2, int numDimensions)
+{    
+    double sum = 0.0;
+    for (int i = 0; i < numDimensions; i++)
+    {
+        double diff = point1[i] - point2[i];
+        sum += diff * diff;
+    }
+    return sum;
+}
+
+void calculateALLdistances(float **data, int N, int num_dimensions) {
+    distanceResults = new float*[N*N];
+    for (int i = 0; i < N; ++i) {
+        distanceResults[i] = new float[N];
+    }
+
+    for(int i = 0; i < N; i++) {
+        for(int j = 0; j < N; j++) {
+            // cout << calculateEuclideanDistance(data[i], data[j], num_dimensions) << " ";
+            distanceResults[i][j] = calculateEuclideanDistance(data[i], data[j], num_dimensions);
+        }
+        // cout << endl;
+    }
+}
+
 
 int main(int argc, char *argv[])
 {
@@ -38,7 +57,7 @@ int main(int argc, char *argv[])
     float p = stof(argv[2]);
     int metric = atoi(argv[3]); // to encode
     char *file_path = argv[4];
-    double delta = atoi(argv[5]);
+    double delta = stof(argv[5]);
 
     if (p > 1.0)
     {
@@ -97,6 +116,8 @@ int main(int argc, char *argv[])
         return -1;
     }
 
+    calculateALLdistances(data, N, num_dimensions);
+
     // knn descent method
     auto start1 = std::chrono::high_resolution_clock::now();
     KNNDescent KNNGraph(K, N, p, num_dimensions, data, distanceFunction, delta);
@@ -110,15 +131,6 @@ int main(int argc, char *argv[])
     int **NND = KNNGraph.extract_neighbors_to_list();
 
     int **BF; // we might have calculated the result of this dataset with the Brute Force method
-
-    // // brute force method
-    // auto start2 = std::chrono::high_resolution_clock::now();
-    // KNNBruteForce<float, DistanceFunction> myGraph(K, N, num_dimensions, data, distanceFunction);
-    // auto stop2 = std::chrono::high_resolution_clock::now();
-
-    // auto duration2 = std::chrono::duration_cast<std::chrono::seconds>(stop2 - start2);
-    // cout << "Brute Force: " << duration2.count() << " seconds" << endl;
-
     if ((int)N <= 5000)
     {
         string pathname = argv[4];
@@ -147,7 +159,7 @@ int main(int argc, char *argv[])
             while (file_check >> value)
             {
                 if (i == (int)N)
-                { // at the end of each
+                { 
                     cout << "Brute Force: " << value << " seconds" << endl;
                     break;
                 }

@@ -28,7 +28,7 @@ void KNNBruteForce::calculateKNNBF() const
             float *vertexData = static_cast<float *>(vertex->getData());
             float *neighborData = static_cast<float *>(nvertex->getData());
 
-            double dist = distance(vertexData, neighborData, dimensions);
+            double dist = distanceResults[i][j];
 
             Neighbor *newNeighbor = new Neighbor(j, dist);
             vertex->addNeighbor(newNeighbor);
@@ -62,7 +62,7 @@ int **KNNBruteForce::extract_neighbors_to_list()
     for (int i = 0; i < size; i++)
     {
         neighbors[i] = new int[K];
-    } // row col
+    } 
 
     for (int i = 0; i < size; i++)
     {
@@ -81,7 +81,6 @@ int **KNNBruteForce::extract_neighbors_to_list()
     return neighbors;
 }
 
-// template <typename float, typename DistanceFunction>
 void KNNBruteForce::printNeighbors()
 {
     cout << "\033[1;31m BRUTE FORCE NEIGHBORS\033[0m" << endl;
@@ -148,7 +147,7 @@ void KNNDescent::createRandomGraph(int K, Vertex **vertexArray)
             float *vertexData = static_cast<float *>(vertexArray[i]->getData());
             float *neighborData = static_cast<float *>(vertexArray[randomNeighborIndex]->getData());
 
-            double dist = distance(vertexData, neighborData, dimensions);
+            double dist = distanceResults[i][randomNeighborIndex];
 
             Neighbor *newNeighbor = new Neighbor(randomNeighborIndex, dist);
             vertexArray[i]->addNeighbor(newNeighbor);
@@ -238,12 +237,10 @@ void KNNDescent::calculatePotentialNewNeighbors4()
                     Vertex *v1 = vertexArray[id1];
                     Vertex *v2 = vertexArray[id2];
 
-                    double dist;
-
                     float *data1 = static_cast<float *>(v1->getData());
                     float *data2 = static_cast<float *>(v2->getData());
 
-                    dist = distance(data1, data2, dimensions);
+                    double dist = distanceResults[id1][id2];
 
                     Neighbor *furthest = furthest_neighbor(v1->getNeighbors());
                     if (dist < *(furthest->getDistance()))
@@ -333,8 +330,8 @@ int KNNDescent::updateGraph()
         }
         vertexArray[i]->resetPNNSet();
     }
-    double d = 0.01;
-    double term = d * K * size;
+
+    double term = delta * K * size;
     if (updated < term)
         return 0;
     return updated;
@@ -395,6 +392,7 @@ void **KNNDescent::NNSinglePoint(void *data)
         float *vertexData = static_cast<float *>(v->getData());
 
         double dist = distance(vertexData, queryData, dimensions);
+
         if (dist == 0.0) // found the query data point
         {
             Set nn = v->getNeighbors();

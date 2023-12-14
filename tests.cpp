@@ -9,6 +9,8 @@ float **data;
 int K;
 float p = 0.5;
 
+float **distanceResults;
+
 bool set_is_proper(Set set);
 
 typedef float (*DistanceFunction)(const float *, const float *, int);
@@ -762,12 +764,65 @@ void test_contains()
     }
 }
 
+// bool testRandomPoints(float** data, float** distResults, int num_dimensions, int point1, int point2) {
+    
+
+//     const float epsilon = 1e-6;
+
+//     return abs(calculatedDistance - storedDistance) < epsilon;
+// }
+
+void test_distance_results() {
+    const int N = 10;
+    const int num_dimensions = 20;
+
+    float** data = new float*[N];
+    for (int i = 0; i < N; ++i) {
+        data[i] = new float[num_dimensions];
+        for (int j = 0; j < num_dimensions; ++j) {
+            data[i][j] = static_cast<float>(rand()) / RAND_MAX;  
+        }
+    }
+
+    float** distResults;
+    distResults = new float*[N*N];
+    for (int i = 0; i < N; ++i) {
+        distResults[i] = new float[N];
+    }
+
+    for(int i = 0; i < N; i++) {
+        for(int j = 0; j < N; j++) {
+            distResults[i][j] = calculateEuclideanDistance(data[i], data[j], num_dimensions);
+        }
+    }
+    
+    srand(time(nullptr));
+
+    for(int i = 0; i < 20; i++) {
+        int point1 = rand() % N;
+        int point2 = rand() % N;
+
+        // bool testResult = testRandomPoints(data, distResults, num_dimensions, point1, point2);
+        float calculatedDistance = calculateEuclideanDistance(data[point1], data[point2], num_dimensions);
+        float storedDistance = distResults[point1][point2];
+        TEST_ASSERT(calculatedDistance == storedDistance);
+    }
+
+    for (int i = 0; i < N; ++i) {
+        delete[] data[i];
+        delete[] distResults[i];
+    }
+    delete[] data;
+    delete[] distResults;
+}
+
 TEST_LIST = {
     {"test distances", test_distances},
     {"test_potential", test_potential},
     {"test_contains", test_contains},
     {"test_result", test_result},
     {"test_euclidean", test_Euclidean},
+    {"test_distance_results", test_distance_results},
     {"test_manhattan", test_Manhattan},
     {"test_compare_ints", test_compare_ints},
     {"test_create_int", test_create_int},

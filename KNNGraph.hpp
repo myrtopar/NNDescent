@@ -7,6 +7,8 @@
 #include "classes.hpp"
 
 using namespace std;
+using DistanceFunction = float (*)(const float*, const float*, int);
+extern float **distanceResults;
 
 class KNNDescent
 {
@@ -15,7 +17,6 @@ private:
     int size;
     float sampling;
     int dimensions;
-    using DistanceFunction = float (*)(const float*, const float*, int);
     DistanceFunction distance;
     double delta;
 
@@ -46,7 +47,6 @@ private:
     int K;
     int size;
     int dimensions;
-    using DistanceFunction = float (*)(const float*, const float*, int);
     DistanceFunction distance;
 
 public:
