@@ -31,7 +31,8 @@ public:
     void random_projection_split();
     void set_subtrees(TreeNode sub_left, TreeNode sub_right);
     void add_data(float *data_point);
-    void rp_tree_rec();
+    float **get_data();
+    void rp_tree_rec(int *idx, TreeNode *leaf_array);
     TreeNode left_sub();
     TreeNode right_sub();
 

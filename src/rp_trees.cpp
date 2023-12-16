@@ -30,6 +30,11 @@ TreeNode tree_node::right_sub()
     return rightChild;
 }
 
+float **tree_node::get_data()
+{
+    return data;
+}
+
 void tree_node::random_projection_split()
 {
 
@@ -58,20 +63,38 @@ void tree_node::random_projection_split()
             (new_sub_left->numDataPoints <= new_sub_right->numDataPoints) ? new_sub_left->add_data(data[i]) : new_sub_right->add_data(data[i]);
         }
     }
+
+    // cout << "after split: datapoints on left: " << new_sub_left->numDataPoints << " , datapoints on right: " << new_sub_right->numDataPoints << endl;
 }
 
-void tree_node::rp_tree_rec()
+void tree_node::rp_tree_rec(int *idx, TreeNode *leaf_array)
 {
+    // cout << "number of datapoints in this subtree: " << numDataPoints << endl;
     define_random_hyperplane(hyperplaneVector, dimensions, -0.4, 0.4);
+
     random_projection_split();
     if (leftChild->numDataPoints > size_limit)
     {
-        leftChild->rp_tree_rec();
+        leftChild->rp_tree_rec(idx, leaf_array);
+    }
+    else if (leftChild->numDataPoints <= size_limit && leftChild->numDataPoints > 0)
+    {
+        // cout << "storing a leaf in index " << *idx << endl;
+        int curr_idx = *idx;
+        leaf_array[curr_idx++] = leftChild;
+        *idx = curr_idx;
     }
 
     if (rightChild->numDataPoints > size_limit)
     {
-        rightChild->rp_tree_rec();
+        rightChild->rp_tree_rec(idx, leaf_array);
+    }
+    else if (rightChild->numDataPoints <= size_limit && rightChild->numDataPoints > 0)
+    {
+        // cout << "storing a leaf in index " << *idx << endl;
+        int curr_idx = *idx;
+        leaf_array[curr_idx++] = rightChild;
+        *idx = curr_idx;
     }
 }
 
