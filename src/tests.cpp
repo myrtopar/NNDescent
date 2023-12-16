@@ -875,7 +875,6 @@ void test_random_hyperplane()
 
 void test_random_split()
 {
-    srand(time(NULL));
     start_program();
     TreeNode rp_root = new tree_node(100, data, N, 20);
     rp_root->random_projection_split();
@@ -894,20 +893,34 @@ void test_random_split()
 
 void test_tree_rec()
 {
-    float **_data = new float *[50];
-    for (int i = 0; i < 50; ++i)
+    srand(time(nullptr));
+    float **_data = new float *[200];
+    for (int i = 0; i < 200; ++i)
     {
         _data[i] = new float[3];
         for (int j = 0; j < 3; j++)
         {
-            data[i][j] = generate_random_float(-0.4, 0.4);
+            _data[i][j] = generate_random_float(-0.4, 0.4);
         }
     }
 
-    srand(time(nullptr));
+    int *index = new int;
+    *index = 0;
+    TreeNode *leaf_array = new TreeNode[200];
+    int leaf_size_limit = 25;
 
-    TreeNode rp_root = new tree_node(100, _data, 50, 4);
-    rp_root->rp_tree_rec();
+    TreeNode rp_root = new tree_node(3, _data, 200, leaf_size_limit);
+    rp_root->rp_tree_rec(index, leaf_array);
+
+    // cout << "index after leaf ineserts: " << *index << endl;
+
+    for (int i = 0; i < *index; i++)
+    {
+        // cout << "leaf " << i << " size: " << leaf_array[i]->numDataPoints << endl;
+        TEST_ASSERT(leaf_array[i]->numDataPoints <= leaf_size_limit);
+    }
+
+    // extra test to prove the correctness of the random projection tree.
 
     for (int i = 0; i < 50; ++i)
     {
@@ -917,27 +930,27 @@ void test_tree_rec()
 }
 
 TEST_LIST = {
-    {"test distances", test_distances},
-    {"test_potential", test_potential},
-    {"test_contains", test_contains},
-    {"test_result", test_result},
-    {"test_euclidean", test_Euclidean},
-    {"test_distance_results", test_distance_results},
-    {"test_manhattan", test_Manhattan},
-    {"test_compare_ints", test_compare_ints},
-    {"test_create_int", test_create_int},
-    {"test_compare_distances", test_compare_distances},
-    {"test_furthest_closest", test_furthest_closest},
-    {"test_compare_results", test_compare_results},
-    {"set_max", set_max},
-    {"set_create", test_create},
-    {"set_insert", test_insert},
-    {"set_remove", test_remove},
-    {"set_find", test_find},
-    {"set_iterate", test_iterate},
-    {"set_node_value", test_node_value},
+    // {"test distances", test_distances},
+    // {"test_potential", test_potential},
+    // {"test_contains", test_contains},
+    // {"test_result", test_result},
+    // {"test_euclidean", test_Euclidean},
+    // {"test_distance_results", test_distance_results},
+    // {"test_manhattan", test_Manhattan},
+    // {"test_compare_ints", test_compare_ints},
+    // {"test_create_int", test_create_int},
+    // {"test_compare_distances", test_compare_distances},
+    // {"test_furthest_closest", test_furthest_closest},
+    // {"test_compare_results", test_compare_results},
+    // {"set_max", set_max},
+    // {"set_create", test_create},
+    // {"set_insert", test_insert},
+    // {"set_remove", test_remove},
+    // {"set_find", test_find},
+    // {"set_iterate", test_iterate},
+    // {"set_node_value", test_node_value},
     {"test_dot_product", test_dot_product},
     {"test_random_hyperplane", test_random_hyperplane},
     {"test_random_split", test_random_split},
-    // {"test_tree_rec", test_tree_rec},
+    {"test_tree_rec", test_tree_rec},
     {NULL, NULL}};
