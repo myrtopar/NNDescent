@@ -125,6 +125,7 @@ void test_distances(void)
     DistanceFunction distanceFunction = &calculateEuclideanDistance;
 
     KNNDescent KNNGraph(10, N, p, num_dimensions, data, distanceFunction, delta, 10);
+    KNNGraph.createRandomGraph();
 
     Vertex **array = KNNGraph.vertexArray;
 
@@ -213,6 +214,7 @@ void test_potential()
 
     DistanceFunction distanceFunction = &calculateEuclideanDistance;
     KNNDescent KNNGraph(10, N, p, num_dimensions, data, distanceFunction, delta, 10);
+    KNNGraph.createRandomGraph();
 
     for (int i = 0; i < 10; i++)
     {
@@ -894,8 +896,9 @@ void test_random_split()
 void test_tree_rec()
 {
     srand(time(nullptr));
-    float **_data = new float *[200];
-    for (int i = 0; i < 200; ++i)
+    int data_size = 5000;
+    float **_data = new float *[data_size];
+    for (int i = 0; i < data_size; ++i)
     {
         _data[i] = new float[3];
         for (int j = 0; j < 3; j++)
@@ -906,27 +909,75 @@ void test_tree_rec()
 
     int *index = new int;
     *index = 0;
-    TreeNode *leaf_array = new TreeNode[200];
-    int leaf_size_limit = 25;
+    TreeNode *leaf_array = new TreeNode[500];
+    int leaf_size_limit = 80;
 
-    TreeNode rp_root = new tree_node(3, _data, 200, leaf_size_limit);
+    TreeNode rp_root = new tree_node(3, _data, data_size, leaf_size_limit);
     rp_root->rp_tree_rec(index, leaf_array);
 
-    // cout << "index after leaf ineserts: " << *index << endl;
+    cout << "\nindex after leaf ineserts: " << *index << endl;
 
+    int data_check = 0;
     for (int i = 0; i < *index; i++)
     {
         // cout << "leaf " << i << " size: " << leaf_array[i]->numDataPoints << endl;
         TEST_ASSERT(leaf_array[i]->numDataPoints <= leaf_size_limit);
+        data_check += leaf_array[i]->numDataPoints;
     }
 
+    TEST_ASSERT(data_check == data_size);
     // extra test to prove the correctness of the random projection tree.
 
-    for (int i = 0; i < 50; ++i)
+    delete index;
+    for (int i = 0; i < data_size; ++i)
     {
         delete _data[i];
     }
     delete[] _data;
+}
+
+void test_RPGraph()
+{
+    DistanceFunction distanceFunction = &calculateEuclideanDistance;
+
+    int data_size = 500;
+    float **_data = new float *[data_size];
+    for (int i = 0; i < data_size; ++i)
+    {
+        _data[i] = new float[3];
+        for (int j = 0; j < 3; j++)
+        {
+            _data[i][j] = generate_random_float(-0.4, 0.4);
+        }
+    }
+
+    KNNDescent KNNGraph(100, data_size, 0.4, 3, _data, distanceFunction, 0.001, 80);
+
+    TreeNode rp_root = new tree_node(3, _data, data_size, 80);
+
+    int expected_leaves = 0.04 * data_size;
+    TreeNode *leaf_array = new TreeNode[expected_leaves];
+
+    int *index = new int;
+    *index = 0;
+
+    rp_root->rp_tree_rec(index, leaf_array);
+
+    int vertex_index = 0;
+
+    // assign each datapoint to a vertex
+    for (int i = 0; i < *index; i++)
+    {
+        float **leaf_data = leaf_array[i]->get_data();
+        int data_count = leaf_array[i]->numDataPoints;
+
+        for (int j = 0; j < data_count; j++)
+        {
+            KNNGraph.vertexArray[vertex_index++] = new Vertex(leaf_data[j]);
+        }
+    }
+
+    TEST_ASSERT(vertex_index == data_size);
 }
 
 TEST_LIST = {
@@ -953,4 +1004,5 @@ TEST_LIST = {
     {"test_random_hyperplane", test_random_hyperplane},
     {"test_random_split", test_random_split},
     {"test_tree_rec", test_tree_rec},
+    {"test_RPGraph", test_RPGraph},
     {NULL, NULL}};

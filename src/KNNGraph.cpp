@@ -108,19 +108,19 @@ KNNBruteForce::~KNNBruteForce()
 }
 
 ////////////////////////////////// KNNDESCENT //////////////////////////////////
-KNNDescent::KNNDescent(int _K, int _size, float _sampling, int _dimensions, float **data, DistanceFunction _metricFunction, double _delta, int _rp_limit) : K(_K), size(_size), sampling(_sampling), dimensions(_dimensions), distance(_metricFunction), delta(_delta), rp_limit(_rp_limit)
+KNNDescent::KNNDescent(int _K, int _size, float _sampling, int _dimensions, float **_data, DistanceFunction _metricFunction, double _delta, int _rp_limit) : K(_K), size(_size), data(_data), sampling(_sampling), dimensions(_dimensions), distance(_metricFunction), delta(_delta), rp_limit(_rp_limit)
 {
     cout << "\nConstructing a graph of " << size << " elements, looking for " << K << " nearest neighbors" << endl;
     vertexArray = new Vertex *[size];
+}
+
+void KNNDescent::createRandomGraph()
+{
+    // assign each datapoint to a vertex
     for (int i = 0; i < size; i++)
     {
         vertexArray[i] = new Vertex(data[i]);
     }
-    createRandomGraph(K, vertexArray);
-}
-
-void KNNDescent::createRandomGraph(int K, Vertex **vertexArray)
-{
     // Connect each vertex with K random neighbors
     for (int i = 0; i < size; i++)
     {
@@ -152,6 +152,38 @@ void KNNDescent::createRandomGraph(int K, Vertex **vertexArray)
             vertexArray[randomNeighborIndex]->addReverseNeighbor(newReverseNeighbor);
         }
         set_destroy(usedIds);
+    }
+}
+
+void KNNDescent::createRPGraph()
+{
+    TreeNode rp_root = new tree_node(dimensions, data, size, rp_limit);
+
+    int expected_leaves = 0.04 * size;
+    TreeNode *leaf_array = new TreeNode[expected_leaves];
+
+    int *index = new int;
+    *index = 0;
+
+    rp_root->rp_tree_rec(index, leaf_array);
+
+    int vertex_index = 0;
+
+    // for each leaf of the tree
+    for (int i = 0; i < *index; i++)
+    {
+        float **leaf_data = leaf_array[i]->get_data();
+        int data_count = leaf_array[i]->numDataPoints;
+
+        // assign each datapoint to a vertex
+        for (int j = 0; j < data_count; j++)
+        {
+            vertexArray[vertex_index++] = new Vertex(leaf_data[j]);
+        }
+
+        // for (int j = 0; j < data_count; j++)
+        // {
+        // }
     }
 }
 
@@ -331,6 +363,7 @@ int KNNDescent::updateGraph()
 
 void KNNDescent::createKNNGraph()
 {
+    createRandomGraph();
 
     for (int i = 0; i < 10; i++)
     {
