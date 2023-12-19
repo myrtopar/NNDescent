@@ -129,12 +129,14 @@ Vertex::Vertex(void *_data) : datapoint(_data)
 
 void Vertex::addNeighbor(Neighbor *neighbor)
 {
-    set_insert(NN, neighbor);
+    if(!set_insert(NN, neighbor))
+        delete neighbor;
 }
 
 void Vertex::addReverseNeighbor(Neighbor *neighbor)
 {
-    set_insert(RNN, neighbor);
+    if (!set_insert(RNN, neighbor))
+        delete neighbor;
 }
 
 void Vertex::addPotentialNeighbor(Neighbor *neighbor)
