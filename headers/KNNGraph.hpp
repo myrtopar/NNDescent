@@ -4,7 +4,7 @@
 
 using namespace std;
 
-using DistanceFunction = float (*)(const float*, const float*, int);
+using DistanceFunction = float (*)(const float *, const float *, int);
 extern float **distanceResults;
 
 class KNNDescent
@@ -12,6 +12,7 @@ class KNNDescent
 private:
     int K;
     int size;
+    float **data;
     float sampling;
     int dimensions;
     int rp_limit;
@@ -20,9 +21,12 @@ private:
     double delta;
 
 public:
+    Vertex **vertexArray;
+
     KNNDescent(int _K, int _size, float _sampling, int dimensions, float **data, DistanceFunction _distance, double delta, int rp_limit);
 
-    void createRandomGraph(int K, Vertex **vertexArray);
+    void createRandomGraph();
+    void createRPGraph();
     void calculatePotentialNewNeighbors4(); // sampling version
 
     void printPotential();
@@ -31,12 +35,11 @@ public:
 
     int updateGraph();
     void createKNNGraph();
+
     int **extract_neighbors_to_list();
     void **NNSinglePoint(void *data);
 
     ~KNNDescent();
-
-    Vertex **vertexArray;
 };
 
 class KNNBruteForce
