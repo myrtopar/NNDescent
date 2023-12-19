@@ -7,7 +7,9 @@ tree_node::tree_node(int _dimensions, float **_data, int N, int _limit) : dimens
     hyperplaneVector = new float[100];
 }
 
-tree_node::~tree_node() {}
+tree_node::~tree_node() {
+    // delete[] hyperplaneVector;  
+}
 
 void tree_node::set_subtrees(TreeNode sub_left, TreeNode sub_right)
 {
@@ -40,6 +42,12 @@ void tree_node::random_projection_split()
 
     float **left_sub_data = new float *[numDataPoints];
     float **right_sub_data = new float *[numDataPoints];
+
+    for (int i = 0; i < numDataPoints; ++i)
+    {
+        left_sub_data[i] = nullptr;  
+        right_sub_data[i] = nullptr;
+    }
 
     TreeNode new_sub_left = new tree_node(dimensions, left_sub_data, 0, size_limit);
     TreeNode new_sub_right = new tree_node(dimensions, right_sub_data, 0, size_limit);

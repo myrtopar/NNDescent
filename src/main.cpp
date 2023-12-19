@@ -42,6 +42,7 @@ void calculateALLdistances(float **data, int N, int num_dimensions)
     }
 }
 
+
 int main(int argc, char *argv[])
 {
 
@@ -131,29 +132,21 @@ int main(int argc, char *argv[])
 
     int **BF; // we might have calculated the result of this dataset with the Brute Force method
 
-    // // brute force method
-    // auto start2 = std::chrono::high_resolution_clock::now();
-    // KNNBruteForce<float, DistanceFunction> myGraph(K, N, num_dimensions, data, distanceFunction);
-    // auto stop2 = std::chrono::high_resolution_clock::now();
-
-    // auto duration2 = std::chrono::duration_cast<std::chrono::seconds>(stop2 - start2);
-    // cout << "Brute Force: " << duration2.count() << " seconds" << endl;
-
     if ((int)N <= 5000)
     {
         string pathname = argv[4];
         string _K = argv[1];
         string numbers = pathname.substr(pathname.find_last_of('/') + 1, 10);
 
-        // Construct the output string
-        string resfile_path = "BF_results/" + numbers + "_" + _K + ".txt";
+        // Construct the output binary file path
+        string resfile_path = "BF_results/" + numbers + "_" + _K + ".bin";
 
-        ifstream file_check(resfile_path);
+        ifstream file_check(resfile_path, ios::binary);
         if (file_check.good())
         {
             cout << "\nFile exists: " << resfile_path << endl;
 
-            // read the content of the file with the results
+            // read the content of the binary file with the results
             int size = N;
             BF = new int *[size];
             for (int i = 0; i < size; i++)
@@ -164,7 +157,7 @@ int main(int argc, char *argv[])
             int value;
             int count = 0;
             int i = 0;
-            while (file_check >> value)
+            while (file_check.read(reinterpret_cast<char *>(&value), sizeof(int)))
             {
                 if (i == (int)N)
                 { // at the end of each
@@ -185,7 +178,6 @@ int main(int argc, char *argv[])
         {
             cout << "\nFile does not exist: " << resfile_path << endl;
 
-            // brute force method, when the results are not already saved
             auto start2 = std::chrono::high_resolution_clock::now();
             KNNBruteForce myGraph(K, N, num_dimensions, data, distanceFunction);
             auto stop2 = std::chrono::high_resolution_clock::now();
@@ -193,8 +185,7 @@ int main(int argc, char *argv[])
 
             cout << "Brute Force: " << duration2.count() << " seconds" << endl;
 
-            ofstream ofs;
-            ofs.open(resfile_path);
+            ofstream ofs(resfile_path, ios::binary);
 
             if (!ofs.is_open())
             {
@@ -209,26 +200,27 @@ int main(int argc, char *argv[])
                 for (int k = 0; k < K; k++)
                 {
                     int data_to_write = BF[i][k];
-                    ofs << data_to_write << " ";
+                    ofs.write(reinterpret_cast<const char *>(&data_to_write), sizeof(int));
                 }
-                ofs << endl;
             }
 
-            ofs << duration2.count() << endl;
+            auto duration_value = duration2.count();
+            ofs.write(reinterpret_cast<const char *>(&duration_value), sizeof(double));
+
             ofs.close();
+
         }
 
         double percentage = compare_results(BF, NND, (int)N, K);
         if (percentage > 90.0)
         {
-            cout << "\x1b[32msimilarity percentage: " << percentage << "%"
-                 << "\x1b[0m" << endl;
+            cout << "\x1b[32msimilarity percentage: " << percentage << "%" << "\x1b[0m" << endl;
         }
         else
         {
-            cout << "\x1b[31msimilarity percentage: " << percentage << "%"
-                 << "\x1b[0m" << endl;
+            cout << "\x1b[31msimilarity percentage: " << percentage << "%" << "\x1b[0m" << endl;
         }
+
     }
 
     // void **narray = KNNGraph.NNSinglePoint(data[10]);

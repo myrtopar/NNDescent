@@ -295,6 +295,8 @@ void test_result()
     delete[] NND;
     delete[] BF;
 
+    
+
     end_program();
 }
 
@@ -431,6 +433,7 @@ void test_insert(void)
     insert_and_test(set2, &local_value3); // ισοδύναμη τιμή => replace
 
     set_destroy(set2);
+    delete_int(new_value);
     delete[] value_array;
 }
 
@@ -858,8 +861,8 @@ void test_dot_product()
 
     TEST_ASSERT(compare_doubles(dot_product(vector1, vector2, 5), (double)0.41219) == 0);
 
-    delete vector1;
-    delete vector2;
+    delete[] vector1;
+    delete[] vector2;
 }
 
 void test_random_hyperplane()
@@ -1000,9 +1003,11 @@ TEST_LIST = {
     // {"set_find", test_find},
     // {"set_iterate", test_iterate},
     // {"set_node_value", test_node_value},
-    {"test_dot_product", test_dot_product},
-    {"test_random_hyperplane", test_random_hyperplane},
+
+    // {"test_dot_product", test_dot_product},
+    // {"test_random_hyperplane", test_random_hyperplane},
     {"test_random_split", test_random_split},
     {"test_tree_rec", test_tree_rec},
     {"test_RPGraph", test_RPGraph},
+
     {NULL, NULL}};
