@@ -28,14 +28,16 @@ class Vertex
 {
 private:
     void *datapoint;
+    int id;
     Set NN;
     Set RNN;
     Set potentialNN;
 
 public:
-    Vertex(void *_data);
+    Vertex(void *_data, int id);
 
     void *getData() const;
+    int getId() const;
     void addNeighbor(Neighbor *neighbor);
     void addReverseNeighbor(Neighbor *neighbor);
     void addPotentialNeighbor(Neighbor *neighbor);

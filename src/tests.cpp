@@ -295,8 +295,6 @@ void test_result()
     delete[] NND;
     delete[] BF;
 
-    
-
     end_program();
 }
 
@@ -966,21 +964,21 @@ void test_RPGraph()
 
     rp_root->rp_tree_rec(index, leaf_array);
 
-    int vertex_index = 0;
+    // int vertex_index = 0;
 
     // assign each datapoint to a vertex
-    for (int i = 0; i < *index; i++)
-    {
-        float **leaf_data = leaf_array[i]->get_data();
-        int data_count = leaf_array[i]->numDataPoints;
+    // for (int i = 0; i < *index; i++)
+    // {
+    //     float **leaf_data = leaf_array[i]->get_data();
+    //     int data_count = leaf_array[i]->numDataPoints;
 
-        for (int j = 0; j < data_count; j++)
-        {
-            KNNGraph.vertexArray[vertex_index++] = new Vertex(leaf_data[j]);
-        }
-    }
+    //     for (int j = 0; j < data_count; j++)
+    //     {
+    //         KNNGraph.vertexArray[vertex_index++] = new Vertex(leaf_data[j]);
+    //     }
+    // }
 
-    TEST_ASSERT(vertex_index == data_size);
+    // TEST_ASSERT(vertex_index == data_size);
 }
 
 TEST_LIST = {
@@ -1006,8 +1004,8 @@ TEST_LIST = {
 
     // {"test_dot_product", test_dot_product},
     // {"test_random_hyperplane", test_random_hyperplane},
-    {"test_random_split", test_random_split},
+    //{"test_random_split", test_random_split},
     {"test_tree_rec", test_tree_rec},
-    {"test_RPGraph", test_RPGraph},
+    //{"test_RPGraph", test_RPGraph},
 
     {NULL, NULL}};

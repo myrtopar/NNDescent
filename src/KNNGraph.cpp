@@ -5,7 +5,7 @@ KNNBruteForce::KNNBruteForce(int _K, int _size, int _dimensions, float **data, D
     vertexArray = new Vertex *[size];
     for (int i = 0; i < size; i++)
     {
-        vertexArray[i] = new Vertex(data[i]);
+        vertexArray[i] = new Vertex(data[i], i);
     }
     calculateKNNBF();
 }
@@ -119,7 +119,7 @@ void KNNDescent::createRandomGraph()
     // assign each datapoint to a vertex
     for (int i = 0; i < size; i++)
     {
-        vertexArray[i] = new Vertex(data[i]);
+        vertexArray[i] = new Vertex(data[i], i);
     }
     // Connect each vertex with K random neighbors
     for (int i = 0; i < size; i++)
@@ -157,6 +157,12 @@ void KNNDescent::createRandomGraph()
 
 void KNNDescent::createRPGraph()
 {
+    // assign each datapoint to a vertex
+    for (int i = 0; i < size; i++)
+    {
+        vertexArray[i] = new Vertex(data[i], i);
+    }
+
     TreeNode rp_root = new tree_node(dimensions, data, size, rp_limit);
 
     int expected_leaves = 0.04 * size;
@@ -176,14 +182,21 @@ void KNNDescent::createRPGraph()
         int data_count = leaf_array[i]->numDataPoints;
 
         // assign each datapoint to a vertex
-        for (int j = 0; j < data_count; j++)
-        {
-            vertexArray[vertex_index++] = new Vertex(leaf_data[j]);
-        }
-
         // for (int j = 0; j < data_count; j++)
         // {
+        //     vertexArray[vertex_index++] = new Vertex(leaf_data[j]);
         // }
+
+        // for each datapoint of the cluster assign all the other datapoints of the cluster as its neighbors
+        for (int j = 0; j < data_count; j++)
+        {
+        }
+
+        // to rp tree na kanei clustering me ta ids twn data wste na exv to correspondence
+        // i allios na kanw edit to class rp anti na douleuei me to float **data, na paizei mpala me to vertexarray
+        // etsi to kathe leaf tha exei anti gia float **data ena vertexarray me mono ta data pou tou anhkoyn
+        // kai to member id apo to data class tha mou leei poio datapoint einai auto sto opoio anaferetai wste na
+        // exw diathrhsei kapou tin antistoixia
     }
 }
 
@@ -204,6 +217,7 @@ void KNNDescent::calculatePotentialNewNeighbors4()
     int count = 0;
     for (int i = 0; i < size; i++)
     {
+
         Vertex *vertex = vertexArray[i];
         Set neighbors = vertex->getNeighbors();
         Set reverseNeighbors = vertex->getReverseNeighbors();

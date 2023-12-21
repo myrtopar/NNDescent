@@ -120,7 +120,7 @@ int contains(Neighbor *id_union[], int size, int targetId)
 }
 
 // CLASS MEMBER DEFINITIONS
-Vertex::Vertex(void *_data) : datapoint(_data)
+Vertex::Vertex(void *_data, int _id) : datapoint(_data), id(_id)
 {
     NN = set_create(compare_distances, delete_neighbor);
     RNN = set_create(compare_distances, delete_neighbor);
@@ -129,7 +129,7 @@ Vertex::Vertex(void *_data) : datapoint(_data)
 
 void Vertex::addNeighbor(Neighbor *neighbor)
 {
-    if(!set_insert(NN, neighbor))
+    if (!set_insert(NN, neighbor))
         delete neighbor;
 }
 
@@ -175,6 +175,11 @@ void Vertex::resetPNNSet()
 void *Vertex::getData() const
 {
     return datapoint;
+}
+
+int Vertex::getId() const
+{
+    return id;
 }
 
 Vertex::~Vertex()
