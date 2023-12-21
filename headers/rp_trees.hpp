@@ -8,6 +8,7 @@
 #include <chrono>
 #include <cstring> // For memset
 #include "ADTSet.h"
+#include "classes.hpp"
 
 using namespace std;
 
@@ -17,6 +18,8 @@ class tree_node
 {
 private:
     float **data;
+    // Vertex **vertices;
+
     TreeNode leftChild;
     TreeNode rightChild;
     float *hyperplaneVector;
