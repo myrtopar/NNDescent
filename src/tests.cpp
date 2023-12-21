@@ -907,11 +907,10 @@ float calculate_average_distance(float **data, int numDataPoints)
         }
     }
 
-    if (pairs > 0) 
+    if (pairs > 0)
         return totalDist / pairs;
     return 0.0;
 }
-
 
 void test_tree_rec()
 {
@@ -927,17 +926,6 @@ void test_tree_rec()
         }
     }
 
-    cout << endl << "data:" << endl;
-    for (int i = 0; i < num; ++i)
-    {
-        for (int j = 0; j < 3; j++)
-        {
-            cout << _data[i][j];
-        }
-        cout << endl;
-    }
-    cout << endl;
-
     int *index = new int;
     *index = 0;
     TreeNode *leaf_array = new TreeNode[num];
@@ -950,16 +938,16 @@ void test_tree_rec()
 
     for (int i = 0; i < *index; i++)
     {
-        cout << "leaf " << i << " size: " << leaf_array[i]->numDataPoints << endl;
+        // cout << "leaf " << i << " size: " << leaf_array[i]->numDataPoints << endl;
         float **leaf_data = leaf_array[i]->get_data();
         for (int j = 0; j < leaf_array[i]->numDataPoints; ++j)
         {
-            cout << "  * data point " << j << ": ";
-            for (int k = 0; k < 3; ++k)
-            {
-                cout << leaf_data[j][k] << " ";
-            }
-            cout << endl;
+            // cout << "  * data point " << j << ": ";
+            // for (int k = 0; k < 3; ++k)
+            // {
+            //     cout << leaf_data[j][k] << " ";
+            // }
+            // cout << endl;
         }
         TEST_ASSERT(leaf_array[i]->numDataPoints <= leaf_size_limit);
     }
@@ -968,11 +956,11 @@ void test_tree_rec()
 
     for (int i = 0; i < *index; i++)
     {
-       if (leaf_array[i]->numDataPoints > 1)
+        if (leaf_array[i]->numDataPoints > 1)
         {
             float averageDist = calculate_average_distance(leaf_array[i]->get_data(), leaf_array[i]->numDataPoints);
-            cout << "Average distance in leaf " << i << ": " << averageDist << endl;
-            TEST_ASSERT(averageDist < 0.5); 
+            // cout << "Average distance in leaf " << i << ": " << averageDist << endl;
+            TEST_ASSERT(averageDist < 0.5);
         }
     }
 
@@ -982,13 +970,12 @@ void test_tree_rec()
     {
         delete[] _data[i];
     }
-    delete[] _data;
+
+    rp_root->delete_tree();
 
     delete index;
     delete[] leaf_array;
 }
-
-
 
 void test_RPGraph()
 {
@@ -1060,6 +1047,5 @@ TEST_LIST = {
     //{"test_random_split", test_random_split},
     {"test_tree_rec", test_tree_rec},
     //{"test_RPGraph", test_RPGraph},
-
 
     {NULL, NULL}};
