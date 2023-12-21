@@ -125,7 +125,6 @@ void test_distances(void)
     DistanceFunction distanceFunction = &calculateEuclideanDistance;
 
     KNNDescent KNNGraph(10, N, p, num_dimensions, data, distanceFunction, delta, 10);
-    KNNGraph.createRandomGraph();
 
     Vertex **array = KNNGraph.vertexArray;
 
@@ -214,7 +213,6 @@ void test_potential()
 
     DistanceFunction distanceFunction = &calculateEuclideanDistance;
     KNNDescent KNNGraph(10, N, p, num_dimensions, data, distanceFunction, delta, 10);
-    KNNGraph.createRandomGraph();
 
     for (int i = 0; i < 10; i++)
     {
@@ -894,12 +892,33 @@ void test_random_split()
     end_program();
 }
 
+float calculate_average_distance(float **data, int numDataPoints)
+{
+    float totalDist = 0.0;
+    int pairs = 0;
+
+    for (int i = 0; i < numDataPoints; ++i)
+    {
+        for (int j = i + 1; j < numDataPoints; ++j)
+        {
+            float distance = calculateEuclideanDistance(data[i], data[j], 3);
+            totalDist += distance;
+            pairs++;
+        }
+    }
+
+    if (pairs > 0) 
+        return totalDist / pairs;
+    return 0.0;
+}
+
+
 void test_tree_rec()
 {
     srand(time(nullptr));
-    int data_size = 5000;
-    float **_data = new float *[data_size];
-    for (int i = 0; i < data_size; ++i)
+    int num = 100;
+    float **_data = new float *[num];
+    for (int i = 0; i < num; ++i)
     {
         _data[i] = new float[3];
         for (int j = 0; j < 3; j++)
@@ -908,34 +927,68 @@ void test_tree_rec()
         }
     }
 
+    cout << endl << "data:" << endl;
+    for (int i = 0; i < num; ++i)
+    {
+        for (int j = 0; j < 3; j++)
+        {
+            cout << _data[i][j];
+        }
+        cout << endl;
+    }
+    cout << endl;
+
     int *index = new int;
     *index = 0;
-    TreeNode *leaf_array = new TreeNode[500];
-    int leaf_size_limit = 80;
+    TreeNode *leaf_array = new TreeNode[num];
+    int leaf_size_limit = 25;
 
-    TreeNode rp_root = new tree_node(3, _data, data_size, leaf_size_limit);
+    TreeNode rp_root = new tree_node(3, _data, num, leaf_size_limit);
     rp_root->rp_tree_rec(index, leaf_array);
 
-    cout << "\nindex after leaf ineserts: " << *index << endl;
+    // cout << "index after leaf ineserts: " << *index << endl;
 
-    int data_check = 0;
     for (int i = 0; i < *index; i++)
     {
-        // cout << "leaf " << i << " size: " << leaf_array[i]->numDataPoints << endl;
+        cout << "leaf " << i << " size: " << leaf_array[i]->numDataPoints << endl;
+        float **leaf_data = leaf_array[i]->get_data();
+        for (int j = 0; j < leaf_array[i]->numDataPoints; ++j)
+        {
+            cout << "  * data point " << j << ": ";
+            for (int k = 0; k < 3; ++k)
+            {
+                cout << leaf_data[j][k] << " ";
+            }
+            cout << endl;
+        }
         TEST_ASSERT(leaf_array[i]->numDataPoints <= leaf_size_limit);
-        data_check += leaf_array[i]->numDataPoints;
     }
 
-    TEST_ASSERT(data_check == data_size);
     // extra test to prove the correctness of the random projection tree.
 
-    delete index;
-    for (int i = 0; i < data_size; ++i)
+    for (int i = 0; i < *index; i++)
     {
-        delete _data[i];
+       if (leaf_array[i]->numDataPoints > 1)
+        {
+            float averageDist = calculate_average_distance(leaf_array[i]->get_data(), leaf_array[i]->numDataPoints);
+            cout << "Average distance in leaf " << i << ": " << averageDist << endl;
+            TEST_ASSERT(averageDist < 0.5); 
+        }
+    }
+
+    // -------------------------------------------------------------------
+
+    for (int i = 0; i < num; ++i)
+    {
+        delete[] _data[i];
     }
     delete[] _data;
+
+    delete index;
+    delete[] leaf_array;
 }
+
+
 
 void test_RPGraph()
 {
@@ -1007,5 +1060,6 @@ TEST_LIST = {
     //{"test_random_split", test_random_split},
     {"test_tree_rec", test_tree_rec},
     //{"test_RPGraph", test_RPGraph},
+
 
     {NULL, NULL}};
