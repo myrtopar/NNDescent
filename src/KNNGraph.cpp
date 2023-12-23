@@ -5,7 +5,7 @@ KNNBruteForce::KNNBruteForce(int _K, int _size, int _dimensions, float **data, D
     vertexArray = new Vertex *[size];
     for (int i = 0; i < size; i++)
     {
-        vertexArray[i] = new Vertex(data[i], i);
+        vertexArray[i] = new Vertex(data[i]);
     }
     calculateKNNBF();
 }
@@ -112,6 +112,10 @@ KNNDescent::KNNDescent(int _K, int _size, float _sampling, int _dimensions, floa
 {
     cout << "\nConstructing a graph of " << size << " elements, looking for " << K << " nearest neighbors" << endl;
     vertexArray = new Vertex *[size];
+    for (int i = 0; i < size; ++i) {
+        vertexArray[i] = new Vertex(data[i]);
+    }
+    mutexArray = new mutex[size];
 }
 
 void KNNDescent::createRandomGraph()
@@ -119,7 +123,7 @@ void KNNDescent::createRandomGraph()
     // assign each datapoint to a vertex
     for (int i = 0; i < size; i++)
     {
-        vertexArray[i] = new Vertex(data[i], i);
+        vertexArray[i] = new Vertex(data[i]);
     }
     // Connect each vertex with K random neighbors
     for (int i = 0; i < size; i++)
@@ -157,12 +161,6 @@ void KNNDescent::createRandomGraph()
 
 void KNNDescent::createRPGraph()
 {
-    // assign each datapoint to a vertex
-    for (int i = 0; i < size; i++)
-    {
-        vertexArray[i] = new Vertex(data[i], i);
-    }
-
     TreeNode rp_root = new tree_node(dimensions, data, size, rp_limit);
 
     int expected_leaves = 0.04 * size;
@@ -182,21 +180,14 @@ void KNNDescent::createRPGraph()
         int data_count = leaf_array[i]->numDataPoints;
 
         // assign each datapoint to a vertex
-        // for (int j = 0; j < data_count; j++)
-        // {
-        //     vertexArray[vertex_index++] = new Vertex(leaf_data[j]);
-        // }
-
-        // for each datapoint of the cluster assign all the other datapoints of the cluster as its neighbors
         for (int j = 0; j < data_count; j++)
         {
+            vertexArray[vertex_index++] = new Vertex(leaf_data[j]);
         }
 
-        // to rp tree na kanei clustering me ta ids twn data wste na exv to correspondence
-        // i allios na kanw edit to class rp anti na douleuei me to float **data, na paizei mpala me to vertexarray
-        // etsi to kathe leaf tha exei anti gia float **data ena vertexarray me mono ta data pou tou anhkoyn
-        // kai to member id apo to data class tha mou leei poio datapoint einai auto sto opoio anaferetai wste na
-        // exw diathrhsei kapou tin antistoixia
+        // for (int j = 0; j < data_count; j++)
+        // {
+        // }
     }
 }
 
@@ -207,17 +198,17 @@ KNNDescent::~KNNDescent()
         delete vertexArray[i]; // Delete each Vertex
     }
     delete[] vertexArray; // Delete the array of Vertex pointers
+    delete[] mutexArray;
 }
 
 void KNNDescent::calculatePotentialNewNeighbors4()
 {
-    // Every calculatePotentialNewNeighbors call calculates the potential neighbors of each vector and prepares the graph for updates.
+    // each calculatePotentialNewNeighbors call calculates the potential neighbors of each vector and prepares the graph for updates.
 
-    // for every vertex, we find its potential neighbors for update
+    // for each vertex, we find its potential neighbors for update
     int count = 0;
     for (int i = 0; i < size; i++)
     {
-
         Vertex *vertex = vertexArray[i];
         Set neighbors = vertex->getNeighbors();
         Set reverseNeighbors = vertex->getReverseNeighbors();
@@ -298,6 +289,118 @@ void KNNDescent::calculatePotentialNewNeighbors4()
     }
 }
 
+
+void KNNDescent::parallelCalculatePotentialNewNeighbors(int start, int end)
+{
+    for (int i = start; i < end; ++i)
+    {
+        Vertex *vertex = vertexArray[i];
+        Set neighbors = vertex->getNeighbors();
+        Set reverseNeighbors = vertex->getReverseNeighbors();
+
+        // UNION
+        int union_size = set_size(neighbors) + set_size(reverseNeighbors);
+
+        Neighbor *_id_union[union_size];
+        memset(_id_union, 0, sizeof(_id_union));
+
+        int m = 0;
+        int added1 = 0;
+        for (SetNode node = set_first(neighbors); node != SET_EOF; node = set_next(neighbors, node))
+        {
+            double current_rate = (double)added1 / (double)set_size(neighbors);
+            if (current_rate > sampling)
+                break;
+            _id_union[m++] = (Neighbor *)set_node_value(neighbors, node);
+            added1++;
+        }
+
+        int added2 = 0;
+        for (SetNode node = set_first(reverseNeighbors); node != SET_EOF; node = set_next(reverseNeighbors, node))
+        {
+            double current_rate = (double)added2 / (double)set_size(reverseNeighbors);
+            if (current_rate > sampling)
+                break;
+            _id_union[m++] = (Neighbor *)set_node_value(reverseNeighbors, node);
+            added2++;
+        }
+
+        // local join in sets neighborArray and ReverseNeighborArray
+        auto start1 = std::chrono::high_resolution_clock::now();
+        lock_guard<std::mutex> lock(potentialNeighborsMutex);
+
+        for (int j = 0; j < union_size; j++)
+        {
+            Neighbor *n1 = _id_union[j];
+            if (n1 == NULL)
+                break;
+
+            for (int k = 0; k < union_size; k++)
+            {
+                Neighbor *n2 = _id_union[k];
+                if (n2 == NULL)
+                    break;
+
+                int id1 = *(n1->getid());
+                int id2 = *(n2->getid());
+
+                if (id1 == id2)
+                {
+                    continue;
+                }
+
+                if ((n1->getFlag() == 1) || (n2->getFlag() == 1))
+                {
+                    Vertex *v1 = vertexArray[id1];
+                    Vertex *v2 = vertexArray[id2];
+
+                    float *data1 = static_cast<float *>(v1->getData());
+                    float *data2 = static_cast<float *>(v2->getData());
+
+                    double dist = distanceResults[id1][id2];
+
+                    Neighbor *furthest = furthest_neighbor(v1->getNeighbors());
+                    if (dist < *(furthest->getDistance()))
+                    {
+                        Neighbor *newNeighbor = new Neighbor(id2, dist);
+                        v1->addPotentialNeighbor(newNeighbor);
+                    }
+                }
+            }
+            n1->setFalse();
+        }
+
+        auto stop1 = std::chrono::high_resolution_clock::now();
+        auto duration1 = std::chrono::duration_cast<std::chrono::microseconds>(stop1 - start1);
+    }
+}
+
+void KNNDescent::calculatePotentialNewNeighbors5()
+{
+    const int num_threads = 4;  
+    thread threads[num_threads];
+
+    int chunk_size = size / num_threads;
+    int remaining = size % num_threads;
+    int start = 0;
+    int end = 0;
+
+    for (int i = 0; i < num_threads; ++i)
+    {
+        end = start + chunk_size + (i < remaining ? 1 : 0);
+        threads[i] = thread(&KNNDescent::parallelCalculatePotentialNewNeighbors, this, start, end);
+        start = end;
+    }
+
+    // wait for all threads to finish
+    for (int i = 0; i < num_threads; ++i)
+    {
+        threads[i].join();
+    }
+
+}
+
+
 int KNNDescent::updateGraph()
 {
     int updated = 0;
@@ -375,6 +478,113 @@ int KNNDescent::updateGraph()
     return updated;
 }
 
+
+void KNNDescent::parallelUpdate(int start, int end, int &updated) {
+
+    // for every vertex in the graph
+    for (int i = start; i < end; i++)
+    {
+        Set nn = vertexArray[i]->getNeighbors();
+        Set pn = vertexArray[i]->getPotentialNeighbors();
+
+        std::lock_guard<std::mutex> lock(mutexArray[i]);  
+
+        if (set_size(pn) == 0) // if there are no potential neighbors for update, move to the next vertex
+            continue;
+
+        Neighbor *closestPotential = closest_neighbor(pn);
+        int closestPotentialId = *closestPotential->getid();
+        double closestPotentialDistance = *closestPotential->getDistance();
+
+        Neighbor *furthestNeighbor = furthest_neighbor(nn);
+        int furthestNeighborId = *furthestNeighbor->getid();
+        double furthestNeighborDistance = *furthestNeighbor->getDistance();
+
+        // keep updating the neighbors while there is room for update: while there are potential neighbors that are closer to the node than the furthest current neighbor, do the update
+        while (closestPotentialDistance < furthestNeighborDistance)
+        {
+            Neighbor *newNeighbor = new Neighbor(closestPotentialId, closestPotentialDistance);
+
+            // placing the new neighbor in the set
+
+            // if the potential neighbor we are about to insert is already a neighbor
+            if (set_insert(nn, newNeighbor) == 0)
+            {
+                set_remove(pn, closestPotential); // we remove this potential (duplicate), and move on
+                delete newNeighbor;
+
+                if (set_size(pn) == 0)
+                    break;
+
+                closestPotential = closest_neighbor(pn);
+                closestPotentialDistance = *closestPotential->getDistance();
+                closestPotentialId = *closestPotential->getid();
+
+                furthestNeighbor = furthest_neighbor(nn);
+                furthestNeighborDistance = *furthestNeighbor->getDistance();
+                furthestNeighborId = *furthestNeighbor->getid();
+                continue;
+            }
+            updated++;
+
+            set_remove(nn, furthestNeighbor); // removing the furthest one
+            set_remove(pn, closestPotential); // updating the potential neighbor set
+
+            // restore the reverse neighbors of the vertex
+            Neighbor reverse_to_remove(i, furthestNeighborDistance);
+            bool removed = set_remove(vertexArray[furthestNeighborId]->getReverseNeighbors(), &reverse_to_remove);
+
+            Neighbor *new_reverse = new Neighbor(i, closestPotentialDistance);
+            vertexArray[closestPotentialId]->addReverseNeighbor(new_reverse);
+
+            if (set_size(pn) == 0)
+                break;
+
+            closestPotential = closest_neighbor(pn);
+            closestPotentialDistance = *closestPotential->getDistance();
+            closestPotentialId = *closestPotential->getid();
+
+            furthestNeighbor = furthest_neighbor(nn);
+            furthestNeighborDistance = *furthestNeighbor->getDistance();
+            furthestNeighborId = *furthestNeighbor->getid();
+        }
+        vertexArray[i]->resetPNNSet();
+    }
+    
+}
+
+
+int KNNDescent::updateGraph2()
+{
+    int updated = 0;
+    double term = delta * K * size;
+
+    const int num_threads = 4;  
+    thread threads[num_threads];
+
+    int chunk_size = size / num_threads;
+    int remaining = size % num_threads;
+    int start = 0;
+    int end = 0;
+
+    for (int i = 0; i < num_threads; ++i)
+    {
+        end = start + chunk_size + (i < remaining ? 1 : 0);
+        threads[i] = thread(&KNNDescent::parallelUpdate, this, start, end, std::ref(updated));
+        start = end;
+    }
+
+    // wait for all threads to finish
+    for (int i = 0; i < num_threads; ++i)
+    {
+        threads[i].join();
+    }
+    
+    if (updated < term)
+        return 0;
+    return updated;
+}
+
 void KNNDescent::createKNNGraph()
 {
     createRandomGraph();
@@ -382,7 +592,7 @@ void KNNDescent::createKNNGraph()
     for (int i = 0; i < 10; i++)
     {
         cout << "\033[1;32miteration " << i << "\033[0m" << endl;
-        calculatePotentialNewNeighbors4();
+        calculatePotentialNewNeighbors5();
         int updates = updateGraph();
         cout << "updates: " << updates << endl;
         if (updates == 0)

@@ -230,6 +230,56 @@ void test_potential()
     end_program();
 }
 
+
+void test_potential_parall()
+{
+    int delta = 0.01, K = 10, rp_limit = 10;
+    start_program();
+
+    DistanceFunction distanceFunction = &calculateEuclideanDistance;
+    KNNDescent KNNGraph(K, N, p, num_dimensions, data, distanceFunction, delta, rp_limit);
+    
+    // calculatePotentialNewNeighbors non-parallelized version
+    auto startNonParallel = std::chrono::high_resolution_clock::now();
+    for (int i = 0; i < 10; i++)
+    {
+        KNNGraph.calculatePotentialNewNeighbors4();
+        
+        if (KNNGraph.updateGraph() == 0)
+            break;
+
+        for (int j = 0; j < N; j++)
+        {
+            Vertex *vertex = KNNGraph.vertexArray[j];
+            TEST_ASSERT((set_size(vertex->getPotentialNeighbors()) == 0));
+        }
+    }
+    auto stopNonParallel = std::chrono::high_resolution_clock::now();
+    auto durationNonParallel = std::chrono::duration_cast<std::chrono::microseconds>(stopNonParallel - startNonParallel);
+    std::cout << "Time taken for non-parallel version: " << durationNonParallel.count() << " microseconds\n";
+
+    // calculatePotentialNewNeighbors parallelized version
+    auto startParallel = std::chrono::high_resolution_clock::now();
+    for (int i = 0; i < 10; i++)
+    {
+        KNNGraph.calculatePotentialNewNeighbors5();
+        
+        if (KNNGraph.updateGraph() == 0)
+            break;
+
+        for (int j = 0; j < N; j++)
+        {
+            Vertex *vertex = KNNGraph.vertexArray[j];
+            TEST_ASSERT((set_size(vertex->getPotentialNeighbors()) == 0));
+        }
+    }
+    auto stopParallel = std::chrono::high_resolution_clock::now();
+    auto durationParallel = std::chrono::duration_cast<std::chrono::microseconds>(stopParallel - startParallel);
+    std::cout << "Time taken for parallel version: " << durationParallel.count() << " microseconds\n";
+    end_program();
+}
+
+
 void test_result()
 {
     start_program();
@@ -292,6 +342,8 @@ void test_result()
 
     delete[] NND;
     delete[] BF;
+
+    
 
     end_program();
 }
@@ -907,10 +959,11 @@ float calculate_average_distance(float **data, int numDataPoints)
         }
     }
 
-    if (pairs > 0)
+    if (pairs > 0) 
         return totalDist / pairs;
     return 0.0;
 }
+
 
 void test_tree_rec()
 {
@@ -926,8 +979,20 @@ void test_tree_rec()
         }
     }
 
+    cout << endl << "data:" << endl;
+    for (int i = 0; i < num; ++i)
+    {
+        for (int j = 0; j < 3; j++)
+        {
+            cout << _data[i][j];
+        }
+        cout << endl;
+    }
+    cout << endl;
+
     int *index = new int;
     *index = 0;
+
     TreeNode *leaf_array = new TreeNode[num];
     int leaf_size_limit = 25;
 
@@ -938,16 +1003,16 @@ void test_tree_rec()
 
     for (int i = 0; i < *index; i++)
     {
-        // cout << "leaf " << i << " size: " << leaf_array[i]->numDataPoints << endl;
+        cout << "leaf " << i << " size: " << leaf_array[i]->numDataPoints << endl;
         float **leaf_data = leaf_array[i]->get_data();
         for (int j = 0; j < leaf_array[i]->numDataPoints; ++j)
         {
-            // cout << "  * data point " << j << ": ";
-            // for (int k = 0; k < 3; ++k)
-            // {
-            //     cout << leaf_data[j][k] << " ";
-            // }
-            // cout << endl;
+            cout << "  * data point " << j << ": ";
+            for (int k = 0; k < 3; ++k)
+            {
+                cout << leaf_data[j][k] << " ";
+            }
+            cout << endl;
         }
         TEST_ASSERT(leaf_array[i]->numDataPoints <= leaf_size_limit);
     }
@@ -956,11 +1021,11 @@ void test_tree_rec()
 
     for (int i = 0; i < *index; i++)
     {
-        if (leaf_array[i]->numDataPoints > 1)
+       if (leaf_array[i]->numDataPoints > 1)
         {
             float averageDist = calculate_average_distance(leaf_array[i]->get_data(), leaf_array[i]->numDataPoints);
-            // cout << "Average distance in leaf " << i << ": " << averageDist << endl;
-            TEST_ASSERT(averageDist < 0.5);
+            cout << "Average distance in leaf " << i << ": " << averageDist << endl;
+            TEST_ASSERT(averageDist < 0.5); 
         }
     }
 
@@ -970,12 +1035,13 @@ void test_tree_rec()
     {
         delete[] _data[i];
     }
-
-    rp_root->delete_tree();
+    delete[] _data;
 
     delete index;
     delete[] leaf_array;
 }
+
+
 
 void test_RPGraph()
 {
@@ -1004,21 +1070,21 @@ void test_RPGraph()
 
     rp_root->rp_tree_rec(index, leaf_array);
 
-    // int vertex_index = 0;
+    int vertex_index = 0;
 
     // assign each datapoint to a vertex
-    // for (int i = 0; i < *index; i++)
-    // {
-    //     float **leaf_data = leaf_array[i]->get_data();
-    //     int data_count = leaf_array[i]->numDataPoints;
+    for (int i = 0; i < *index; i++)
+    {
+        float **leaf_data = leaf_array[i]->get_data();
+        int data_count = leaf_array[i]->numDataPoints;
 
-    //     for (int j = 0; j < data_count; j++)
-    //     {
-    //         KNNGraph.vertexArray[vertex_index++] = new Vertex(leaf_data[j]);
-    //     }
-    // }
+        for (int j = 0; j < data_count; j++)
+        {
+            KNNGraph.vertexArray[vertex_index++] = new Vertex(leaf_data[j]);
+        }
+    }
 
-    // TEST_ASSERT(vertex_index == data_size);
+    TEST_ASSERT(vertex_index == data_size);
 }
 
 TEST_LIST = {
@@ -1044,8 +1110,10 @@ TEST_LIST = {
 
     // {"test_dot_product", test_dot_product},
     // {"test_random_hyperplane", test_random_hyperplane},
-    //{"test_random_split", test_random_split},
-    {"test_tree_rec", test_tree_rec},
-    //{"test_RPGraph", test_RPGraph},
+    // {"test_random_split", test_random_split},
+    // {"test_tree_rec", test_tree_rec},
+    // {"test_RPGraph", test_RPGraph},
+
+    // {"test_potential_parall" , test_potential_parall},
 
     {NULL, NULL}};

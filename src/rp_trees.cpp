@@ -7,35 +7,8 @@ tree_node::tree_node(int _dimensions, float **_data, int N, int _limit) : dimens
     hyperplaneVector = new float[100];
 }
 
-tree_node::~tree_node()
-{
+tree_node::~tree_node() {
     delete[] hyperplaneVector;
-    if (data != NULL)
-        delete[] data;
-}
-
-void tree_node::delete_tree()
-{
-    delete_tree_recursive(this);
-}
-
-void delete_tree_recursive(TreeNode node)
-{
-    if (node == NULL)
-    {
-        return; // Base case: null pointer, nothing to delete
-    }
-
-    // Recursively delete left and right subtrees
-    delete_tree_recursive(node->leftChild);
-    delete_tree_recursive(node->rightChild);
-
-    // Delete the current node
-    delete node;
-
-    // Optionally, set pointers to null to indicate deletion (optional)
-    // node->left = nullptr;
-    // node->right = nullptr;
 }
 
 void tree_node::set_subtrees(TreeNode sub_left, TreeNode sub_right)
@@ -71,7 +44,7 @@ void tree_node::random_projection_split()
 
     for (int i = 0; i < numDataPoints; ++i)
     {
-        left_sub_data[i] = nullptr;
+        left_sub_data[i] = nullptr;  
         right_sub_data[i] = nullptr;
     }
 
