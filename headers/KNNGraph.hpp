@@ -19,6 +19,12 @@ private:
     using DistanceFunction = float (*)(const float *, const float *, int);
     DistanceFunction distance;
     double delta;
+    void parallelCalculatePotentialNewNeighbors(int start, int end);
+    void parallelUpdate(int start, int end, int &updates);
+
+    mutex potentialNeighborsMutex;
+    mutex updateMutex;
+    mutex* mutexArray;
 
 public:
     Vertex **vertexArray;
@@ -28,12 +34,14 @@ public:
     void createRandomGraph();
     void createRPGraph();
     void calculatePotentialNewNeighbors4(); // sampling version
+    void calculatePotentialNewNeighbors5(); // parallelized version
 
     void printPotential();
     void printNeighbors();
     void printReverse();
 
     int updateGraph();
+    int updateGraph2();
     void createKNNGraph();
 
     int **extract_neighbors_to_list();
