@@ -481,13 +481,13 @@ int KNNDescent::updateGraph()
 
 void KNNDescent::parallelUpdate(int start, int end, int &updated) {
 
-    // for every vertex in the graph
     for (int i = start; i < end; i++)
-    {
+    {        
+        std::lock_guard<std::mutex> lock(updateMutex);  
+
         Set nn = vertexArray[i]->getNeighbors();
         Set pn = vertexArray[i]->getPotentialNeighbors();
-
-        std::lock_guard<std::mutex> lock(mutexArray[i]);  
+        
 
         if (set_size(pn) == 0) // if there are no potential neighbors for update, move to the next vertex
             continue;
@@ -499,6 +499,7 @@ void KNNDescent::parallelUpdate(int start, int end, int &updated) {
         Neighbor *furthestNeighbor = furthest_neighbor(nn);
         int furthestNeighborId = *furthestNeighbor->getid();
         double furthestNeighborDistance = *furthestNeighbor->getDistance();
+        
 
         // keep updating the neighbors while there is room for update: while there are potential neighbors that are closer to the node than the furthest current neighbor, do the update
         while (closestPotentialDistance < furthestNeighborDistance)
@@ -593,7 +594,13 @@ void KNNDescent::createKNNGraph()
     {
         cout << "\033[1;32miteration " << i << "\033[0m" << endl;
         calculatePotentialNewNeighbors5();
-        int updates = updateGraph();
+
+        auto start1 = std::chrono::high_resolution_clock::now();
+        int updates = updateGraph2();
+        auto stop1 = std::chrono::high_resolution_clock::now();
+        auto duration1 = std::chrono::duration_cast<std::chrono::microseconds>(stop1 - start1);
+        cout << "Time taken: " << duration1.count() << " microseconds\n";
+
         cout << "updates: " << updates << endl;
         if (updates == 0)
             break;

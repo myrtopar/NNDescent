@@ -123,7 +123,6 @@ int main(int argc, char *argv[])
     KNNDescent KNNGraph(K, N, p, num_dimensions, data, distanceFunction, delta, rp_limit);
     KNNGraph.createKNNGraph();
     auto stop1 = std::chrono::high_resolution_clock::now();
-
     auto duration1 = std::chrono::duration_cast<std::chrono::seconds>(stop1 - start1);
     cout << "KNNDescent: " << duration1.count() << " seconds" << endl;
 

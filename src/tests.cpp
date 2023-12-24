@@ -276,6 +276,7 @@ void test_potential_parall()
     auto stopParallel = std::chrono::high_resolution_clock::now();
     auto durationParallel = std::chrono::duration_cast<std::chrono::microseconds>(stopParallel - startParallel);
     std::cout << "Time taken for parallel version: " << durationParallel.count() << " microseconds\n";
+    
     end_program();
 }
 
@@ -1114,6 +1115,6 @@ TEST_LIST = {
     // {"test_tree_rec", test_tree_rec},
     // {"test_RPGraph", test_RPGraph},
 
-    // {"test_potential_parall" , test_potential_parall},
+    {"test_potential_parall" , test_potential_parall},
 
     {NULL, NULL}};
