@@ -8,7 +8,6 @@
 #include <chrono>
 #include <cstring> // For memset
 #include "ADTSet.h"
-#include "classes.hpp"
 
 using namespace std;
 
@@ -17,9 +16,7 @@ typedef class tree_node *TreeNode;
 class tree_node
 {
 private:
-    // float **data;
     Vertex **data;
-
     float *hyperplaneVector;
 
 public:
@@ -41,13 +38,11 @@ public:
 
     // Destructor to free allocated memory
     ~tree_node();
-    void delete_tree();
 };
 
 double dot_product(const float *point1, const float *point2, int numDimensions);
 int compare_doubles(double a, double b);
 float generate_random_float(float min, float max);
 void define_random_hyperplane(float *empty_vec, int dimensions, float min, float max);
-void delete_tree_recursive(TreeNode root);
 
 // extra global variables

@@ -7,6 +7,8 @@
 #include <string>
 #include <chrono>
 #include <cstring>
+#include <mutex>
+#include <thread>
 #include "ADTSet.h"
 
 using namespace std;
@@ -30,13 +32,14 @@ class Vertex
 {
 private:
     void *datapoint;
-    int id;
     Set NN;
     Set RNN;
     Set potentialNN;
 
+    mutex updateMutex;
+
 public:
-    Vertex(void *_data, int id);
+    Vertex(void *_data);
 
     void *getData() const;
     int getId() const;
@@ -44,12 +47,15 @@ public:
     int addReverseNeighbor(Neighbor *neighbor);
     int addPotentialNeighbor(Neighbor *neighbor);
 
+
     Set getNeighbors() const;
     Set getReverseNeighbors() const;
     Set getPotentialNeighbors() const;
 
     void replaceNNSet(Set set);
     void resetPNNSet();
+
+    mutex& getUpdateMutex();
 
     ~Vertex();
 };
