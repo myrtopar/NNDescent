@@ -231,6 +231,57 @@ void test_potential()
     end_program();
 }
 
+
+void test_potential_parall()
+{
+    int delta = 0.01, K = 10, rp_limit = 10;
+    start_program();
+
+    DistanceFunction distanceFunction = &calculateEuclideanDistance;
+    KNNDescent KNNGraph(K, N, p, num_dimensions, data, distanceFunction, delta, rp_limit);
+    
+    // calculatePotentialNewNeighbors non-parallelized version
+    auto startNonParallel = std::chrono::high_resolution_clock::now();
+    for (int i = 0; i < 10; i++)
+    {
+        KNNGraph.calculatePotentialNewNeighbors4();
+        
+        if (KNNGraph.updateGraph() == 0)
+            break;
+
+        for (int j = 0; j < N; j++)
+        {
+            Vertex *vertex = KNNGraph.vertexArray[j];
+            TEST_ASSERT((set_size(vertex->getPotentialNeighbors()) == 0));
+        }
+    }
+    auto stopNonParallel = std::chrono::high_resolution_clock::now();
+    auto durationNonParallel = std::chrono::duration_cast<std::chrono::microseconds>(stopNonParallel - startNonParallel);
+    std::cout << "Time taken for non-parallel version: " << durationNonParallel.count() << " microseconds\n";
+
+    // calculatePotentialNewNeighbors parallelized version
+    auto startParallel = std::chrono::high_resolution_clock::now();
+    for (int i = 0; i < 10; i++)
+    {
+        KNNGraph.calculatePotentialNewNeighbors5();
+        
+        if (KNNGraph.updateGraph() == 0)
+            break;
+
+        for (int j = 0; j < N; j++)
+        {
+            Vertex *vertex = KNNGraph.vertexArray[j];
+            TEST_ASSERT((set_size(vertex->getPotentialNeighbors()) == 0));
+        }
+    }
+    auto stopParallel = std::chrono::high_resolution_clock::now();
+    auto durationParallel = std::chrono::duration_cast<std::chrono::microseconds>(stopParallel - startParallel);
+    std::cout << "Time taken for parallel version: " << durationParallel.count() << " microseconds\n";
+    
+    end_program();
+}
+
+
 void test_result()
 {
     start_program();
@@ -293,6 +344,8 @@ void test_result()
 
     delete[] NND;
     delete[] BF;
+
+    
 
     end_program();
 }
@@ -967,7 +1020,7 @@ float calculate_average_distance(Vertex **data, int numDataPoints)
         }
     }
 
-    if (pairs > 0)
+    if (pairs > 0) 
         return totalDist / pairs;
     return 0.0;
 }
@@ -992,8 +1045,10 @@ void test_tree_rec1()
         vertexArray[i] = new Vertex(_data[i], i);
     }
 
+
     int *index = new int;
     *index = 0;
+
     TreeNode *leaf_array = new TreeNode[num];
     int leaf_size_limit = 25;
 
@@ -1022,6 +1077,7 @@ void test_tree_rec1()
             float averageDist = calculate_average_distance(varr, leaf_array[i]->numDataPoints);
             cout << "Average distance in leaf " << i << ": " << averageDist << endl;
             // TEST_ASSERT(averageDist < 0.5);
+
         }
     }
 
@@ -1141,9 +1197,12 @@ void test_tree_rec2()
 
     rp_root->delete_tree();
 
+
     delete index;
     delete[] leaf_array;
 }
+
+
 
 void test_RPGraph()
 {
@@ -1430,6 +1489,7 @@ void test_rp_similarity()
         delete[] _data[i];
     }
     delete[] _data;
+
 }
 
 TEST_LIST = {
@@ -1461,4 +1521,5 @@ TEST_LIST = {
     // {"test_RPGraph", test_RPGraph},
     // {"test_random_int", test_random_int},
     {"test_rp_similarity", test_rp_similarity},
+
     {NULL, NULL}};

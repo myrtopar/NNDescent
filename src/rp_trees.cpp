@@ -7,8 +7,7 @@ tree_node::tree_node(int _dimensions, Vertex **_data, int N, int _limit) : dimen
     hyperplaneVector = new float[100];
 }
 
-tree_node::~tree_node()
-{
+tree_node::~tree_node() {
     delete[] hyperplaneVector;
 
     if (data != NULL)
@@ -39,6 +38,7 @@ void delete_tree_recursive(TreeNode node)
 
     // Delete the current node
     delete node;
+
 }
 
 void tree_node::set_subtrees(TreeNode sub_left, TreeNode sub_right)
@@ -74,7 +74,7 @@ void tree_node::random_projection_split()
 
     for (int i = 0; i < numDataPoints; ++i)
     {
-        left_sub_data[i] = nullptr;
+        left_sub_data[i] = nullptr;  
         right_sub_data[i] = nullptr;
     }
 
