@@ -32,6 +32,7 @@ class Vertex
 {
 private:
     void *datapoint;
+    int id;
     Set NN;
     Set RNN;
     Set potentialNN;
@@ -39,14 +40,13 @@ private:
     mutex updateMutex;
 
 public:
-    Vertex(void *_data);
+    Vertex(void *_data, int id);
 
     void *getData() const;
     int getId() const;
     int addNeighbor(Neighbor *neighbor);
     int addReverseNeighbor(Neighbor *neighbor);
     int addPotentialNeighbor(Neighbor *neighbor);
-
 
     Set getNeighbors() const;
     Set getReverseNeighbors() const;
@@ -55,7 +55,7 @@ public:
     void replaceNNSet(Set set);
     void resetPNNSet();
 
-    mutex& getUpdateMutex();
+    mutex &getUpdateMutex();
 
     ~Vertex();
 };

@@ -157,7 +157,7 @@ float averageSplitDistance(Vertex **array, int num)
 }
 
 // CLASS MEMBER DEFINITIONS
-Vertex::Vertex(void *_data) : datapoint(_data)
+Vertex::Vertex(void *_data, int _id) : datapoint(_data), id(_id)
 {
     NN = set_create(compare_distances, delete_neighbor);
     RNN = set_create(compare_distances, delete_neighbor);
@@ -210,6 +210,11 @@ Set Vertex::getPotentialNeighbors() const
     return potentialNN;
 }
 
+int Vertex::getId() const
+{
+    return id;
+}
+
 void Vertex::replaceNNSet(Set NewSet)
 {
     set_destroy(NN);
@@ -227,7 +232,8 @@ void *Vertex::getData() const
     return datapoint;
 }
 
-mutex& Vertex::getUpdateMutex() {
+mutex &Vertex::getUpdateMutex()
+{
     return updateMutex;
 }
 
