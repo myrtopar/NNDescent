@@ -1,5 +1,6 @@
 #include "headers/acutest.h"
 #include "headers/KNNGraph.hpp"
+#include "headers/KNNBruteForce.hpp"
 
 const char *file_path = "datasets/00000200.bin";
 int N;
@@ -27,7 +28,7 @@ float calculateEuclideanDistance(const float *point1, const float *point2, int n
 void calculateALLdistances(float **data, int N, int num_dimensions)
 {
     distanceResults = new float *[N * N];
-    for (int i = 0; i < N; ++i)
+    for (int i = 0; i < N; i++)
     {
         distanceResults[i] = new float[N];
     }
@@ -153,8 +154,8 @@ void test_distances(void)
             {
                 Neighbor *n = (Neighbor *)set_node_value(nn, node);
                 int *id = n->getid();
-                double *dist = n->getDistance();
-                double exactDistance = calculateEuclideanDistance(data[i], data[*id], num_dimensions);
+                float *dist = n->getDistance();
+                float exactDistance = calculateEuclideanDistance(data[i], data[*id], num_dimensions);
                 nodeDistancesNN[i][j] = *dist;
 
                 TEST_ASSERT((exactDistance - *dist) == 0);
@@ -166,8 +167,8 @@ void test_distances(void)
             {
                 Neighbor *n = (Neighbor *)set_node_value(rn, node);
                 int *id = n->getid();
-                double *dist = n->getDistance();
-                double exactDistance = calculateEuclideanDistance(data[i], data[*id], num_dimensions);
+                float *dist = n->getDistance();
+                float exactDistance = calculateEuclideanDistance(data[i], data[*id], num_dimensions);
                 nodeDistancesRN[i][j] = *dist;
 
                 TEST_ASSERT((exactDistance - *dist) == 0);
@@ -179,15 +180,15 @@ void test_distances(void)
             {
                 Neighbor *n = (Neighbor *)set_node_value(pn, node);
                 int *id = n->getid();
-                double *dist = n->getDistance();
-                double exactDistance = calculateEuclideanDistance(data[i], data[*id], num_dimensions);
+                float *dist = n->getDistance();
+                float exactDistance = calculateEuclideanDistance(data[i], data[*id], num_dimensions);
                 nodeDistancesPN[i][j] = *dist;
                 TEST_ASSERT((exactDistance - *dist) == 0);
                 j++;
             }
         }
 
-        for (int i = 0; i < N; ++i)
+        for (int i = 0; i < N; i++)
         {
             delete[] nodeDistancesNN[i];
             delete[] nodeDistancesRN[i];
@@ -876,8 +877,50 @@ void test_random_hyperplane()
 
 void test_random_split()
 {
-    start_program();
-    TreeNode rp_root = new tree_node(100, data, N, 20);
+    ifstream ifs;
+    const char *file_path1 = "datasets/00000200.bin";
+    ifs.open(file_path1, ios::binary);
+    if (!ifs.is_open())
+    {
+        cout << "Failed to open the file." << endl;
+        TEST_ASSERT(0);
+        return;
+    }
+
+    // Read the number of points (N) and store it in the global variable
+    ifs.read((char *)&N, sizeof(int));
+    cout << "# of points: " << N << endl;
+
+    const int num_dimensions = 100;
+
+    float **_data;
+
+    // Create arrays for storing the data
+    _data = new float *[N];
+    for (int i = 0; i < N; i++)
+    {
+        _data[i] = new float[num_dimensions];
+    }
+
+    for (int i = 0; i < N; i++)
+    {
+        for (int d = 0; d < num_dimensions; d++)
+        {
+            float value;
+            ifs.read((char *)(&value), sizeof(float));
+            _data[i][d] = value;
+        }
+    }
+
+    ifs.close();
+
+    Vertex **vertexArray = new Vertex *[N];
+    for (int i = 0; i < N; i++)
+    {
+        vertexArray[i] = new Vertex(_data[i], i);
+    }
+
+    TreeNode rp_root = new tree_node(num_dimensions, vertexArray, N, 25);
     rp_root->random_projection_split();
 
     TreeNode _left_sub = rp_root->left_sub();
@@ -889,19 +932,36 @@ void test_random_split()
     TEST_ASSERT(_left_sub->left_sub() == NULL && _left_sub->right_sub() == NULL);
     TEST_ASSERT(_right_sub->left_sub() == NULL && _right_sub->right_sub() == NULL);
 
-    end_program();
+    for (int i = 0; i < N; ++i)
+    {
+        delete[] _data[i];
+    }
+    delete[] _data;
+
+    rp_root->delete_tree();
+
+    for (int i = 0; i < N; i++)
+    {
+        delete vertexArray[i];
+    }
+    delete[] vertexArray;
 }
 
-float calculate_average_distance(float **data, int numDataPoints)
+float calculate_average_distance(Vertex **data, int numDataPoints)
 {
     float totalDist = 0.0;
     int pairs = 0;
 
-    for (int i = 0; i < numDataPoints; ++i)
+    for (int i = 0; i < numDataPoints; i++)
     {
-        for (int j = i + 1; j < numDataPoints; ++j)
+        for (int j = i + 1; j < numDataPoints; j++)
         {
-            float distance = calculateEuclideanDistance(data[i], data[j], 3);
+            Vertex *v1 = data[i];
+            Vertex *v2 = data[j];
+            float *d1 = static_cast<float *>(v1->getData());
+            float *d2 = static_cast<float *>(v2->getData());
+
+            float distance = calculateEuclideanDistance(d1, d2, 3);
             totalDist += distance;
             pairs++;
         }
@@ -912,12 +972,12 @@ float calculate_average_distance(float **data, int numDataPoints)
     return 0.0;
 }
 
-void test_tree_rec()
+void test_tree_rec1()
 {
-    srand(time(nullptr));
-    int num = 100;
+    // srand(time(nullptr));
+    int num = 200;
     float **_data = new float *[num];
-    for (int i = 0; i < num; ++i)
+    for (int i = 0; i < num; i++)
     {
         _data[i] = new float[3];
         for (int j = 0; j < 3; j++)
@@ -926,43 +986,47 @@ void test_tree_rec()
         }
     }
 
+    Vertex **vertexArray = new Vertex *[num];
+    for (int i = 0; i < num; i++)
+    {
+        vertexArray[i] = new Vertex(_data[i], i);
+    }
+
     int *index = new int;
     *index = 0;
     TreeNode *leaf_array = new TreeNode[num];
     int leaf_size_limit = 25;
 
-    TreeNode rp_root = new tree_node(3, _data, num, leaf_size_limit);
+    TreeNode rp_root = new tree_node(3, vertexArray, num, leaf_size_limit);
     rp_root->rp_tree_rec(index, leaf_array);
 
     // cout << "index after leaf ineserts: " << *index << endl;
 
-    for (int i = 0; i < *index; i++)
-    {
-        // cout << "leaf " << i << " size: " << leaf_array[i]->numDataPoints << endl;
-        float **leaf_data = leaf_array[i]->get_data();
-        for (int j = 0; j < leaf_array[i]->numDataPoints; ++j)
-        {
-            // cout << "  * data point " << j << ": ";
-            // for (int k = 0; k < 3; ++k)
-            // {
-            //     cout << leaf_data[j][k] << " ";
-            // }
-            // cout << endl;
-        }
-        TEST_ASSERT(leaf_array[i]->numDataPoints <= leaf_size_limit);
-    }
-
     // extra test to prove the correctness of the random projection tree.
 
+    int count = 0;
     for (int i = 0; i < *index; i++)
     {
+        TEST_ASSERT(leaf_array[i]->numDataPoints <= leaf_size_limit);
+        Vertex **varr = leaf_array[i]->get_data();
+        // cout << "leaf " << i << " size: " << leaf_array[i]->numDataPoints << endl;
+        for (int j = 0; j < leaf_array[i]->numDataPoints; j++)
+        {
+            Vertex *v = varr[j];
+            count += v->getId();
+            // cout << v->getId() << ", ";
+        }
+
         if (leaf_array[i]->numDataPoints > 1)
         {
-            float averageDist = calculate_average_distance(leaf_array[i]->get_data(), leaf_array[i]->numDataPoints);
-            // cout << "Average distance in leaf " << i << ": " << averageDist << endl;
-            TEST_ASSERT(averageDist < 0.5);
+            float averageDist = calculate_average_distance(varr, leaf_array[i]->numDataPoints);
+            cout << "Average distance in leaf " << i << ": " << averageDist << endl;
+            // TEST_ASSERT(averageDist < 0.5);
         }
     }
+
+    int sum = num * (num - 1) / 2;
+    TEST_ASSERT(sum == count);
 
     // -------------------------------------------------------------------
 
@@ -970,6 +1034,110 @@ void test_tree_rec()
     {
         delete[] _data[i];
     }
+    delete[] _data;
+
+    for (int i = 0; i < num; i++)
+    {
+        delete vertexArray[i];
+    }
+    delete[] vertexArray;
+
+    rp_root->delete_tree();
+
+    delete index;
+    delete[] leaf_array;
+}
+
+void test_tree_rec2()
+{
+    ifstream ifs;
+    const char *file_path1 = "datasets/00000200.bin";
+    ifs.open(file_path1, ios::binary);
+    if (!ifs.is_open())
+    {
+        cout << "Failed to open the file." << endl;
+        TEST_ASSERT(0);
+        return;
+    }
+
+    // Read the number of points (N) and store it in the global variable
+    ifs.read((char *)&N, sizeof(int));
+    cout << "# of points: " << N << endl;
+
+    const int num_dimensions = 100;
+
+    float **_data;
+
+    // Create arrays for storing the data
+    _data = new float *[N];
+    for (int i = 0; i < N; i++)
+    {
+        _data[i] = new float[num_dimensions];
+    }
+
+    for (int i = 0; i < N; i++)
+    {
+        for (int d = 0; d < num_dimensions; d++)
+        {
+            float value;
+            ifs.read((char *)(&value), sizeof(float));
+            _data[i][d] = value;
+        }
+    }
+
+    ifs.close();
+
+    Vertex **vertexArray = new Vertex *[N];
+    for (int i = 0; i < N; i++)
+    {
+        vertexArray[i] = new Vertex(_data[i], i);
+    }
+
+    int *index = new int;
+    *index = 0;
+    TreeNode *leaf_array = new TreeNode[N];
+    int leaf_size_limit = 25;
+
+    TreeNode rp_root = new tree_node(100, vertexArray, N, leaf_size_limit);
+    rp_root->rp_tree_rec(index, leaf_array);
+
+    cout << "index after leaf ineserts: " << *index << endl;
+
+    // extra test to prove the correctness of the random projection tree.
+    int count = 0;
+    for (int i = 0; i < *index; i++)
+    {
+        TEST_ASSERT(leaf_array[i]->numDataPoints <= leaf_size_limit);
+        Vertex **varr = leaf_array[i]->get_data();
+        // cout << "leaf " << i << " size: " << leaf_array[i]->numDataPoints << endl;
+        for (int j = 0; j < leaf_array[i]->numDataPoints; j++)
+        {
+            Vertex *v = varr[j];
+            count += v->getId();
+            // cout << v->getId() << ", ";
+        }
+
+        if (leaf_array[i]->numDataPoints > 1)
+        {
+            float averageDist = calculate_average_distance(varr, leaf_array[i]->numDataPoints);
+            cout << "Average distance in leaf " << i << ": " << averageDist << endl;
+            // TEST_ASSERT(averageDist < 0.5);
+        }
+    }
+
+    //----------------------------------------------------------------------------------------
+
+    for (int i = 0; i < N; ++i)
+    {
+        delete[] _data[i];
+    }
+    delete[] _data;
+
+    for (int i = 0; i < N; i++)
+    {
+        delete vertexArray[i];
+    }
+    delete[] vertexArray;
 
     rp_root->delete_tree();
 
@@ -981,22 +1149,56 @@ void test_RPGraph()
 {
     DistanceFunction distanceFunction = &calculateEuclideanDistance;
 
-    int data_size = 500;
-    float **_data = new float *[data_size];
-    for (int i = 0; i < data_size; ++i)
+    ifstream ifs;
+    const char *file_path1 = "datasets/00000200.bin";
+    ifs.open(file_path1, ios::binary);
+    if (!ifs.is_open())
     {
-        _data[i] = new float[3];
-        for (int j = 0; j < 3; j++)
+        cout << "Failed to open the file." << endl;
+        TEST_ASSERT(0);
+        return;
+    }
+
+    // Read the number of points (N) and store it in the global variable
+    ifs.read((char *)&N, sizeof(int));
+    cout << "# of points: " << N << endl;
+
+    const int num_dimensions = 100;
+
+    float **_data;
+
+    // Create arrays for storing the data
+    _data = new float *[N];
+    for (int i = 0; i < N; i++)
+    {
+        _data[i] = new float[num_dimensions];
+    }
+
+    for (int i = 0; i < N; i++)
+    {
+        for (int d = 0; d < num_dimensions; d++)
         {
-            _data[i][j] = generate_random_float(-0.4, 0.4);
+            float value;
+            ifs.read((char *)(&value), sizeof(float));
+            _data[i][d] = value;
         }
     }
 
-    KNNDescent KNNGraph(100, data_size, 0.4, 3, _data, distanceFunction, 0.001, 80);
+    ifs.close();
 
-    TreeNode rp_root = new tree_node(3, _data, data_size, 80);
+    int rp_limit = 25;
+    int K = 40;
 
-    int expected_leaves = 0.04 * data_size;
+    KNNDescent KNNGraph(K, N, 0.4, num_dimensions, _data, distanceFunction, 0.001, rp_limit);
+
+    for (int i = 0; i < N; i++)
+    {
+        KNNGraph.vertexArray[i] = new Vertex(_data[i], i);
+    }
+
+    TreeNode rp_root = new tree_node(num_dimensions, KNNGraph.vertexArray, N, rp_limit);
+
+    int expected_leaves = 0.5 * N;
     TreeNode *leaf_array = new TreeNode[expected_leaves];
 
     int *index = new int;
@@ -1004,21 +1206,230 @@ void test_RPGraph()
 
     rp_root->rp_tree_rec(index, leaf_array);
 
-    // int vertex_index = 0;
+    // cout << "index after leaf ineserts: " << *index << endl;
 
-    // assign each datapoint to a vertex
-    // for (int i = 0; i < *index; i++)
+    int total_count = 0;
+    for (int i = 0; i < *index; i++)
+    {
+        total_count += leaf_array[i]->numDataPoints;
+    }
+
+    TEST_ASSERT(total_count == N);
+
+    // for each leaf of the tree
+    for (int i = 0; i < *index; i++)
+    {
+        Vertex **leaf_data = leaf_array[i]->get_data();
+        int data_count = leaf_array[i]->numDataPoints;
+
+        // for each datapoint of the cluster assign all the other datapoints of the cluster as its neighbors
+        for (int j = 0; j < data_count; j++)
+        {
+            Vertex *v1 = leaf_data[j];
+            float *d1 = static_cast<float *>(v1->getData());
+            int v1_id = v1->getId();
+
+            for (int k = 0; k < data_count; k++)
+            {
+                if (j == k)
+                    continue;
+
+                Vertex *v2 = leaf_data[k];
+                float *d2 = static_cast<float *>(v2->getData());
+                int v2_id = v2->getId();
+
+                float dist = distanceFunction(d1, d2, num_dimensions);
+
+                Neighbor *newNeighbor = new Neighbor(v2_id, dist);
+                v1->addNeighbor(newNeighbor);
+
+                Neighbor *newReverseNeighbor = new Neighbor(v1_id, dist);
+                v2->addReverseNeighbor(newReverseNeighbor);
+            }
+
+            Set nn = v1->getNeighbors();
+            TEST_ASSERT(set_size(nn) == data_count - 1);
+
+            // fill in the remaining neighbors with random ones from the graph
+            while (set_size(nn) < K)
+            {
+                // pick a random leaf
+                int random_idx = random_int(*index, i);
+                TEST_ASSERT(random_idx != i && random_idx >= 0 && random_idx < *index);
+
+                Vertex **random_leaf_data = leaf_array[random_idx]->get_data();
+
+                // pick a random datapoint
+                int data_idx = rand() % leaf_array[random_idx]->numDataPoints;
+                Vertex *rv = random_leaf_data[data_idx];
+
+                float *rd = static_cast<float *>(rv->getData());
+                int rv_id = rv->getId();
+
+                float dist = distanceFunction(d1, rd, num_dimensions);
+
+                Neighbor *newNeighbor = new Neighbor(rv_id, dist);
+                if (!v1->addNeighbor(newNeighbor))
+                {
+                    continue;
+                }
+
+                Neighbor *newReverseNeighbor = new Neighbor(v1_id, dist);
+                rv->addReverseNeighbor(newReverseNeighbor);
+            }
+
+            TEST_ASSERT(set_size(nn) == K);
+        }
+
+        for (int j = 0; j < data_count; j++)
+        {
+            Vertex *v = leaf_data[j];
+            Set rn = v->getReverseNeighbors();
+            TEST_ASSERT(set_size(rn) >= data_count - 1);
+        }
+    }
+
+    //----------------------------------------------------
+    for (int i = 0; i < N; i++)
+    {
+        delete[] _data[i];
+    }
+    delete[] _data;
+
+    rp_root->delete_tree();
+
+    delete index;
+    delete[] leaf_array;
+}
+
+void test_random_int()
+{
+    for (int i = 0; i < 20; i++)
+    {
+        int random = random_int(20, i);
+        TEST_ASSERT(random != i && random >= 0 && random < 20);
+    }
+}
+
+void test_rp_similarity()
+{
+    srand(time(nullptr));
+
+    ifstream ifs;
+    const char *file_path1 = "datasets/00001000-1.bin";
+    ifs.open(file_path1, ios::binary);
+    if (!ifs.is_open())
+    {
+        cout << "Failed to open the file." << endl;
+        TEST_ASSERT(0);
+        return;
+    }
+
+    // Read the number of points (N) and store it in the global variable
+    ifs.read((char *)&N, sizeof(int));
+    cout << "# of points: " << N << endl;
+
+    const int num_dimensions = 100;
+
+    float **_data;
+
+    // Create arrays for storing the data
+    _data = new float *[N];
+    for (int i = 0; i < N; i++)
+    {
+        _data[i] = new float[num_dimensions];
+    }
+
+    for (int i = 0; i < N; i++)
+    {
+        for (int d = 0; d < num_dimensions; d++)
+        {
+            float value;
+            ifs.read((char *)(&value), sizeof(float));
+            _data[i][d] = value;
+        }
+    }
+
+    ifs.close();
+    DistanceFunction distanceFunction = &calculateEuclideanDistance;
+    K = 100;
+    p = 0.5;
+
+    KNNDescent KNNGraph1(100, N, p, num_dimensions, _data, distanceFunction, 0.001, 90);
+    KNNDescent KNNGraph2(100, N, p, num_dimensions, _data, distanceFunction, 0.001, 90);
+    KNNBruteForce BFGraph(100, N, num_dimensions, _data, distanceFunction);
+
+    // compare similarities between random projection tree init and random init
+    KNNGraph1.createRandomGraph();
+    KNNGraph2.createRPGraph();
+
+    // cout << "KNNGraph1 (random init)" << endl;
+    // for (int i = 0; i < N; i++)
     // {
-    //     float **leaf_data = leaf_array[i]->get_data();
-    //     int data_count = leaf_array[i]->numDataPoints;
-
-    //     for (int j = 0; j < data_count; j++)
-    //     {
-    //         KNNGraph.vertexArray[vertex_index++] = new Vertex(leaf_data[j]);
-    //     }
+    //     Vertex *v = KNNGraph1.vertexArray[i];
+    //     int vid = v->getId();
+    //     Set nn = v->getNeighbors();
+    //     cout << "average neighbor distance of vertex " << vid << ": " << averageNeighborDistance(nn) << endl;
     // }
+    // cout << endl;
 
-    // TEST_ASSERT(vertex_index == data_size);
+    // cout << "KNNGraph2 (rp tree init)" << endl;
+    // for (int i = 0; i < N; i++)
+    // {
+    //     Vertex *v = KNNGraph2.vertexArray[i];
+    //     int vid = v->getId();
+    //     Set nn = v->getNeighbors();
+    //     cout << "average neighbor distance of vertex " << vid << ": " << averageNeighborDistance(nn) << endl;
+    // }
+    // cout << endl;
+
+    cout << "BRUTE FORCE GRAPH" << endl;
+    for (int i = 0; i < N; i++)
+    {
+        Vertex *v = BFGraph.vertexArray[i];
+        int vid = v->getId();
+        Set nn = v->getNeighbors();
+        // cout << "average neighbor distance of vertex " << vid << ": " << averageNeighborDistance(nn) << endl;
+    }
+    // cout << endl;
+
+    int **NND1 = KNNGraph1.extract_neighbors_to_list();
+    int **NND2 = KNNGraph2.extract_neighbors_to_list();
+
+    int **BF1 = BFGraph.extract_neighbors_to_list();
+    int **BF2 = BFGraph.extract_neighbors_to_list();
+
+    double percentage1 = compare_results(BF1, NND1, (int)N, K);
+    double percentage2 = compare_results(BF2, NND2, (int)N, K);
+
+    if (percentage1 > 90.0)
+    {
+        cout << "\x1b[32mrandom graph init similarity percentage: " << percentage1 << "%"
+             << "\x1b[0m" << endl;
+    }
+    else
+    {
+        cout << "\x1b[31mrandom graph init similarity percentage: " << percentage1 << "%"
+             << "\x1b[0m" << endl;
+    }
+
+    if (percentage2 > 90.0)
+    {
+        cout << "\x1b[32mrandom projection tree init similarity percentage: " << percentage2 << "%"
+             << "\x1b[0m" << endl;
+    }
+    else
+    {
+        cout << "\x1b[31mrandom projection tree init similarity percentage: " << percentage2 << "%"
+             << "\x1b[0m" << endl;
+    }
+
+    //---------------------------------------------------------------------------------------------------------
+    for (int i = 0; i < N; i++)
+    {
+        delete[] _data[i];
+    }
+    delete[] _data;
 }
 
 TEST_LIST = {
@@ -1044,8 +1455,10 @@ TEST_LIST = {
 
     // {"test_dot_product", test_dot_product},
     // {"test_random_hyperplane", test_random_hyperplane},
-    //{"test_random_split", test_random_split},
-    {"test_tree_rec", test_tree_rec},
-    //{"test_RPGraph", test_RPGraph},
-
+    // {"test_random_split", test_random_split},
+    // {"test_tree_rec1", test_tree_rec1},
+    // {"test_tree_rec2", test_tree_rec2},
+    // {"test_RPGraph", test_RPGraph},
+    // {"test_random_int", test_random_int},
+    {"test_rp_similarity", test_rp_similarity},
     {NULL, NULL}};

@@ -17,8 +17,8 @@ typedef class tree_node *TreeNode;
 class tree_node
 {
 private:
-    float **data;
-    // Vertex **vertices;
+    // float **data;
+    Vertex **data;
 
     float *hyperplaneVector;
 
@@ -30,11 +30,11 @@ public:
     TreeNode rightChild;
 
     // function members
-    tree_node(int dimensions, float **data, int N, int limit);
+    tree_node(int dimensions, Vertex **data, int N, int limit);
     void random_projection_split();
     void set_subtrees(TreeNode sub_left, TreeNode sub_right);
-    void add_data(float *data_point);
-    float **get_data();
+    void add_data(Vertex *data_point);
+    Vertex **get_data();
     void rp_tree_rec(int *idx, TreeNode *leaf_array);
     TreeNode left_sub();
     TreeNode right_sub();

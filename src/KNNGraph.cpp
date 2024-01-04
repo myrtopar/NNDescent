@@ -1,112 +1,5 @@
 #include "headers/KNNGraph.hpp"
 
-KNNBruteForce::KNNBruteForce(int _K, int _size, int _dimensions, float **data, DistanceFunction _distance) : K(_K), size(_size), dimensions(_dimensions), distance(_distance)
-{
-    vertexArray = new Vertex *[size];
-    for (int i = 0; i < size; i++)
-    {
-        vertexArray[i] = new Vertex(data[i], i);
-    }
-    calculateKNNBF();
-}
-
-void KNNBruteForce::calculateKNNBF() const
-{
-    cout << "\nConstructing a graph of " << size << " elements, looking for " << K << " nearest neighbors" << endl;
-
-    for (int i = 0; i < size; i++)
-    {
-        Vertex *vertex = vertexArray[i];
-
-        for (int j = 0; j < size; j++)
-        {
-            if (i == j)
-                continue;
-
-            Vertex *nvertex = vertexArray[j];
-
-            float *vertexData = static_cast<float *>(vertex->getData());
-            float *neighborData = static_cast<float *>(nvertex->getData());
-
-            double dist = distanceResults[i][j];
-
-            Neighbor *newNeighbor = new Neighbor(j, dist);
-            vertex->addNeighbor(newNeighbor);
-        }
-    }
-
-    for (int i = 0; i < size; i++)
-    {
-        Vertex *vertex = vertexArray[i];
-        Set allNodes = vertex->getNeighbors();
-        Set Kneighbors = set_create(compare_distances, delete_neighbor);
-
-        int j = 0;
-        for (SetNode node = set_first(allNodes); node != SET_EOF; node = set_next(allNodes, node))
-        {
-            if (j == K)
-                break;
-            Neighbor *p = (Neighbor *)set_node_value(allNodes, node);
-            Neighbor *newNeighbor = new Neighbor(*p->getid(), *p->getDistance());
-            set_insert(Kneighbors, newNeighbor);
-            j++;
-        }
-        vertex->replaceNNSet(Kneighbors);
-    }
-}
-
-int **KNNBruteForce::extract_neighbors_to_list()
-{
-    int **neighbors = new int *[size];
-    for (int i = 0; i < size; i++)
-    {
-        neighbors[i] = new int[K];
-    } // row col
-
-    for (int i = 0; i < size; i++)
-    {
-        Vertex *v = vertexArray[i];
-        Set nn = v->getNeighbors();
-
-        int j = 0;
-        for (SetNode node = set_first(nn); node != SET_EOF; node = set_next(nn, node))
-        {
-            Neighbor *n = (Neighbor *)set_node_value(nn, node);
-            neighbors[i][j] = *n->getid();
-            j++;
-        }
-    }
-
-    return neighbors;
-}
-
-void KNNBruteForce::printNeighbors()
-{
-    cout << "\033[1;31m BRUTE FORCE NEIGHBORS\033[0m" << endl;
-
-    for (int i = 0; i < size; i++)
-    {
-        Set p = vertexArray[i]->getNeighbors();
-
-        cout << "Neighbors of " << i << ": ";
-        for (SetNode node = set_first(p); node != SET_EOF; node = set_next(p, node))
-        {
-            Neighbor *n = (Neighbor *)set_node_value(p, node);
-            cout << *n->getid() << "(" << n->getFlag() << ", " << *n->getDistance() << ") ";
-        }
-        cout << endl;
-    }
-}
-
-KNNBruteForce::~KNNBruteForce()
-{
-    for (int i = 0; i < size; i++)
-    {
-        delete vertexArray[i];
-    }
-    delete[] vertexArray;
-}
-
 ////////////////////////////////// KNNDESCENT //////////////////////////////////
 KNNDescent::KNNDescent(int _K, int _size, float _sampling, int _dimensions, float **_data, DistanceFunction _metricFunction, double _delta, int _rp_limit) : K(_K), size(_size), data(_data), sampling(_sampling), dimensions(_dimensions), distance(_metricFunction), delta(_delta), rp_limit(_rp_limit)
 {
@@ -143,7 +36,8 @@ void KNNDescent::createRandomGraph()
             float *vertexData = static_cast<float *>(vertexArray[i]->getData());
             float *neighborData = static_cast<float *>(vertexArray[randomNeighborIndex]->getData());
 
-            double dist = distanceResults[i][randomNeighborIndex];
+            // float dist = distanceResults[i][randomNeighborIndex];
+            float dist = distance(vertexData, neighborData, dimensions);
 
             Neighbor *newNeighbor = new Neighbor(randomNeighborIndex, dist);
             vertexArray[i]->addNeighbor(newNeighbor);
@@ -163,41 +57,92 @@ void KNNDescent::createRPGraph()
         vertexArray[i] = new Vertex(data[i], i);
     }
 
-    TreeNode rp_root = new tree_node(dimensions, data, size, rp_limit);
+    TreeNode rp_root = new tree_node(dimensions, vertexArray, size, rp_limit);
 
-    int expected_leaves = 0.04 * size;
+    int expected_leaves = 0.5 * size;
     TreeNode *leaf_array = new TreeNode[expected_leaves];
 
     int *index = new int;
     *index = 0;
 
-    rp_root->rp_tree_rec(index, leaf_array);
-
-    int vertex_index = 0;
+    rp_root->rp_tree_rec(index, leaf_array); // creating the rp tree recursively
 
     // for each leaf of the tree
     for (int i = 0; i < *index; i++)
     {
-        float **leaf_data = leaf_array[i]->get_data();
+        Vertex **leaf_data = leaf_array[i]->get_data();
         int data_count = leaf_array[i]->numDataPoints;
 
-        // assign each datapoint to a vertex
-        // for (int j = 0; j < data_count; j++)
-        // {
-        //     vertexArray[vertex_index++] = new Vertex(leaf_data[j]);
-        // }
-
-        // for each datapoint of the cluster assign all the other datapoints of the cluster as its neighbors
+        // cout << "leaf " << i << ": ";
         for (int j = 0; j < data_count; j++)
         {
+            Vertex *v1 = leaf_data[j];
+            int v1_id = v1->getId();
+            // cout << v1_id << " ";
         }
+        // cout << endl;
 
-        // to rp tree na kanei clustering me ta ids twn data wste na exv to correspondence
-        // i allios na kanw edit to class rp anti na douleuei me to float **data, na paizei mpala me to vertexarray
-        // etsi to kathe leaf tha exei anti gia float **data ena vertexarray me mono ta data pou tou anhkoyn
-        // kai to member id apo to data class tha mou leei poio datapoint einai auto sto opoio anaferetai wste na
-        // exw diathrhsei kapou tin antistoixia
+        // for each datapoint of the cluster
+        for (int j = 0; j < data_count; j++)
+        {
+            Vertex *v1 = leaf_data[j];
+            float *d1 = static_cast<float *>(v1->getData());
+            int v1_id = v1->getId();
+
+            // firstly assign all the other datapoints of the cluster as its neighbors
+            for (int k = 0; k < data_count; k++)
+            {
+                if (j == k)
+                    continue;
+
+                Vertex *v2 = leaf_data[k];
+                float *d2 = static_cast<float *>(v2->getData());
+                int v2_id = v2->getId();
+
+                float dist = distance(d1, d2, dimensions); // pre-calculated??
+
+                Neighbor *newNeighbor = new Neighbor(v2_id, dist);
+                v1->addNeighbor(newNeighbor);
+
+                Neighbor *newReverseNeighbor = new Neighbor(v1_id, dist);
+                v2->addReverseNeighbor(newReverseNeighbor);
+            }
+
+            Set nn = v1->getNeighbors();
+            // cout << "filled vertex " << v1_id << " with " << data_count << " cluster neighbors. Average neihbor distance: " << averageNeighborDistance(nn) << endl;
+
+            // then fill in the remaining neighbors with random ones from the graph
+            while (set_size(nn) < K)
+            {
+                // pick a random leaf
+                int random_idx = random_int(*index, i);
+
+                Vertex **random_leaf_data = leaf_array[random_idx]->get_data();
+
+                // pick a random datapoint
+                int data_idx = rand() % leaf_array[random_idx]->numDataPoints;
+                Vertex *rv = random_leaf_data[data_idx];
+
+                float *rd = static_cast<float *>(rv->getData());
+                int rv_id = rv->getId();
+
+                float dist = distance(d1, rd, dimensions); // also pre-calculated?
+
+                Neighbor *newNeighbor = new Neighbor(rv_id, dist);
+                if (!v1->addNeighbor(newNeighbor))
+                {
+                    continue;
+                }
+
+                Neighbor *newReverseNeighbor = new Neighbor(v1_id, dist);
+                rv->addReverseNeighbor(newReverseNeighbor);
+            }
+        }
     }
+
+    rp_root->delete_tree();
+    delete index;
+    delete[] leaf_array;
 }
 
 KNNDescent::~KNNDescent()
@@ -280,7 +225,7 @@ void KNNDescent::calculatePotentialNewNeighbors4()
                     float *data1 = static_cast<float *>(v1->getData());
                     float *data2 = static_cast<float *>(v2->getData());
 
-                    double dist = distanceResults[id1][id2];
+                    float dist = distanceResults[id1][id2];
 
                     Neighbor *furthest = furthest_neighbor(v1->getNeighbors());
                     if (dist < *(furthest->getDistance()))
@@ -313,11 +258,11 @@ int KNNDescent::updateGraph()
 
         Neighbor *closestPotential = closest_neighbor(pn);
         int closestPotentialId = *closestPotential->getid();
-        double closestPotentialDistance = *closestPotential->getDistance();
+        float closestPotentialDistance = *closestPotential->getDistance();
 
         Neighbor *furthestNeighbor = furthest_neighbor(nn);
         int furthestNeighborId = *furthestNeighbor->getid();
-        double furthestNeighborDistance = *furthestNeighbor->getDistance();
+        float furthestNeighborDistance = *furthestNeighbor->getDistance();
 
         // keep updating the neighbors while there is room for update: while there are potential neighbors that are closer to the node than the furthest current neighbor, do the update
         while (closestPotentialDistance < furthestNeighborDistance)
@@ -427,7 +372,7 @@ void **KNNDescent::NNSinglePoint(void *data)
         Vertex *v = vertexArray[i];
         float *vertexData = static_cast<float *>(v->getData());
 
-        double dist = distance(vertexData, queryData, dimensions);
+        float dist = distance(vertexData, queryData, dimensions);
         if (dist == 0.0) // found the query data point
         {
             Set nn = v->getNeighbors();
@@ -479,7 +424,7 @@ void KNNDescent::printNeighbors()
         for (SetNode node = set_first(p); node != SET_EOF; node = set_next(p, node))
         {
             Neighbor *n = (Neighbor *)set_node_value(p, node);
-            cout << *n->getid() << "(" << n->getFlag() << ", " << *n->getDistance() << ") ";
+            cout << *n->getid() << /*"(" << n->getFlag() << ", " << *n->getDistance() <<*/ " ";
         }
         cout << endl;
     }
@@ -497,7 +442,7 @@ void KNNDescent::printReverse()
         for (SetNode node = set_first(p); node != SET_EOF; node = set_next(p, node))
         {
             Neighbor *n = (Neighbor *)set_node_value(p, node);
-            cout << *n->getid() << "(" << n->getFlag() << ", " << *n->getDistance() << ") ";
+            cout << *n->getid() << /*"(" << n->getFlag() << ", " << *n->getDistance() <<*/ " ";
         }
         cout << endl;
     }

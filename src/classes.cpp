@@ -3,7 +3,17 @@
 
 using namespace std;
 
-double compare_ints(Pointer a, Pointer b)
+int random_int(int range, int coll)
+{
+
+    int random = (rand()) % range;
+    while (random == coll)
+        random = (rand()) % range;
+
+    return random;
+}
+
+float compare_ints(Pointer a, Pointer b)
 {
     return *(int *)a - *(int *)b;
 }
@@ -30,17 +40,19 @@ void delete_data(float **data, uint32_t N)
     for (uint32_t i = 0; i < N; i++)
     {
         delete[] data[i];
+        delete[] distanceResults[i];
     }
     delete[] data;
+    delete[] distanceResults;
 }
 
-double compare_distances(Pointer a, Pointer b)
+float compare_distances(Pointer a, Pointer b)
 {
     Neighbor *n1 = (Neighbor *)a;
     Neighbor *n2 = (Neighbor *)b;
 
-    double *distance1 = n1->getDistance();
-    double *distance2 = n2->getDistance();
+    float *distance1 = n1->getDistance();
+    float *distance2 = n2->getDistance();
 
     int *id1 = (int *)n1->getid();
     int *id2 = (int *)n2->getid();
@@ -119,6 +131,31 @@ int contains(Neighbor *id_union[], int size, int targetId)
     return 0; // The ID is not found in the array
 }
 
+float averageNeighborDistance(Set s)
+{
+    float total_dist = 0.0;
+    for (SetNode node = set_first(s); node != SET_EOF; node = set_next(s, node))
+    {
+        Neighbor *n = (Neighbor *)set_node_value(s, node);
+        total_dist += *(n->getDistance());
+    }
+
+    float avg_dist = total_dist / set_size(s);
+    return avg_dist;
+}
+
+float averageSplitDistance(Vertex **array, int num)
+{
+    float total_dist = 0.0;
+    for (int i = 0; i < num; i++)
+    {
+        Vertex *v = array[i];
+    }
+
+    // continue here!!!
+    return 0.0;
+}
+
 // CLASS MEMBER DEFINITIONS
 Vertex::Vertex(void *_data, int _id) : datapoint(_data), id(_id)
 {
@@ -127,22 +164,35 @@ Vertex::Vertex(void *_data, int _id) : datapoint(_data), id(_id)
     potentialNN = set_create(compare_distances, delete_neighbor);
 }
 
-void Vertex::addNeighbor(Neighbor *neighbor)
+int Vertex::addNeighbor(Neighbor *neighbor)
 {
     if (!set_insert(NN, neighbor))
+    {
+        // cout << "failed to insert neighbor with id: " << *(neighbor->getid()) << " and distance " << *(neighbor->getDistance()) << " in vertex " << id << endl;
         delete neighbor;
+        return 0;
+    }
+    return 1;
 }
 
-void Vertex::addReverseNeighbor(Neighbor *neighbor)
+int Vertex::addReverseNeighbor(Neighbor *neighbor)
 {
     if (!set_insert(RNN, neighbor))
+    {
         delete neighbor;
+        return 0;
+    }
+    return 1;
 }
 
-void Vertex::addPotentialNeighbor(Neighbor *neighbor)
+int Vertex::addPotentialNeighbor(Neighbor *neighbor)
 {
     if (!set_insert(potentialNN, neighbor))
+    {
         delete neighbor;
+        return 0;
+    }
+    return 1;
 }
 
 Set Vertex::getNeighbors() const
@@ -189,11 +239,11 @@ Vertex::~Vertex()
     set_destroy(potentialNN);
 }
 
-Neighbor::Neighbor(int _id, double _distance)
+Neighbor::Neighbor(int _id, float _distance)
 {
     id = new int;
     *id = _id;
-    distance = new double;
+    distance = new float;
     *distance = _distance;
     flag = 1;
 }
@@ -203,7 +253,7 @@ int *Neighbor::getid()
     return id;
 }
 
-double *Neighbor::getDistance()
+float *Neighbor::getDistance()
 {
     return distance;
 }

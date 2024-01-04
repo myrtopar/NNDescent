@@ -1,5 +1,6 @@
 #include <iostream>
 #include "headers/KNNGraph.hpp"
+#include "headers/KNNBruteForce.hpp"
 
 using namespace std;
 float **distanceResults;
@@ -41,7 +42,6 @@ void calculateALLdistances(float **data, int N, int num_dimensions)
         }
     }
 }
-
 
 int main(int argc, char *argv[])
 {
@@ -208,19 +208,19 @@ int main(int argc, char *argv[])
             ofs.write(reinterpret_cast<const char *>(&duration_value), sizeof(double));
 
             ofs.close();
-
         }
 
         double percentage = compare_results(BF, NND, (int)N, K);
         if (percentage > 90.0)
         {
-            cout << "\x1b[32msimilarity percentage: " << percentage << "%" << "\x1b[0m" << endl;
+            cout << "\x1b[32msimilarity percentage: " << percentage << "%"
+                 << "\x1b[0m" << endl;
         }
         else
         {
-            cout << "\x1b[31msimilarity percentage: " << percentage << "%" << "\x1b[0m" << endl;
+            cout << "\x1b[31msimilarity percentage: " << percentage << "%"
+                 << "\x1b[0m" << endl;
         }
-
     }
 
     // void **narray = KNNGraph.NNSinglePoint(data[10]);
