@@ -115,7 +115,7 @@ KNNDescent::KNNDescent(int _K, int _size, float _sampling, int _dimensions, floa
     for (int i = 0; i < size; ++i) {
         vertexArray[i] = new Vertex(data[i]);
     }
-    mutexArray = new mutex[size];
+    potentialNeighborsMutex = new mutex[size];
 }
 
 void KNNDescent::createRandomGraph()
@@ -198,7 +198,7 @@ KNNDescent::~KNNDescent()
         delete vertexArray[i]; // Delete each Vertex
     }
     delete[] vertexArray; // Delete the array of Vertex pointers
-    delete[] mutexArray;
+    delete[] potentialNeighborsMutex; 
 }
 
 void KNNDescent::calculatePotentialNewNeighbors4()
@@ -327,7 +327,6 @@ void KNNDescent::parallelCalculatePotentialNewNeighbors(int start, int end)
 
         // local join in sets neighborArray and ReverseNeighborArray
         auto start1 = std::chrono::high_resolution_clock::now();
-        lock_guard<std::mutex> lock(potentialNeighborsMutex);
 
         for (int j = 0; j < union_size; j++)
         {
@@ -343,6 +342,8 @@ void KNNDescent::parallelCalculatePotentialNewNeighbors(int start, int end)
 
                 int id1 = *(n1->getid());
                 int id2 = *(n2->getid());
+
+                lock_guard<std::mutex> lock(potentialNeighborsMutex[id1]);   
 
                 if (id1 == id2)
                 {
@@ -377,7 +378,7 @@ void KNNDescent::parallelCalculatePotentialNewNeighbors(int start, int end)
 
 void KNNDescent::calculatePotentialNewNeighbors5()
 {
-    const int num_threads = 4;  
+    const int num_threads = std::thread::hardware_concurrency();  
     thread threads[num_threads];
 
     int chunk_size = size / num_threads;
@@ -480,15 +481,14 @@ int KNNDescent::updateGraph()
 
 
 void KNNDescent::parallelUpdate(int start, int end, int &updated) {
-
+    
     for (int i = start; i < end; i++)
     {        
-        std::lock_guard<std::mutex> lock(updateMutex);  
-
         Set nn = vertexArray[i]->getNeighbors();
         Set pn = vertexArray[i]->getPotentialNeighbors();
-        
 
+        std::lock_guard<std::mutex> lock(vertexArray[i]->getUpdateMutex());
+        
         if (set_size(pn) == 0) // if there are no potential neighbors for update, move to the next vertex
             continue;
 
@@ -500,6 +500,7 @@ void KNNDescent::parallelUpdate(int start, int end, int &updated) {
         int furthestNeighborId = *furthestNeighbor->getid();
         double furthestNeighborDistance = *furthestNeighbor->getDistance();
         
+        // std::lock_guard<std::mutex> lock(updateMutex);  
 
         // keep updating the neighbors while there is room for update: while there are potential neighbors that are closer to the node than the furthest current neighbor, do the update
         while (closestPotentialDistance < furthestNeighborDistance)
@@ -596,7 +597,7 @@ void KNNDescent::createKNNGraph()
         calculatePotentialNewNeighbors5();
 
         auto start1 = std::chrono::high_resolution_clock::now();
-        int updates = updateGraph2();
+        int updates = updateGraph();
         auto stop1 = std::chrono::high_resolution_clock::now();
         auto duration1 = std::chrono::duration_cast<std::chrono::microseconds>(stop1 - start1);
         cout << "Time taken: " << duration1.count() << " microseconds\n";

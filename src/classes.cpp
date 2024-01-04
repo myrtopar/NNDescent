@@ -177,6 +177,10 @@ void *Vertex::getData() const
     return datapoint;
 }
 
+mutex& Vertex::getUpdateMutex() {
+    return updateMutex;
+}
+
 Vertex::~Vertex()
 {
     set_destroy(NN);
