@@ -17,9 +17,7 @@ typedef class tree_node *TreeNode;
 class tree_node
 {
 private:
-    // float **data;
     Vertex **data;
-
     float *hyperplaneVector;
 
 public:
