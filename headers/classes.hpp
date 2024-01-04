@@ -15,8 +15,8 @@ using namespace std;
 
 class Neighbor;
 
-double compare_ints(Pointer a, Pointer b);
-double compare_distances(Pointer a, Pointer b);
+float compare_ints(Pointer a, Pointer b);
+float compare_distances(Pointer a, Pointer b);
 int *create_int(int n);
 void delete_data(float **data, uint32_t N);
 void delete_int(void *a);
@@ -25,6 +25,8 @@ Neighbor *furthest_neighbor(Set s);
 Neighbor *closest_neighbor(Set s);
 double compare_results(int **array1, int **array2, int N, int K);
 int contains(Neighbor *id_union[], int size, int targetId);
+int random_int(int range, int coll);
+float averageNeighborDistance(Set s);
 
 class Vertex
 {
@@ -40,9 +42,11 @@ public:
     Vertex(void *_data);
 
     void *getData() const;
-    void addNeighbor(Neighbor *neighbor);
-    void addReverseNeighbor(Neighbor *neighbor);
-    void addPotentialNeighbor(Neighbor *neighbor);
+    int getId() const;
+    int addNeighbor(Neighbor *neighbor);
+    int addReverseNeighbor(Neighbor *neighbor);
+    int addPotentialNeighbor(Neighbor *neighbor);
+
 
     Set getNeighbors() const;
     Set getReverseNeighbors() const;
@@ -61,12 +65,12 @@ class Neighbor
 private:
     int *id;
     int flag;
-    double *distance;
+    float *distance;
 
 public:
-    Neighbor(int _id, double _distance);
+    Neighbor(int _id, float _distance);
     int *getid();
-    double *getDistance();
+    float *getDistance();
     int getFlag();
     void setFalse();
     ~Neighbor();

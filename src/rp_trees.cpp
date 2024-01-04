@@ -1,7 +1,7 @@
 #include "headers/KNNGraph.hpp"
 #include "headers/rp_trees.hpp"
 
-tree_node::tree_node(int _dimensions, float **_data, int N, int _limit) : dimensions(_dimensions), data(_data), numDataPoints(N), size_limit(_limit)
+tree_node::tree_node(int _dimensions, Vertex **_data, int N, int _limit) : dimensions(_dimensions), data(_data), numDataPoints(N), size_limit(_limit)
 {
     leftChild = rightChild = NULL;
     hyperplaneVector = new float[100];
@@ -9,6 +9,36 @@ tree_node::tree_node(int _dimensions, float **_data, int N, int _limit) : dimens
 
 tree_node::~tree_node() {
     delete[] hyperplaneVector;
+
+    if (data != NULL)
+        delete[] data;
+}
+
+void tree_node::delete_tree()
+{
+    // delete all subtrees and vertex arrays except for the root
+    delete_tree_recursive(this->leftChild);
+    delete_tree_recursive(this->rightChild);
+
+    // set the vertex array to NULL because we do not want the root vertex array to be deleted! It will be later used on the KNNDescent methods
+    data = NULL;
+    delete this;
+}
+
+void delete_tree_recursive(TreeNode node)
+{
+    if (node == NULL)
+    {
+        return; // Base case: null pointer, nothing to delete
+    }
+
+    // Recursively delete left and right subtrees
+    delete_tree_recursive(node->leftChild);
+    delete_tree_recursive(node->rightChild);
+
+    // Delete the current node
+    delete node;
+
 }
 
 void tree_node::set_subtrees(TreeNode sub_left, TreeNode sub_right)
@@ -17,7 +47,7 @@ void tree_node::set_subtrees(TreeNode sub_left, TreeNode sub_right)
     rightChild = sub_right;
 }
 
-void tree_node::add_data(float *data_point)
+void tree_node::add_data(Vertex *data_point)
 {
     data[numDataPoints++] = data_point;
 }
@@ -32,15 +62,15 @@ TreeNode tree_node::right_sub()
     return rightChild;
 }
 
-float **tree_node::get_data()
+Vertex **tree_node::get_data()
 {
     return data;
 }
 
 void tree_node::random_projection_split()
 {
-    float **left_sub_data = new float *[numDataPoints];
-    float **right_sub_data = new float *[numDataPoints];
+    Vertex **left_sub_data = new Vertex *[numDataPoints];
+    Vertex **right_sub_data = new Vertex *[numDataPoints];
 
     for (int i = 0; i < numDataPoints; ++i)
     {
@@ -57,7 +87,9 @@ void tree_node::random_projection_split()
 
     for (int i = 0; i < numDataPoints; i++)
     {
-        dotp = dot_product(data[i], hyperplaneVector, dimensions);
+        float *vertexData = static_cast<float *>(data[i]->getData());
+
+        dotp = dot_product(vertexData, hyperplaneVector, dimensions);
 
         if (dotp < 0)
         {
@@ -88,7 +120,6 @@ void tree_node::rp_tree_rec(int *idx, TreeNode *leaf_array)
     }
     else if (leftChild->numDataPoints <= size_limit && leftChild->numDataPoints > 0)
     {
-        // cout << "storing a leaf in index " << *idx << endl;
         int curr_idx = *idx;
         leaf_array[curr_idx++] = leftChild;
         *idx = curr_idx;
@@ -100,7 +131,6 @@ void tree_node::rp_tree_rec(int *idx, TreeNode *leaf_array)
     }
     else if (rightChild->numDataPoints <= size_limit && rightChild->numDataPoints > 0)
     {
-        // cout << "storing a leaf in index " << *idx << endl;
         int curr_idx = *idx;
         leaf_array[curr_idx++] = rightChild;
         *idx = curr_idx;

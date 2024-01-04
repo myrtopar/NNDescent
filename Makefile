@@ -8,11 +8,11 @@ SRC_DIR = src
 HEADERS_DIR = headers
 
 # File paths
-HEADERS = $(HEADERS_DIR)/KNNGraph.hpp $(HEADERS_DIR)/classes.hpp $(HEADERS_DIR)/common_types.h $(HEADERS_DIR)/ADTSet.h $(HEADERS_DIR)/rp_trees.hpp
-SOURCES = $(SRC_DIR)/main.cpp $(SRC_DIR)/classes.cpp $(SRC_DIR)/ADTSet.c $(SRC_DIR)/KNNGraph.cpp $(SRC_DIR)/rp_trees.cpp
+HEADERS = $(HEADERS_DIR)/KNNGraph.hpp $(HEADERS_DIR)/classes.hpp $(HEADERS_DIR)/common_types.h $(HEADERS_DIR)/ADTSet.h $(HEADERS_DIR)/rp_trees.hpp $(HEADERS_DIR)/KNNBruteForce.hpp
+SOURCES = $(SRC_DIR)/main.cpp $(SRC_DIR)/classes.cpp $(SRC_DIR)/ADTSet.c $(SRC_DIR)/KNNGraph.cpp $(SRC_DIR)/rp_trees.cpp $(SRC_DIR)/KNNBruteForce.cpp
 EXECUTABLE = my_program
 
-TEST_SOURCES = $(SRC_DIR)/tests.cpp $(SRC_DIR)/classes.cpp $(SRC_DIR)/ADTSet.c $(SRC_DIR)/KNNGraph.cpp $(SRC_DIR)/rp_trees.cpp
+TEST_SOURCES = $(SRC_DIR)/tests.cpp $(SRC_DIR)/classes.cpp $(SRC_DIR)/ADTSet.c $(SRC_DIR)/KNNGraph.cpp $(SRC_DIR)/rp_trees.cpp $(SRC_DIR)/KNNBruteForce.cpp
 TEST_EXECUTABLE = test_program
 
 INCLUDES = -I.
