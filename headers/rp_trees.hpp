@@ -35,6 +35,7 @@ public:
     void rp_tree_rec(int *idx, TreeNode *leaf_array);
     TreeNode left_sub();
     TreeNode right_sub();
+    void delete_tree();
 
     // Destructor to free allocated memory
     ~tree_node();
@@ -44,5 +45,4 @@ double dot_product(const float *point1, const float *point2, int numDimensions);
 int compare_doubles(double a, double b);
 float generate_random_float(float min, float max);
 void define_random_hyperplane(float *empty_vec, int dimensions, float min, float max);
-
-// extra global variables
+void delete_tree_recursive(TreeNode root);
