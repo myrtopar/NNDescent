@@ -34,6 +34,8 @@ private:
     Set RNN;
     Set potentialNN;
 
+    mutex updateMutex;
+
 public:
     Vertex(void *_data);
 
@@ -49,7 +51,7 @@ public:
     void replaceNNSet(Set set);
     void resetPNNSet();
 
-    
+    mutex& getUpdateMutex();
 
     ~Vertex();
 };

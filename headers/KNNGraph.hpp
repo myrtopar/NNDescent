@@ -22,9 +22,9 @@ private:
     void parallelCalculatePotentialNewNeighbors(int start, int end);
     void parallelUpdate(int start, int end, int &updates);
 
-    mutex potentialNeighborsMutex;
+    mutex *potentialNeighborsMutex;
+    mutex* updateMutexes;
     mutex updateMutex;
-    mutex* mutexArray;
 
 public:
     Vertex **vertexArray;
