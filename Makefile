@@ -1,7 +1,7 @@
 CC = gcc
 CXX = g++
 CFLAGS = -Wall
-CXXFLAGS = -std=c++17 -Wall -g -Wno-unused-variable -Wno-reorder -pthread 
+CXXFLAGS = -std=c++11 -Wall -g -Wno-unused-variable -Wno-reorder -pthread 
 LDFLAGS =
 
 SRC_DIR = src
