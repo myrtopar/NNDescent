@@ -278,3 +278,56 @@ Neighbor::~Neighbor()
     delete id;
     delete distance;
 }
+
+float calculateEuclideanDistance(const float *point1, const float *point2, int numDimensions)
+{
+    double sum = 0.0;
+    for (int i = 0; i < numDimensions; i++)
+    {
+        double diff = point1[i] - point2[i];
+        sum += diff * diff;
+    }
+    return sqrt(sum);
+}
+
+float calculateManhattanDistance(const float *point1, const float *point2, int numDimensions)
+{
+    double sum = 0.0;
+    for (int i = 0; i < numDimensions; i++)
+    {
+        sum += fabs(point1[i] - point2[i]);
+    }
+    return sum;
+}
+
+mutex resultsMutex;
+void parallelDistances(int num_dimensions, float** data, int i, int N, float** distanceResults) {
+    for (int j = 0; j < N; j++) {
+        double distance = calculateEuclideanDistance(data[i], data[j], num_dimensions);
+        std::lock_guard<std::mutex> lock(resultsMutex);
+        distanceResults[i][j] = distance;
+    }
+}
+
+
+void calculateALLdistances(float **data, int N, int num_dimensions)
+{
+    const int num_threads = N;
+    thread threads[num_threads];
+
+    distanceResults = new float *[N * N];
+    for (int i = 0; i < N; ++i)
+    {
+        distanceResults[i] = new float[N];
+    }
+
+    for (int i = 0; i < N; i++)
+    {
+        threads[i] = std::thread(parallelDistances, num_dimensions, data, i, N, distanceResults);        
+    }
+
+    for (int i = 0; i < num_threads; ++i) {
+        threads[i].join();
+    }
+}
+
