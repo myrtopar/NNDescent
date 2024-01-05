@@ -5,10 +5,6 @@ KNNDescent::KNNDescent(int _K, int _size, float _sampling, int _dimensions, floa
 {
     cout << "\nConstructing a graph of " << size << " elements, looking for " << K << " nearest neighbors" << endl;
     vertexArray = new Vertex *[size];
-    for (int i = 0; i < size; ++i)
-    {
-        vertexArray[i] = new Vertex(data[i], i);
-    }
     potentialNeighborsMutex = new mutex[size];
 }
 
@@ -161,7 +157,7 @@ KNNDescent::~KNNDescent()
     delete[] potentialNeighborsMutex;
 }
 
-void KNNDescent::calculatePotentialNewNeighbors4()
+void KNNDescent::calculatePotentialNewNeighbors()
 {
     // each calculatePotentialNewNeighbors call calculates the potential neighbors of each vector and prepares the graph for updates.
 
@@ -335,7 +331,7 @@ void KNNDescent::parallelCalculatePotentialNewNeighbors(int start, int end)
     }
 }
 
-void KNNDescent::calculatePotentialNewNeighbors5()
+void KNNDescent::calculatePotentialNewNeighborsOpt()
 {
     const int num_threads = std::thread::hardware_concurrency();
     thread threads[num_threads];
@@ -581,7 +577,7 @@ void KNNDescent::createKNNGraph()
     for (int i = 0; i < 10; i++)
     {
         cout << "\033[1;32miteration " << i << "\033[0m" << endl;
-        calculatePotentialNewNeighbors5();
+        calculatePotentialNewNeighborsOpt();
 
         auto start1 = std::chrono::high_resolution_clock::now();
         int updates = updateGraph2();

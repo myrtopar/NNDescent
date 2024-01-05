@@ -8,7 +8,6 @@ float **distanceResults;
 
 int main(int argc, char *argv[])
 {
-
     if (argc != 7)
     {
         cout << "Error wrong amount of arguments.\n";
