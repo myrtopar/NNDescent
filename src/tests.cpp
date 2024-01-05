@@ -14,33 +14,6 @@ float **distanceResults;
 bool set_is_proper(Set set);
 
 typedef float (*DistanceFunction)(const float *, const float *, int);
-float calculateEuclideanDistance(const float *point1, const float *point2, int numDimensions)
-{
-    double sum = 0.0;
-    for (int i = 0; i < numDimensions; i++)
-    {
-        double diff = point1[i] - point2[i];
-        sum += diff * diff;
-    }
-    return sqrt(sum);
-}
-
-void calculateALLdistances(float **data, int N, int num_dimensions)
-{
-    distanceResults = new float *[N * N];
-    for (int i = 0; i < N; i++)
-    {
-        distanceResults[i] = new float[N];
-    }
-
-    for (int i = 0; i < N; i++)
-    {
-        for (int j = 0; j < N; j++)
-        {
-            distanceResults[i][j] = calculateEuclideanDistance(data[i], data[j], num_dimensions);
-        }
-    }
-}
 
 // Έλεγχος της insert σε λιγότερο χώρο
 void insert_and_test(Set set, Pointer value)
@@ -62,15 +35,6 @@ void shuffle(int **array, int n)
     }
 }
 
-double calculateManhattanDistance(const float *point1, const float *point2, int numDimensions)
-{
-    double sum = 0.0;
-    for (int i = 0; i < numDimensions; i++)
-    {
-        sum += fabs(point1[i] - point2[i]);
-    }
-    return sum;
-}
 
 void start_program()
 {
@@ -121,17 +85,17 @@ void end_program(void)
 // Tests if the neighbor sets hold the correct distaces
 void test_distances(void)
 {
-    int delta = 0.01;
+    int delta = 0.001, K = 10, rp_limit = 10;
     start_program();
-    DistanceFunction distanceFunction = &calculateEuclideanDistance;
 
-    KNNDescent KNNGraph(10, N, p, num_dimensions, data, distanceFunction, delta, 10);
+    DistanceFunction distanceFunction = &calculateEuclideanDistance;
+    KNNDescent KNNGraph(K, N, p, num_dimensions, data, distanceFunction, delta, rp_limit);
 
     Vertex **array = KNNGraph.vertexArray;
 
     for (int r = 0; r < 10; r++)
     {
-        KNNGraph.calculatePotentialNewNeighbors4();
+        KNNGraph.calculatePotentialNewNeighbors();
 
         // array to store distances for each node
         double **nodeDistancesNN = new double *[N];
@@ -209,7 +173,7 @@ void test_distances(void)
 // Test if the potential neighbors set has been cleaned up, after updateGraph has been called
 void test_potential()
 {
-    int delta = 0.01;
+    int delta = 0.001;
     start_program();
 
     DistanceFunction distanceFunction = &calculateEuclideanDistance;
@@ -217,7 +181,7 @@ void test_potential()
 
     for (int i = 0; i < 10; i++)
     {
-        KNNGraph.calculatePotentialNewNeighbors4();
+        KNNGraph.calculatePotentialNewNeighbors();
         if (KNNGraph.updateGraph() == 0)
             break;
 
@@ -234,7 +198,7 @@ void test_potential()
 
 void test_potential_parall()
 {
-    int delta = 0.01, K = 10, rp_limit = 10;
+    int delta = 0.001, K = 10, rp_limit = 10;
     start_program();
 
     DistanceFunction distanceFunction = &calculateEuclideanDistance;
@@ -244,7 +208,7 @@ void test_potential_parall()
     auto startNonParallel = std::chrono::high_resolution_clock::now();
     for (int i = 0; i < 10; i++)
     {
-        KNNGraph.calculatePotentialNewNeighbors4();
+        KNNGraph.calculatePotentialNewNeighbors();
         
         if (KNNGraph.updateGraph() == 0)
             break;
@@ -263,7 +227,7 @@ void test_potential_parall()
     auto startParallel = std::chrono::high_resolution_clock::now();
     for (int i = 0; i < 10; i++)
     {
-        KNNGraph.calculatePotentialNewNeighbors5();
+        KNNGraph.calculatePotentialNewNeighbors();
         
         if (KNNGraph.updateGraph() == 0)
             break;
@@ -287,7 +251,7 @@ void test_result()
     start_program();
 
     int K = 40;
-    double delta = 0.01;
+    double delta = 0.001;
     DistanceFunction distanceFunction = &calculateEuclideanDistance;
 
     // knn descent method
@@ -1422,35 +1386,13 @@ void test_rp_similarity()
     KNNGraph1.createRandomGraph();
     KNNGraph2.createRPGraph();
 
-    // cout << "KNNGraph1 (random init)" << endl;
-    // for (int i = 0; i < N; i++)
-    // {
-    //     Vertex *v = KNNGraph1.vertexArray[i];
-    //     int vid = v->getId();
-    //     Set nn = v->getNeighbors();
-    //     cout << "average neighbor distance of vertex " << vid << ": " << averageNeighborDistance(nn) << endl;
-    // }
-    // cout << endl;
-
-    // cout << "KNNGraph2 (rp tree init)" << endl;
-    // for (int i = 0; i < N; i++)
-    // {
-    //     Vertex *v = KNNGraph2.vertexArray[i];
-    //     int vid = v->getId();
-    //     Set nn = v->getNeighbors();
-    //     cout << "average neighbor distance of vertex " << vid << ": " << averageNeighborDistance(nn) << endl;
-    // }
-    // cout << endl;
-
     cout << "BRUTE FORCE GRAPH" << endl;
     for (int i = 0; i < N; i++)
     {
         Vertex *v = BFGraph.vertexArray[i];
         int vid = v->getId();
         Set nn = v->getNeighbors();
-        // cout << "average neighbor distance of vertex " << vid << ": " << averageNeighborDistance(nn) << endl;
     }
-    // cout << endl;
 
     int **NND1 = KNNGraph1.extract_neighbors_to_list();
     int **NND2 = KNNGraph2.extract_neighbors_to_list();
@@ -1520,6 +1462,5 @@ TEST_LIST = {
     // {"test_tree_rec2", test_tree_rec2},
     // {"test_RPGraph", test_RPGraph},
     // {"test_random_int", test_random_int},
-    // {"test_rp_similarity", test_rp_similarity},
 
     {NULL, NULL}};
