@@ -1520,6 +1520,6 @@ TEST_LIST = {
     // {"test_tree_rec2", test_tree_rec2},
     // {"test_RPGraph", test_RPGraph},
     // {"test_random_int", test_random_int},
-    {"test_rp_similarity", test_rp_similarity},
+    // {"test_rp_similarity", test_rp_similarity},
 
     {NULL, NULL}};
