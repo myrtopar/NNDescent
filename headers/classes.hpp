@@ -28,6 +28,12 @@ double compare_results(int **array1, int **array2, int N, int K);
 int contains(Neighbor *id_union[], int size, int targetId);
 int random_int(int range, int coll);
 float averageNeighborDistance(Set s);
+void calculateALLdistances(float **data, int N, int num_dimensions);
+float calculateManhattanDistance(const float *point1, const float *point2, int numDimensions);
+float calculateEuclideanDistance(const float *point1, const float *point2, int numDimensions);
+void parallelDistances(int num_dimensions, float** data, int i, int N, float** distanceResults);
+
+void calculateALLdistances2(float **data, int N, int num_dimensions);
 
 class Vertex
 {

@@ -19,9 +19,7 @@ private:
     using DistanceFunction = float (*)(const float *, const float *, int);
     DistanceFunction distance;
     double delta;
-    void parallelCalculatePotentialNewNeighbors(int start, int end);
-    void parallelUpdate(int start, int end, int *updates);
-
+    
     mutex *potentialNeighborsMutex;
     mutex* updateMutexes;
     mutex updateMutex;
@@ -33,8 +31,11 @@ public:
 
     void createRandomGraph();
     void createRPGraph();
-    void calculatePotentialNewNeighbors4(); // sampling version
-    void calculatePotentialNewNeighbors5(); // parallelized version
+    void calculatePotentialNewNeighbors(); // sampling version
+    void calculatePotentialNewNeighborsOpt(); // parallelized version
+    
+    void parallelCalculatePotentialNewNeighbors(int start, int end);
+    void parallelUpdate(int start, int end, int *updates);
 
     void printPotential();
     void printNeighbors();
