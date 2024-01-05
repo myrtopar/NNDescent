@@ -9,6 +9,7 @@
 #include <cstring>
 #include <mutex>
 #include <thread>
+#include <unistd.h>
 #include "ADTSet.h"
 
 using namespace std;

@@ -20,7 +20,7 @@ private:
     DistanceFunction distance;
     double delta;
     void parallelCalculatePotentialNewNeighbors(int start, int end);
-    void parallelUpdate(int start, int end, int &updates);
+    void parallelUpdate(int start, int end, int *updates);
 
     mutex *potentialNeighborsMutex;
     mutex* updateMutexes;
