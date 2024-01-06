@@ -438,16 +438,24 @@ int KNNDescent::updateGraph()
 
 void KNNDescent::parallelUpdate(int start, int end, int &updated)
 {
+    cout << "start = " << start << endl;
 
     for (int i = start; i < end; i++)
     {
+        // cout << "\n i = " << i << endl;;
+        // std::lock_guard<std::mutex> lock(vertexArray[i]->getUpdateMutex());
+        std::unique_lock<std::mutex> lock1(vertexArray[i]->getUpdateMutex(), std::defer_lock);
+
+        lock1.lock();
+
         Set nn = vertexArray[i]->getNeighbors();
         Set pn = vertexArray[i]->getPotentialNeighbors();
 
-        std::lock_guard<std::mutex> lock(vertexArray[i]->getUpdateMutex());
-
-        if (set_size(pn) == 0) // if there are no potential neighbors for update, move to the next vertex
+        if (set_size(pn) == 0)
+        { // if there are no potential neighbors for update, move to the next vertex
+            lock1.unlock();
             continue;
+        }
 
         Neighbor *closestPotential = closest_neighbor(pn);
         int closestPotentialId = *closestPotential->getid();
@@ -456,8 +464,6 @@ void KNNDescent::parallelUpdate(int start, int end, int &updated)
         Neighbor *furthestNeighbor = furthest_neighbor(nn);
         int furthestNeighborId = *furthestNeighbor->getid();
         double furthestNeighborDistance = *furthestNeighbor->getDistance();
-
-        // std::lock_guard<std::mutex> lock(updateMutex);
 
         // keep updating the neighbors while there is room for update: while there are potential neighbors that are closer to the node than the furthest current neighbor, do the update
         while (closestPotentialDistance < furthestNeighborDistance)
@@ -469,11 +475,15 @@ void KNNDescent::parallelUpdate(int start, int end, int &updated)
             // if the potential neighbor we are about to insert is already a neighbor
             if (set_insert(nn, newNeighbor) == 0)
             {
+                // printf(".");
+
                 set_remove(pn, closestPotential); // we remove this potential (duplicate), and move on
                 delete newNeighbor;
 
                 if (set_size(pn) == 0)
+                {
                     break;
+                }
 
                 closestPotential = closest_neighbor(pn);
                 closestPotentialDistance = *closestPotential->getDistance();
@@ -484,17 +494,37 @@ void KNNDescent::parallelUpdate(int start, int end, int &updated)
                 furthestNeighborId = *furthestNeighbor->getid();
                 continue;
             }
+
+            std::unique_lock<std::mutex> lockupdate(updateMutex);
             updated++;
+            lockupdate.unlock();
 
             set_remove(nn, furthestNeighbor); // removing the furthest one
             set_remove(pn, closestPotential); // updating the potential neighbor set
 
             // restore the reverse neighbors of the vertex
             Neighbor reverse_to_remove(i, furthestNeighborDistance);
+
+            std::unique_lock<std::mutex> lock2(vertexArray[furthestNeighborId]->getUpdateMutex(), std::defer_lock);
+            std::unique_lock<std::mutex> lock3(vertexArray[closestPotentialId]->getUpdateMutex(), std::defer_lock);
+
+            // cout << "in locked " << i << ", about to lock furthest neighbor " << furthestNeighborId << " and closest potential " << closestPotentialId << endl;
+            while (std::try_lock(lock2, lock3) != -1)
+            {
+                // cout << "try_lock failed in i = " << i << endl;
+                lock1.unlock();
+                // sleep(0.5);
+                lock1.lock();
+            }
+
             bool removed = set_remove(vertexArray[furthestNeighborId]->getReverseNeighbors(), &reverse_to_remove);
+            lock2.unlock();
+            // cout << "in locked " << i << ", unlocked furthest neighbor " << furthestNeighborId << endl;
 
             Neighbor *new_reverse = new Neighbor(i, closestPotentialDistance);
             vertexArray[closestPotentialId]->addReverseNeighbor(new_reverse);
+            lock3.unlock();
+            // cout << "in locked " << i << ", unlocked closest potential " << closestPotentialId << endl;
 
             if (set_size(pn) == 0)
                 break;
@@ -508,7 +538,11 @@ void KNNDescent::parallelUpdate(int start, int end, int &updated)
             furthestNeighborId = *furthestNeighbor->getid();
         }
         vertexArray[i]->resetPNNSet();
+        lock1.unlock();
+        // printf("----unlock %d----", i);
     }
+
+    cout << "THE END //////////////////////////////////////////////////////////////////////" << start << endl;
 }
 
 int KNNDescent::updateGraph2()
@@ -552,7 +586,9 @@ void KNNDescent::createKNNGraph()
         calculatePotentialNewNeighbors5();
 
         auto start1 = std::chrono::high_resolution_clock::now();
+
         int updates = updateGraph();
+
         auto stop1 = std::chrono::high_resolution_clock::now();
         auto duration1 = std::chrono::duration_cast<std::chrono::microseconds>(stop1 - start1);
         cout << "Time taken: " << duration1.count() << " microseconds\n";
