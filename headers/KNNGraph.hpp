@@ -4,8 +4,8 @@
 
 using namespace std;
 
-using DistanceFunction = float (*)(const float *, const float *, int);
-extern float **distanceResults;
+using DistanceFunction = float (*)(int, int, const float *, const float *, int);
+extern float *squares;
 
 class KNNDescent
 {
@@ -16,7 +16,7 @@ private:
     float sampling;
     int dimensions;
     int rp_limit;
-    using DistanceFunction = float (*)(const float *, const float *, int);
+    using DistanceFunction = float (*)(int, int, const float *, const float *, int);
     DistanceFunction distance;
     double delta;
     
