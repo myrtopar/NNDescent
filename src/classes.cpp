@@ -3,6 +3,8 @@
 
 using namespace std;
 
+mutex squareMutex;
+
 int random_int(int range, int coll)
 {
 
@@ -40,10 +42,11 @@ void delete_data(float **data, uint32_t N)
     for (uint32_t i = 0; i < N; i++)
     {
         delete[] data[i];
-        delete[] distanceResults[i];
+        // delete[] distanceResults[i];
     }
     delete[] data;
-    delete[] distanceResults;
+    // delete[] distanceResults;
+    delete[] squares;
 }
 
 float compare_distances(Pointer a, Pointer b)
@@ -300,30 +303,30 @@ float calculateManhattanDistance(const float *point1, const float *point2, int n
     return sum;
 }
 
-mutex resultsMutex;
-void parallelDistances(int num_dimensions, float** data, int i, int N, float** distanceResults) {
-    for (int j = 0; j < N; j++) {
-        double distance = calculateEuclideanDistance(data[i], data[j], num_dimensions);
-        std::lock_guard<std::mutex> lock(resultsMutex);
-        distanceResults[i][j] = distance;
+void parallelSquares(float **data, int start, int end, int num_dimensions) {
+    std::unique_lock<std::mutex> lockupdate(squareMutex);
+    for (int i = start; i < end; i++) {  
+        squares[i] = dot_product(data[i], data[i], num_dimensions);
     }
 }
 
-
-void calculateALLdistances(float **data, int N, int num_dimensions)
+void calculateSquares(float **data, int N, int num_dimensions)
 {
-    const int num_threads = N;
+    squares = new float[N];
+
+    const int num_threads = std::thread::hardware_concurrency();
     thread threads[num_threads];
 
-    distanceResults = new float *[N * N];
-    for (int i = 0; i < N; ++i)
-    {
-        distanceResults[i] = new float[N];
-    }
+    int chunk_size = N / num_threads;
+    int remaining = N % num_threads;
+    int start = 0;
+    int end = 0;
 
-    for (int i = 0; i < N; i++)
+    for (int i = 0; i < num_threads; ++i)
     {
-        threads[i] = std::thread(parallelDistances, num_dimensions, data, i, N, distanceResults);        
+        end = start + chunk_size + (i < remaining ? 1 : 0);
+        threads[i] = std::thread(parallelSquares, data, start, end, num_dimensions);        
+        start = end;
     }
 
     for (int i = 0; i < num_threads; ++i) {
@@ -331,3 +334,10 @@ void calculateALLdistances(float **data, int N, int num_dimensions)
     }
 }
 
+float calculateEuclideanDistance2(int i, int j, const float *point1, const float *point2, int numDimensions)
+{
+    float sum = 0.0;
+    float xy = dot_product(point1, point2, numDimensions);
+    sum = squares[i] + squares[j] - 2*xy;
+    return sum;
+}
