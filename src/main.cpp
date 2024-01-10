@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
 
     if ((int)N <= 5000)
     {
-        string pathname = argv[4];
+        string pathname = argv[3];
         string _K = argv[1];
         string numbers = pathname.substr(pathname.find_last_of('/') + 1, 10);
 
