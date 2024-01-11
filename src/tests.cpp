@@ -14,33 +14,6 @@ float **distanceResults;
 bool set_is_proper(Set set);
 
 typedef float (*DistanceFunction)(const float *, const float *, int);
-float calculateEuclideanDistance(const float *point1, const float *point2, int numDimensions)
-{
-    double sum = 0.0;
-    for (int i = 0; i < numDimensions; i++)
-    {
-        double diff = point1[i] - point2[i];
-        sum += diff * diff;
-    }
-    return sqrt(sum);
-}
-
-void calculateALLdistances(float **data, int N, int num_dimensions)
-{
-    distanceResults = new float *[N * N];
-    for (int i = 0; i < N; i++)
-    {
-        distanceResults[i] = new float[N];
-    }
-
-    for (int i = 0; i < N; i++)
-    {
-        for (int j = 0; j < N; j++)
-        {
-            distanceResults[i][j] = calculateEuclideanDistance(data[i], data[j], num_dimensions);
-        }
-    }
-}
 
 // Έλεγχος της insert σε λιγότερο χώρο
 void insert_and_test(Set set, Pointer value)
@@ -60,16 +33,6 @@ void shuffle(int **array, int n)
         array[j] = array[i];
         array[i] = t;
     }
-}
-
-double calculateManhattanDistance(const float *point1, const float *point2, int numDimensions)
-{
-    double sum = 0.0;
-    for (int i = 0; i < numDimensions; i++)
-    {
-        sum += fabs(point1[i] - point2[i]);
-    }
-    return sum;
 }
 
 void start_program()
@@ -121,17 +84,17 @@ void end_program(void)
 // Tests if the neighbor sets hold the correct distaces
 void test_distances(void)
 {
-    int delta = 0.01;
+    int delta = 0.001, K = 10, rp_limit = 10;
     start_program();
-    DistanceFunction distanceFunction = &calculateEuclideanDistance;
 
-    KNNDescent KNNGraph(10, N, p, num_dimensions, data, distanceFunction, delta, 10);
+    DistanceFunction distanceFunction = &calculateEuclideanDistance;
+    KNNDescent KNNGraph(K, N, p, num_dimensions, data, distanceFunction, delta, rp_limit);
 
     Vertex **array = KNNGraph.vertexArray;
 
     for (int r = 0; r < 10; r++)
     {
-        KNNGraph.calculatePotentialNewNeighbors4();
+        KNNGraph.calculatePotentialNewNeighbors();
 
         // array to store distances for each node
         double **nodeDistancesNN = new double *[N];
@@ -209,7 +172,7 @@ void test_distances(void)
 // Test if the potential neighbors set has been cleaned up, after updateGraph has been called
 void test_potential()
 {
-    int delta = 0.01;
+    int delta = 0.001;
     start_program();
 
     DistanceFunction distanceFunction = &calculateEuclideanDistance;
@@ -217,7 +180,7 @@ void test_potential()
 
     for (int i = 0; i < 10; i++)
     {
-        KNNGraph.calculatePotentialNewNeighbors4();
+        KNNGraph.calculatePotentialNewNeighbors();
         if (KNNGraph.updateGraph() == 0)
             break;
 
@@ -231,21 +194,20 @@ void test_potential()
     end_program();
 }
 
-
 void test_potential_parall()
 {
-    int delta = 0.01, K = 10, rp_limit = 10;
+    int delta = 0.001, K = 10, rp_limit = 10;
     start_program();
 
     DistanceFunction distanceFunction = &calculateEuclideanDistance;
     KNNDescent KNNGraph(K, N, p, num_dimensions, data, distanceFunction, delta, rp_limit);
-    
+
     // calculatePotentialNewNeighbors non-parallelized version
     auto startNonParallel = std::chrono::high_resolution_clock::now();
     for (int i = 0; i < 10; i++)
     {
-        KNNGraph.calculatePotentialNewNeighbors4();
-        
+        KNNGraph.calculatePotentialNewNeighbors();
+
         if (KNNGraph.updateGraph() == 0)
             break;
 
@@ -263,8 +225,8 @@ void test_potential_parall()
     auto startParallel = std::chrono::high_resolution_clock::now();
     for (int i = 0; i < 10; i++)
     {
-        KNNGraph.calculatePotentialNewNeighbors5();
-        
+        KNNGraph.calculatePotentialNewNeighbors();
+
         if (KNNGraph.updateGraph() == 0)
             break;
 
@@ -277,17 +239,16 @@ void test_potential_parall()
     auto stopParallel = std::chrono::high_resolution_clock::now();
     auto durationParallel = std::chrono::duration_cast<std::chrono::microseconds>(stopParallel - startParallel);
     std::cout << "Time taken for parallel version: " << durationParallel.count() << " microseconds\n";
-    
+
     end_program();
 }
-
 
 void test_result()
 {
     start_program();
 
     int K = 40;
-    double delta = 0.01;
+    double delta = 0.001;
     DistanceFunction distanceFunction = &calculateEuclideanDistance;
 
     // knn descent method
@@ -344,8 +305,6 @@ void test_result()
 
     delete[] NND;
     delete[] BF;
-
-    
 
     end_program();
 }
@@ -1020,7 +979,7 @@ float calculate_average_distance(Vertex **data, int numDataPoints)
         }
     }
 
-    if (pairs > 0) 
+    if (pairs > 0)
         return totalDist / pairs;
     return 0.0;
 }
@@ -1044,7 +1003,6 @@ void test_tree_rec1()
     {
         vertexArray[i] = new Vertex(_data[i], i);
     }
-
 
     int *index = new int;
     *index = 0;
@@ -1077,7 +1035,6 @@ void test_tree_rec1()
             float averageDist = calculate_average_distance(varr, leaf_array[i]->numDataPoints);
             cout << "Average distance in leaf " << i << ": " << averageDist << endl;
             // TEST_ASSERT(averageDist < 0.5);
-
         }
     }
 
@@ -1197,12 +1154,9 @@ void test_tree_rec2()
 
     rp_root->delete_tree();
 
-
     delete index;
     delete[] leaf_array;
 }
-
-
 
 void test_RPGraph()
 {
@@ -1348,6 +1302,13 @@ void test_RPGraph()
         }
     }
 
+    // make new rp tree to update the neighbors
+    KNNGraph.updateRPGraph();
+    for (int i = 0; i < N; i++)
+    {
+        TEST_ASSERT(set_size(KNNGraph.vertexArray[i]->getNeighbors()) == K);
+    }
+
     //----------------------------------------------------
     for (int i = 0; i < N; i++)
     {
@@ -1414,72 +1375,62 @@ void test_rp_similarity()
     K = 100;
     p = 0.5;
 
-    KNNDescent KNNGraph1(100, N, p, num_dimensions, _data, distanceFunction, 0.001, 90);
-    KNNDescent KNNGraph2(100, N, p, num_dimensions, _data, distanceFunction, 0.001, 90);
+    KNNDescent KNNGraph(100, N, p, num_dimensions, _data, distanceFunction, 0.001, 90);
     KNNBruteForce BFGraph(100, N, num_dimensions, _data, distanceFunction);
 
-    // compare similarities between random projection tree init and random init
-    KNNGraph1.createRandomGraph();
-    KNNGraph2.createRPGraph();
+    KNNGraph.createRPGraph();
+    int **NND1 = KNNGraph.extract_neighbors_to_list();
 
-    // cout << "KNNGraph1 (random init)" << endl;
-    // for (int i = 0; i < N; i++)
-    // {
-    //     Vertex *v = KNNGraph1.vertexArray[i];
-    //     int vid = v->getId();
-    //     Set nn = v->getNeighbors();
-    //     cout << "average neighbor distance of vertex " << vid << ": " << averageNeighborDistance(nn) << endl;
-    // }
-    // cout << endl;
+    // KNNGraph.updateRPGraph();
+    // int **NND2 = KNNGraph.extract_neighbors_to_list();
 
-    // cout << "KNNGraph2 (rp tree init)" << endl;
-    // for (int i = 0; i < N; i++)
-    // {
-    //     Vertex *v = KNNGraph2.vertexArray[i];
-    //     int vid = v->getId();
-    //     Set nn = v->getNeighbors();
-    //     cout << "average neighbor distance of vertex " << vid << ": " << averageNeighborDistance(nn) << endl;
-    // }
-    // cout << endl;
-
-    cout << "BRUTE FORCE GRAPH" << endl;
-    for (int i = 0; i < N; i++)
+    for (int i = 0; i < 7; i++)
     {
-        Vertex *v = BFGraph.vertexArray[i];
-        int vid = v->getId();
-        Set nn = v->getNeighbors();
-        // cout << "average neighbor distance of vertex " << vid << ": " << averageNeighborDistance(nn) << endl;
+        KNNGraph.updateRPGraph();
     }
-    // cout << endl;
 
-    int **NND1 = KNNGraph1.extract_neighbors_to_list();
-    int **NND2 = KNNGraph2.extract_neighbors_to_list();
+    int **NND3 = KNNGraph.extract_neighbors_to_list();
 
     int **BF1 = BFGraph.extract_neighbors_to_list();
-    int **BF2 = BFGraph.extract_neighbors_to_list();
+    // int **BF2 = BFGraph.extract_neighbors_to_list();
+    int **BF3 = BFGraph.extract_neighbors_to_list();
 
-    double percentage1 = compare_results(BF1, NND1, (int)N, K);
-    double percentage2 = compare_results(BF2, NND2, (int)N, K);
+    double percentage = compare_results(BF1, NND1, (int)N, K);
 
-    if (percentage1 > 90.0)
+    if (percentage > 50.0)
     {
-        cout << "\x1b[32mrandom graph init similarity percentage: " << percentage1 << "%"
+        cout << "\x1b[32mrandom projection tree init similarity percentage after one random projection tree: " << percentage << "%"
              << "\x1b[0m" << endl;
     }
     else
     {
-        cout << "\x1b[31mrandom graph init similarity percentage: " << percentage1 << "%"
+        cout << "\x1b[31mrandom projection tree init similarity percentage after one random projection tree: " << percentage << "%"
              << "\x1b[0m" << endl;
     }
 
-    if (percentage2 > 90.0)
+    // double percentage2 = compare_results(BF2, NND2, (int)N, K);
+
+    // if (percentage > 60.0)
+    // {
+    //     cout << "\x1b[32mrandom projection tree init similarity percentage after two random projection trees: " << percentage2 << "%"
+    //          << "\x1b[0m" << endl;
+    // }
+    // else
+    // {
+    //     cout << "\x1b[31mrandom projection tree init similarity percentage after two random projection trees: " << percentage2 << "%"
+    //          << "\x1b[0m" << endl;
+    // }
+
+    double percentage3 = compare_results(BF3, NND3, (int)N, K);
+
+    if (percentage3 > 50.0)
     {
-        cout << "\x1b[32mrandom projection tree init similarity percentage: " << percentage2 << "%"
+        cout << "\x1b[32mrandom projection tree init similarity percentage after eight random projection trees: " << percentage3 << "%"
              << "\x1b[0m" << endl;
     }
     else
     {
-        cout << "\x1b[31mrandom projection tree init similarity percentage: " << percentage2 << "%"
+        cout << "\x1b[31mrandom projection tree init similarity percentage after eight random projection trees: " << percentage3 << "%"
              << "\x1b[0m" << endl;
     }
 
@@ -1489,12 +1440,9 @@ void test_rp_similarity()
         delete[] _data[i];
     }
     delete[] _data;
-
 }
 
 TEST_LIST = {
-    // {"test distances", test_distances},
-    // {"test_potential", test_potential},
     // {"test_contains", test_contains},
     // {"test_result", test_result},
     // {"test_euclidean", test_Euclidean},
@@ -1518,8 +1466,8 @@ TEST_LIST = {
     // {"test_random_split", test_random_split},
     // {"test_tree_rec1", test_tree_rec1},
     // {"test_tree_rec2", test_tree_rec2},
-    // {"test_RPGraph", test_RPGraph},
+    {"test_RPGraph", test_RPGraph},
     // {"test_random_int", test_random_int},
-    {"test_rp_similarity", test_rp_similarity},
+    // {"test_rp_similarity", test_rp_similarity},
 
     {NULL, NULL}};
