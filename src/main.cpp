@@ -5,7 +5,6 @@
 using namespace std;
 float **distanceResults;
 
-
 int main(int argc, char *argv[])
 {
     if (argc != 7)
@@ -77,6 +76,8 @@ int main(int argc, char *argv[])
         cout << "Error. Calculate Distance Function doesn't exist.";
         return -1;
     }
+
+    cout << "dataset size: " << N << endl;
 
     calculateALLdistances(data, N, num_dimensions);
 
