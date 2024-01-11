@@ -19,9 +19,9 @@ private:
     using DistanceFunction = float (*)(int, int, const float *, const float *, int);
     DistanceFunction distance;
     double delta;
-    
+
     mutex *potentialNeighborsMutex;
-    mutex* updateMutexes;
+    mutex *updateMutexes;
     mutex updateMutex;
 
 public:
@@ -31,9 +31,10 @@ public:
 
     void createRandomGraph();
     void createRPGraph();
-    void calculatePotentialNewNeighbors(); // sampling version
+    void updateRPGraph();
+    void calculatePotentialNewNeighbors();    // optimized version
     void calculatePotentialNewNeighborsOpt(); // parallelized version
-    
+
     void parallelCalculatePotentialNewNeighbors(int start, int end);
     void parallelUpdate(int start, int end, int *updates);
 

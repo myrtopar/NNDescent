@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
 
     DistanceFunction distanceFunction = &calculateEuclideanDistance2;
 
-    calculateSquares(data, N, num_dimensions);  // calculate all square distaces
+    calculateSquares(data, N, num_dimensions); // calculate all square distaces
 
     // knn descent method
     auto start1 = std::chrono::high_resolution_clock::now();
