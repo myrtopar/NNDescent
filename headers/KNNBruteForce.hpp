@@ -6,7 +6,7 @@ private:
     int K;
     int size;
     int dimensions;
-    using DistanceFunction = float (*)(const float *, const float *, int);
+    using DistanceFunction = float (*)(int, int, const float *, const float *, int);
     DistanceFunction distance;
 
 public:

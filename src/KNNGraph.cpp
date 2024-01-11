@@ -38,8 +38,7 @@ void KNNDescent::createRandomGraph()
             float *vertexData = static_cast<float *>(vertexArray[i]->getData());
             float *neighborData = static_cast<float *>(vertexArray[randomNeighborIndex]->getData());
 
-            // float dist = distanceResults[i][randomNeighborIndex];
-            float dist = distance(vertexData, neighborData, dimensions);
+            float dist = distance(i, randomNeighborIndex, vertexData, neighborData, dimensions);
 
             Neighbor *newNeighbor = new Neighbor(randomNeighborIndex, dist);
             vertexArray[i]->addNeighbor(newNeighbor);
@@ -92,7 +91,7 @@ void KNNDescent::createRPGraph()
                 float *d2 = static_cast<float *>(v2->getData());
                 int v2_id = v2->getId();
 
-                float dist = distance(d1, d2, dimensions); // pre-calculated??
+                float dist = distance(j, k, d1, d2, dimensions); // pre-calculated??
 
                 Neighbor *newNeighbor = new Neighbor(v2_id, dist);
                 v1->addNeighbor(newNeighbor);
@@ -119,7 +118,7 @@ void KNNDescent::createRPGraph()
                 float *rd = static_cast<float *>(rv->getData());
                 int rv_id = rv->getId();
 
-                float dist = distance(d1, rd, dimensions); // also pre-calculated?
+                float dist = distance(j, rv_id, d1, rd, dimensions); // also pre-calculated?
 
                 Neighbor *newNeighbor = new Neighbor(rv_id, dist);
                 if (!v1->addNeighbor(newNeighbor))
@@ -176,7 +175,7 @@ void KNNDescent::updateRPGraph()
                 float *d2 = static_cast<float *>(v2->getData());
                 int v2_id = v2->getId();
 
-                float dist = distance(d1, d2, dimensions); // pre-calculated??
+                float dist = calculateEuclideanDistance2(v1_id, v2_id, d1, d2, dimensions);
 
                 Neighbor *furthest = furthest_neighbor(v1->getNeighbors());
                 float furthestDistance = *(furthest->getDistance());
@@ -290,7 +289,8 @@ void KNNDescent::calculatePotentialNewNeighbors()
                     float *data1 = static_cast<float *>(v1->getData());
                     float *data2 = static_cast<float *>(v2->getData());
 
-                    double dist = distanceResults[id1][id2];
+                    // double dist = distanceResults[id1][id2];
+                    float dist = calculateEuclideanDistance2(id1, id2, data1, data2, dimensions);
 
                     Neighbor *furthest = furthest_neighbor(v1->getNeighbors());
                     if (dist < *(furthest->getDistance()))
@@ -376,7 +376,9 @@ void KNNDescent::parallelCalculatePotentialNewNeighbors(int start, int end)
                     float *data1 = static_cast<float *>(v1->getData());
                     float *data2 = static_cast<float *>(v2->getData());
 
-                    float dist = distanceResults[id1][id2];
+                    // float dist = distanceResults[id1][id2];
+                    float dist = calculateEuclideanDistance2(id1, id2, data1, data2, dimensions);
+                    // cout << dist << " ";
 
                     Neighbor *furthest = furthest_neighbor(v1->getNeighbors());
                     if (dist < *(furthest->getDistance()))
@@ -681,38 +683,38 @@ int **KNNDescent::extract_neighbors_to_list()
     return neighbors;
 }
 
-void **KNNDescent::NNSinglePoint(void *data)
-{
-    createKNNGraph();
+// void **KNNDescent::NNSinglePoint(void *data)
+// {
+//     createKNNGraph();
 
-    float *queryData = static_cast<float *>(data);
-    void **nearest_neighbor_data_array;
+//     float *queryData = static_cast<float *>(data);
+//     void **nearest_neighbor_data_array;
 
-    for (int i = 0; i < size; i++)
-    {
-        Vertex *v = vertexArray[i];
-        float *vertexData = static_cast<float *>(v->getData());
+//     for (int i = 0; i < size; i++)
+//     {
+//         Vertex *v = vertexArray[i];
+//         float *vertexData = static_cast<float *>(v->getData());
 
-        float dist = distance(vertexData, queryData, dimensions);
-        if (dist == 0.0) // found the query data point
-        {
-            Set nn = v->getNeighbors();
-            int neighbors_size = set_size(nn);
-            nearest_neighbor_data_array = new void *[neighbors_size];
-            int j = 0;
-            for (SetNode node = set_first(nn); node != SET_EOF; node = set_next(nn, node))
-            {
-                Neighbor *n = (Neighbor *)set_node_value(nn, node);
-                int neighbor_id = *n->getid();
-                nearest_neighbor_data_array[i] = vertexArray[neighbor_id]->getData();
-                j++;
-            }
-            break;
-        }
-    }
+//         float dist = distance(vertexData, queryData, dimensions);
+//         if (dist == 0.0) // found the query data point
+//         {
+//             Set nn = v->getNeighbors();
+//             int neighbors_size = set_size(nn);
+//             nearest_neighbor_data_array = new void *[neighbors_size];
+//             int j = 0;
+//             for (SetNode node = set_first(nn); node != SET_EOF; node = set_next(nn, node))
+//             {
+//                 Neighbor *n = (Neighbor *)set_node_value(nn, node);
+//                 int neighbor_id = *n->getid();
+//                 nearest_neighbor_data_array[i] = vertexArray[neighbor_id]->getData();
+//                 j++;
+//             }
+//             break;
+//         }
+//     }
 
-    return nearest_neighbor_data_array;
-}
+//     return nearest_neighbor_data_array;
+// }
 
 void KNNDescent::printPotential()
 {
