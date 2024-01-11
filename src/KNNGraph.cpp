@@ -102,7 +102,6 @@ void KNNDescent::createRPGraph()
             }
 
             Set nn = v1->getNeighbors();
-            // cout << "filled vertex " << v1_id << " with " << data_count << " cluster neighbors. Average neihbor distance: " << averageNeighborDistance(nn) << endl;
 
             // then fill in the remaining neighbors with random ones from the graph
             while (set_size(nn) < K)
@@ -587,8 +586,6 @@ void KNNDescent::parallelUpdate(int start, int end, int *updated)
         vertexArray[i]->resetPNNSet();
         lock1.unlock();
     }
-
-    cout << "THE END //////////////////////////////////////////////////////////////////////" << start << endl;
 }
 
 int KNNDescent::updateGraph2()
@@ -650,7 +647,6 @@ void KNNDescent::createKNNGraph()
         auto duration1 = std::chrono::duration_cast<std::chrono::microseconds>(stop1 - start1);
         cout << "Time taken: " << duration1.count() << " microseconds\n";
 
-        // cout << "updates: " << updates << endl;
         if (updates == 0)
             break;
     }
