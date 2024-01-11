@@ -30,8 +30,7 @@ void KNNBruteForce::calculateKNNBF() const
             float *vertexData = static_cast<float *>(vertex->getData());
             float *neighborData = static_cast<float *>(nvertex->getData());
 
-            // float dist = distanceResults[i][j];
-            float dist = distance(vertexData, neighborData, dimensions);
+            float dist = distance(i, j, vertexData, neighborData, dimensions);
 
             Neighbor *newNeighbor = new Neighbor(j, dist);
             vertex->addNeighbor(newNeighbor);

@@ -2,18 +2,18 @@
 #include "headers/KNNGraph.hpp"
 #include "headers/KNNBruteForce.hpp"
 
+float *squares;
+
 const char *file_path = "datasets/00000200.bin";
 int N;
 const int num_dimensions = 100;
 float **data;
 int K;
-float p = 0.5;
-
-float **distanceResults;
+float p = 0.4;
 
 bool set_is_proper(Set set);
 
-typedef float (*DistanceFunction)(const float *, const float *, int);
+typedef float (*DistanceFunction)(int, int, const float *, const float *, int);
 
 // Έλεγχος της insert σε λιγότερο χώρο
 void insert_and_test(Set set, Pointer value)
@@ -72,7 +72,8 @@ void start_program()
     }
 
     ifs.close();
-    calculateALLdistances(data, N, num_dimensions);
+    calculateSquares(data, N, num_dimensions);  // calculate all square distaces
+
 }
 
 void end_program(void)
@@ -87,7 +88,7 @@ void test_distances(void)
     int delta = 0.001, K = 10, rp_limit = 10;
     start_program();
 
-    DistanceFunction distanceFunction = &calculateEuclideanDistance;
+    DistanceFunction distanceFunction = &calculateEuclideanDistance2;
     KNNDescent KNNGraph(K, N, p, num_dimensions, data, distanceFunction, delta, rp_limit);
 
     Vertex **array = KNNGraph.vertexArray;
@@ -118,7 +119,7 @@ void test_distances(void)
                 Neighbor *n = (Neighbor *)set_node_value(nn, node);
                 int *id = n->getid();
                 float *dist = n->getDistance();
-                float exactDistance = calculateEuclideanDistance(data[i], data[*id], num_dimensions);
+                float exactDistance = calculateEuclideanDistance2(i, *id, data[i], data[*id], num_dimensions);
                 nodeDistancesNN[i][j] = *dist;
 
                 TEST_ASSERT((exactDistance - *dist) == 0);
@@ -131,7 +132,7 @@ void test_distances(void)
                 Neighbor *n = (Neighbor *)set_node_value(rn, node);
                 int *id = n->getid();
                 float *dist = n->getDistance();
-                float exactDistance = calculateEuclideanDistance(data[i], data[*id], num_dimensions);
+                float exactDistance = calculateEuclideanDistance2(i, *id, data[i], data[*id], num_dimensions);
                 nodeDistancesRN[i][j] = *dist;
 
                 TEST_ASSERT((exactDistance - *dist) == 0);
@@ -144,7 +145,7 @@ void test_distances(void)
                 Neighbor *n = (Neighbor *)set_node_value(pn, node);
                 int *id = n->getid();
                 float *dist = n->getDistance();
-                float exactDistance = calculateEuclideanDistance(data[i], data[*id], num_dimensions);
+                float exactDistance = calculateEuclideanDistance2(i, *id, data[i], data[*id], num_dimensions);
                 nodeDistancesPN[i][j] = *dist;
                 TEST_ASSERT((exactDistance - *dist) == 0);
                 j++;
@@ -175,7 +176,7 @@ void test_potential()
     int delta = 0.001;
     start_program();
 
-    DistanceFunction distanceFunction = &calculateEuclideanDistance;
+    DistanceFunction distanceFunction = &calculateEuclideanDistance2;
     KNNDescent KNNGraph(10, N, p, num_dimensions, data, distanceFunction, delta, 10);
 
     for (int i = 0; i < 10; i++)
@@ -199,7 +200,7 @@ void test_potential_parall()
     int delta = 0.001, K = 10, rp_limit = 10;
     start_program();
 
-    DistanceFunction distanceFunction = &calculateEuclideanDistance;
+    DistanceFunction distanceFunction = &calculateEuclideanDistance2;
     KNNDescent KNNGraph(K, N, p, num_dimensions, data, distanceFunction, delta, rp_limit);
 
     // calculatePotentialNewNeighbors non-parallelized version
@@ -249,7 +250,7 @@ void test_result()
 
     int K = 40;
     double delta = 0.001;
-    DistanceFunction distanceFunction = &calculateEuclideanDistance;
+    DistanceFunction distanceFunction = &calculateEuclideanDistance2;
 
     // knn descent method
     auto start1 = std::chrono::high_resolution_clock::now();
@@ -642,15 +643,15 @@ void test_node_value(void)
     delete[] value_array;
 }
 
-void test_Euclidean()
-{
-    const float point1[] = {3.0, 4.0, 0.0};
-    const float point2[] = {3.0, 0.0, 0.0};
-    int numDimensions = 3;
+// void test_Euclidean()
+// {
+//     const float point1[] = {3.0, 4.0, 0.0};
+//     const float point2[] = {3.0, 0.0, 0.0};
+//     int numDimensions = 3;
 
-    double euclideanDistance = calculateEuclideanDistance(point1, point2, numDimensions);
-    TEST_ASSERT(euclideanDistance == 4);
-}
+//     double euclideanDistance = calculateEuclideanDistance2(point1, point2, numDimensions);
+//     TEST_ASSERT(euclideanDistance == 4);
+// }
 
 void test_Manhattan()
 {
@@ -789,7 +790,7 @@ void test_contains()
     }
 }
 
-void test_distance_results()
+void test_squares()               
 {
     const int N = 10;
     const int num_dimensions = 20;
@@ -804,41 +805,26 @@ void test_distance_results()
         }
     }
 
-    float **distResults;
-    distResults = new float *[N * N];
-    for (int i = 0; i < N; ++i)
-    {
-        distResults[i] = new float[N];
-    }
-
-    for (int i = 0; i < N; i++)
-    {
-        for (int j = 0; j < N; j++)
-        {
-            distResults[i][j] = calculateEuclideanDistance(data[i], data[j], num_dimensions);
-        }
-    }
+    calculateSquares(data, N, num_dimensions);
 
     srand(time(nullptr));
 
     for (int i = 0; i < 20; i++)
     {
         int point1 = rand() % N;
-        int point2 = rand() % N;
+        float storedSquare = squares[point1];
 
-        // bool testResult = testRandomPoints(data, distResults, num_dimensions, point1, point2);
-        float calculatedDistance = calculateEuclideanDistance(data[point1], data[point2], num_dimensions);
-        float storedDistance = distResults[point1][point2];
-        TEST_ASSERT(calculatedDistance == storedDistance);
+        float result = dot_product(data[point1], data[point1], num_dimensions);
+
+        TEST_ASSERT(storedSquare == result);
     }
 
     for (int i = 0; i < N; ++i)
     {
         delete[] data[i];
-        delete[] distResults[i];
     }
     delete[] data;
-    delete[] distResults;
+    delete[] squares;
 }
 
 void test_dot_product()
@@ -973,7 +959,7 @@ float calculate_average_distance(Vertex **data, int numDataPoints)
             float *d1 = static_cast<float *>(v1->getData());
             float *d2 = static_cast<float *>(v2->getData());
 
-            float distance = calculateEuclideanDistance(d1, d2, 3);
+            float distance = calculateEuclideanDistance2(i, j, d1, d2, 3);
             totalDist += distance;
             pairs++;
         }
@@ -986,7 +972,6 @@ float calculate_average_distance(Vertex **data, int numDataPoints)
 
 void test_tree_rec1()
 {
-    // srand(time(nullptr));
     int num = 200;
     float **_data = new float *[num];
     for (int i = 0; i < num; i++)
@@ -1022,19 +1007,10 @@ void test_tree_rec1()
     {
         TEST_ASSERT(leaf_array[i]->numDataPoints <= leaf_size_limit);
         Vertex **varr = leaf_array[i]->get_data();
-        // cout << "leaf " << i << " size: " << leaf_array[i]->numDataPoints << endl;
         for (int j = 0; j < leaf_array[i]->numDataPoints; j++)
         {
             Vertex *v = varr[j];
             count += v->getId();
-            // cout << v->getId() << ", ";
-        }
-
-        if (leaf_array[i]->numDataPoints > 1)
-        {
-            float averageDist = calculate_average_distance(varr, leaf_array[i]->numDataPoints);
-            cout << "Average distance in leaf " << i << ": " << averageDist << endl;
-            // TEST_ASSERT(averageDist < 0.5);
         }
     }
 
@@ -1122,7 +1098,7 @@ void test_tree_rec2()
     {
         TEST_ASSERT(leaf_array[i]->numDataPoints <= leaf_size_limit);
         Vertex **varr = leaf_array[i]->get_data();
-        // cout << "leaf " << i << " size: " << leaf_array[i]->numDataPoints << endl;
+        cout << "leaf " << i << " size: " << leaf_array[i]->numDataPoints << endl;
         for (int j = 0; j < leaf_array[i]->numDataPoints; j++)
         {
             Vertex *v = varr[j];
@@ -1132,8 +1108,8 @@ void test_tree_rec2()
 
         if (leaf_array[i]->numDataPoints > 1)
         {
-            float averageDist = calculate_average_distance(varr, leaf_array[i]->numDataPoints);
-            cout << "Average distance in leaf " << i << ": " << averageDist << endl;
+            // float averageDist = calculate_average_distance(varr, leaf_array[i]->numDataPoints);
+            // cout << "Average distance in leaf " << i << ": " << averageDist << endl;
             // TEST_ASSERT(averageDist < 0.5);
         }
     }
@@ -1160,7 +1136,7 @@ void test_tree_rec2()
 
 void test_RPGraph()
 {
-    DistanceFunction distanceFunction = &calculateEuclideanDistance;
+    DistanceFunction distanceFunction = &calculateEuclideanDistance2;
 
     ifstream ifs;
     const char *file_path1 = "datasets/00000200.bin";
@@ -1203,6 +1179,7 @@ void test_RPGraph()
     int K = 40;
 
     KNNDescent KNNGraph(K, N, 0.4, num_dimensions, _data, distanceFunction, 0.001, rp_limit);
+    calculateSquares(_data, N, num_dimensions);
 
     for (int i = 0; i < N; i++)
     {
@@ -1251,7 +1228,7 @@ void test_RPGraph()
                 float *d2 = static_cast<float *>(v2->getData());
                 int v2_id = v2->getId();
 
-                float dist = distanceFunction(d1, d2, num_dimensions);
+                float dist = distanceFunction(j, k, d1, d2, num_dimensions);
 
                 Neighbor *newNeighbor = new Neighbor(v2_id, dist);
                 v1->addNeighbor(newNeighbor);
@@ -1279,7 +1256,7 @@ void test_RPGraph()
                 float *rd = static_cast<float *>(rv->getData());
                 int rv_id = rv->getId();
 
-                float dist = distanceFunction(d1, rd, num_dimensions);
+                float dist = distanceFunction(v1_id, rv_id, d1, rd, num_dimensions);
 
                 Neighbor *newNeighbor = new Neighbor(rv_id, dist);
                 if (!v1->addNeighbor(newNeighbor))
@@ -1320,6 +1297,7 @@ void test_RPGraph()
 
     delete index;
     delete[] leaf_array;
+    delete[] squares;
 }
 
 void test_random_int()
@@ -1371,7 +1349,7 @@ void test_rp_similarity()
     }
 
     ifs.close();
-    DistanceFunction distanceFunction = &calculateEuclideanDistance;
+    DistanceFunction distanceFunction = &calculateEuclideanDistance2;
     K = 100;
     p = 0.5;
 
@@ -1442,32 +1420,33 @@ void test_rp_similarity()
     delete[] _data;
 }
 
+
+
+
 TEST_LIST = {
-    // {"test_contains", test_contains},
-    // {"test_result", test_result},
-    // {"test_euclidean", test_Euclidean},
-    // {"test_distance_results", test_distance_results},
-    // {"test_manhattan", test_Manhattan},
-    // {"test_compare_ints", test_compare_ints},
-    // {"test_create_int", test_create_int},
-    // {"test_compare_distances", test_compare_distances},
-    // {"test_furthest_closest", test_furthest_closest},
-    // {"test_compare_results", test_compare_results},
-    // {"set_max", set_max},
-    // {"set_create", test_create},
-    // {"set_insert", test_insert},
-    // {"set_remove", test_remove},
-    // {"set_find", test_find},
-    // {"set_iterate", test_iterate},
-    // {"set_node_value", test_node_value},
 
-    // {"test_dot_product", test_dot_product},
-    // {"test_random_hyperplane", test_random_hyperplane},
-    // {"test_random_split", test_random_split},
-    // {"test_tree_rec1", test_tree_rec1},
-    // {"test_tree_rec2", test_tree_rec2},
+    {"test_contains", test_contains},
+    {"test_result", test_result},
+    {"test_squares", test_squares},
+    {"test_manhattan", test_Manhattan},
+    {"test_compare_ints", test_compare_ints},
+    {"test_create_int", test_create_int},
+    {"test_compare_distances", test_compare_distances},
+    {"test_furthest_closest", test_furthest_closest},
+    {"test_compare_results", test_compare_results},
+    {"set_max", set_max},
+    {"set_create", test_create},
+    {"set_insert", test_insert},
+    {"set_remove", test_remove},
+    {"set_find", test_find},
+    {"set_iterate", test_iterate},
+    {"set_node_value", test_node_value},
+
+    {"test_dot_product", test_dot_product},
+    {"test_random_hyperplane", test_random_hyperplane},
+    {"test_random_split", test_random_split},
+    {"test_tree_rec1", test_tree_rec1},
+    {"test_tree_rec2", test_tree_rec2},
     {"test_RPGraph", test_RPGraph},
-    // {"test_random_int", test_random_int},
-    // {"test_rp_similarity", test_rp_similarity},
-
+    {"test_random_int", test_random_int},
     {NULL, NULL}};

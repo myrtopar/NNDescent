@@ -3,11 +3,12 @@
 #include "headers/KNNBruteForce.hpp"
 
 using namespace std;
-float **distanceResults;
+
+float *squares;
 
 int main(int argc, char *argv[])
 {
-    if (argc != 7)
+    if (argc != 6)
     {
         cout << "Error wrong amount of arguments.\n";
         return -1;
@@ -15,10 +16,9 @@ int main(int argc, char *argv[])
 
     int K = atoi(argv[1]);
     float p = stof(argv[2]);
-    int metric = atoi(argv[3]); // to encode
-    char *file_path = argv[4];
-    double delta = stof(argv[5]);
-    int rp_limit = atoi(argv[6]);
+    char *file_path = argv[3];
+    double delta = stof(argv[4]);
+    int rp_limit = atoi(argv[5]);
 
     if (p > 1.0)
     {
@@ -66,20 +66,9 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    DistanceFunction distanceFunction;
-    if (metric == 1)
-        distanceFunction = &calculateEuclideanDistance;
-    else if (metric == 2)
-        distanceFunction = &calculateManhattanDistance;
-    else
-    {
-        cout << "Error. Calculate Distance Function doesn't exist.";
-        return -1;
-    }
+    DistanceFunction distanceFunction = &calculateEuclideanDistance2;
 
-    cout << "dataset size: " << N << endl;
-
-    calculateALLdistances(data, N, num_dimensions);
+    calculateSquares(data, N, num_dimensions);  // calculate all square distaces
 
     // knn descent method
     auto start1 = std::chrono::high_resolution_clock::now();
@@ -96,7 +85,7 @@ int main(int argc, char *argv[])
 
     if ((int)N <= 5000)
     {
-        string pathname = argv[4];
+        string pathname = argv[3];
         string _K = argv[1];
         string numbers = pathname.substr(pathname.find_last_of('/') + 1, 10);
 
