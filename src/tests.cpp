@@ -37,20 +37,16 @@ void shuffle(int **array, int n)
 
 void start_program()
 {
-    cout << "\nReading Data: " << file_path << endl;
-
     ifstream ifs;
     ifs.open(file_path, ios::binary);
     if (!ifs.is_open())
     {
-        cout << "Failed to open the file." << endl;
         TEST_ASSERT(0);
         return;
     }
 
     // Read the number of points (N) and store it in the global variable
     ifs.read((char *)&N, sizeof(int));
-    cout << "# of points: " << N << endl;
 
     const int num_dimensions = 100;
 
@@ -84,11 +80,11 @@ void end_program(void)
 // Tests if the neighbor sets hold the correct distaces
 void test_distances(void)
 {
-    int delta = 0.001, K = 10, rp_limit = 10;
+    int delta = 0.001, K = 10;
     start_program();
 
     DistanceFunction distanceFunction = &calculateEuclideanDistance2;
-    KNNDescent KNNGraph(K, N, p, num_dimensions, data, distanceFunction, delta, rp_limit);
+    KNNDescent KNNGraph(K, N, p, num_dimensions, data, distanceFunction, delta);
 
     Vertex **array = KNNGraph.vertexArray;
 
@@ -176,7 +172,7 @@ void test_potential()
     start_program();
 
     DistanceFunction distanceFunction = &calculateEuclideanDistance2;
-    KNNDescent KNNGraph(10, N, p, num_dimensions, data, distanceFunction, delta, 10);
+    KNNDescent KNNGraph(10, N, p, num_dimensions, data, distanceFunction, delta);
 
     for (int i = 0; i < 10; i++)
     {
@@ -190,55 +186,6 @@ void test_potential()
             TEST_ASSERT((set_size(vertex->getPotentialNeighbors()) == 0));
         }
     }
-
-    end_program();
-}
-
-void test_potential_parall()
-{
-    int delta = 0.001, K = 10, rp_limit = 10;
-    start_program();
-
-    DistanceFunction distanceFunction = &calculateEuclideanDistance2;
-    KNNDescent KNNGraph(K, N, p, num_dimensions, data, distanceFunction, delta, rp_limit);
-
-    // calculatePotentialNewNeighbors non-parallelized version
-    auto startNonParallel = std::chrono::high_resolution_clock::now();
-    for (int i = 0; i < 10; i++)
-    {
-        KNNGraph.calculatePotentialNewNeighbors();
-
-        if (KNNGraph.updateGraph() == 0)
-            break;
-
-        for (int j = 0; j < N; j++)
-        {
-            Vertex *vertex = KNNGraph.vertexArray[j];
-            TEST_ASSERT((set_size(vertex->getPotentialNeighbors()) == 0));
-        }
-    }
-    auto stopNonParallel = std::chrono::high_resolution_clock::now();
-    auto durationNonParallel = std::chrono::duration_cast<std::chrono::microseconds>(stopNonParallel - startNonParallel);
-    std::cout << "Time taken for non-parallel version: " << durationNonParallel.count() << " microseconds\n";
-
-    // calculatePotentialNewNeighbors parallelized version
-    auto startParallel = std::chrono::high_resolution_clock::now();
-    for (int i = 0; i < 10; i++)
-    {
-        KNNGraph.calculatePotentialNewNeighbors();
-
-        if (KNNGraph.updateGraph() == 0)
-            break;
-
-        for (int j = 0; j < N; j++)
-        {
-            Vertex *vertex = KNNGraph.vertexArray[j];
-            TEST_ASSERT((set_size(vertex->getPotentialNeighbors()) == 0));
-        }
-    }
-    auto stopParallel = std::chrono::high_resolution_clock::now();
-    auto durationParallel = std::chrono::duration_cast<std::chrono::microseconds>(stopParallel - startParallel);
-    std::cout << "Time taken for parallel version: " << durationParallel.count() << " microseconds\n";
 
     end_program();
 }
@@ -253,12 +200,11 @@ void test_result()
 
     // knn descent method
     auto start1 = std::chrono::high_resolution_clock::now();
-    KNNDescent KNNGraph(K, N, p, num_dimensions, data, distanceFunction, delta, 10);
+    KNNDescent KNNGraph(K, N, p, num_dimensions, data, distanceFunction, delta);
     KNNGraph.createKNNGraph();
     auto stop1 = std::chrono::high_resolution_clock::now();
 
     auto duration1 = std::chrono::duration_cast<std::chrono::seconds>(stop1 - start1);
-    cout << "KNNDescent: " << duration1.count() << " seconds" << endl;
 
     // brute force method
     auto start2 = std::chrono::high_resolution_clock::now();
@@ -266,7 +212,6 @@ void test_result()
     auto stop2 = std::chrono::high_resolution_clock::now();
 
     auto duration2 = std::chrono::duration_cast<std::chrono::seconds>(stop2 - start2);
-    cout << "Brute Force: " << duration2.count() << " seconds" << endl;
 
     // extract knn descent and brute force method results into a list and compare them, to find similarity percentage
     int **NND = KNNGraph.extract_neighbors_to_list();
@@ -293,8 +238,7 @@ void test_result()
 
     int number_of_edegs = N * K;
     double percent = (((double)number_of_edegs - (double)count) / (double)number_of_edegs) * 100;
-    // cout << "\x1b[32msimilarity percentage: " << percent << "%"
-    //      << "\x1b[0m" << endl;
+
     TEST_ASSERT((percent > 90.0));
 
     for (int i = 0; i < N; i++)
@@ -879,14 +823,12 @@ void test_random_split()
     ifs.open(file_path1, ios::binary);
     if (!ifs.is_open())
     {
-        cout << "Failed to open the file." << endl;
         TEST_ASSERT(0);
         return;
     }
 
     // Read the number of points (N) and store it in the global variable
     ifs.read((char *)&N, sizeof(int));
-    cout << "# of points: " << N << endl;
 
     const int num_dimensions = 100;
 
@@ -997,8 +939,6 @@ void test_tree_rec1()
     TreeNode rp_root = new tree_node(3, vertexArray, num, leaf_size_limit);
     rp_root->rp_tree_rec(index, leaf_array);
 
-    // cout << "index after leaf ineserts: " << *index << endl;
-
     // extra test to prove the correctness of the random projection tree.
 
     int count = 0;
@@ -1043,14 +983,12 @@ void test_tree_rec2()
     ifs.open(file_path1, ios::binary);
     if (!ifs.is_open())
     {
-        cout << "Failed to open the file." << endl;
         TEST_ASSERT(0);
         return;
     }
 
     // Read the number of points (N) and store it in the global variable
     ifs.read((char *)&N, sizeof(int));
-    cout << "# of points: " << N << endl;
 
     const int num_dimensions = 100;
 
@@ -1089,26 +1027,21 @@ void test_tree_rec2()
     TreeNode rp_root = new tree_node(100, vertexArray, N, leaf_size_limit);
     rp_root->rp_tree_rec(index, leaf_array);
 
-    cout << "index after leaf ineserts: " << *index << endl;
-
     // extra test to prove the correctness of the random projection tree.
     int count = 0;
     for (int i = 0; i < *index; i++)
     {
         TEST_ASSERT(leaf_array[i]->numDataPoints <= leaf_size_limit);
         Vertex **varr = leaf_array[i]->get_data();
-        cout << "leaf " << i << " size: " << leaf_array[i]->numDataPoints << endl;
         for (int j = 0; j < leaf_array[i]->numDataPoints; j++)
         {
             Vertex *v = varr[j];
             count += v->getId();
-            // cout << v->getId() << ", ";
         }
 
         if (leaf_array[i]->numDataPoints > 1)
         {
             // float averageDist = calculate_average_distance(varr, leaf_array[i]->numDataPoints);
-            // cout << "Average distance in leaf " << i << ": " << averageDist << endl;
             // TEST_ASSERT(averageDist < 0.5);
         }
     }
@@ -1142,14 +1075,12 @@ void test_RPGraph()
     ifs.open(file_path1, ios::binary);
     if (!ifs.is_open())
     {
-        cout << "Failed to open the file." << endl;
         TEST_ASSERT(0);
         return;
     }
 
     // Read the number of points (N) and store it in the global variable
     ifs.read((char *)&N, sizeof(int));
-    cout << "# of points: " << N << endl;
 
     const int num_dimensions = 100;
 
@@ -1174,10 +1105,9 @@ void test_RPGraph()
 
     ifs.close();
 
-    int rp_limit = 25;
     int K = 40;
 
-    KNNDescent KNNGraph(K, N, 0.4, num_dimensions, _data, distanceFunction, 0.001, rp_limit);
+    KNNDescent KNNGraph(K, N, 0.4, num_dimensions, _data, distanceFunction, 0.001);
     calculateSquares(_data, N, num_dimensions);
 
     for (int i = 0; i < N; i++)
@@ -1185,7 +1115,7 @@ void test_RPGraph()
         KNNGraph.vertexArray[i] = new Vertex(_data[i], i);
     }
 
-    TreeNode rp_root = new tree_node(num_dimensions, KNNGraph.vertexArray, N, rp_limit);
+    TreeNode rp_root = new tree_node(num_dimensions, KNNGraph.vertexArray, N, 35);
 
     int expected_leaves = 0.5 * N;
     TreeNode *leaf_array = new TreeNode[expected_leaves];
@@ -1194,8 +1124,6 @@ void test_RPGraph()
     *index = 0;
 
     rp_root->rp_tree_rec(index, leaf_array);
-
-    // cout << "index after leaf ineserts: " << *index << endl;
 
     int total_count = 0;
     for (int i = 0; i < *index; i++)
@@ -1313,18 +1241,16 @@ void test_rp_similarity()
     srand(time(nullptr));
 
     ifstream ifs;
-    const char *file_path1 = "datasets/00001000-1.bin";
+    const char *file_path1 = "datasets/00005000-1.bin";
     ifs.open(file_path1, ios::binary);
     if (!ifs.is_open())
     {
-        cout << "Failed to open the file." << endl;
         TEST_ASSERT(0);
         return;
     }
 
     // Read the number of points (N) and store it in the global variable
     ifs.read((char *)&N, sizeof(int));
-    cout << "# of points: " << N << endl;
 
     const int num_dimensions = 100;
 
@@ -1352,51 +1278,19 @@ void test_rp_similarity()
     K = 100;
     p = 0.5;
 
-    KNNDescent KNNGraph(100, N, p, num_dimensions, _data, distanceFunction, 0.001, 90);
-    KNNBruteForce BFGraph(100, N, num_dimensions, _data, distanceFunction);
+    calculateSquares(_data, N, num_dimensions);
+    KNNDescent KNNGraph(100, N, p, num_dimensions, _data, distanceFunction, 0.001);
 
     KNNGraph.createRPGraph();
-    int **NND1 = KNNGraph.extract_neighbors_to_list();
 
-    // KNNGraph.updateRPGraph();
-    // int **NND2 = KNNGraph.extract_neighbors_to_list();
-
-    for (int i = 0; i < 7; i++)
+    for (int i = 0; i < N; i++)
     {
-        KNNGraph.updateRPGraph();
+        TEST_ASSERT(set_size(KNNGraph.vertexArray[i]->getNeighbors()) == K);
     }
 
     int **NND3 = KNNGraph.extract_neighbors_to_list();
-
-    int **BF1 = BFGraph.extract_neighbors_to_list();
-    // int **BF2 = BFGraph.extract_neighbors_to_list();
+    KNNBruteForce BFGraph(100, N, num_dimensions, _data, distanceFunction);
     int **BF3 = BFGraph.extract_neighbors_to_list();
-
-    double percentage = compare_results(BF1, NND1, (int)N, K);
-
-    if (percentage > 50.0)
-    {
-        cout << "\x1b[32mrandom projection tree init similarity percentage after one random projection tree: " << percentage << "%"
-             << "\x1b[0m" << endl;
-    }
-    else
-    {
-        cout << "\x1b[31mrandom projection tree init similarity percentage after one random projection tree: " << percentage << "%"
-             << "\x1b[0m" << endl;
-    }
-
-    // double percentage2 = compare_results(BF2, NND2, (int)N, K);
-
-    // if (percentage > 60.0)
-    // {
-    //     cout << "\x1b[32mrandom projection tree init similarity percentage after two random projection trees: " << percentage2 << "%"
-    //          << "\x1b[0m" << endl;
-    // }
-    // else
-    // {
-    //     cout << "\x1b[31mrandom projection tree init similarity percentage after two random projection trees: " << percentage2 << "%"
-    //          << "\x1b[0m" << endl;
-    // }
 
     double percentage3 = compare_results(BF3, NND3, (int)N, K);
 
@@ -1411,7 +1305,10 @@ void test_rp_similarity()
              << "\x1b[0m" << endl;
     }
 
+    TEST_ASSERT(percentage3 > 50.0);
+
     //---------------------------------------------------------------------------------------------------------
+    delete[] squares;
     for (int i = 0; i < N; i++)
     {
         delete[] _data[i];
@@ -1444,5 +1341,5 @@ TEST_LIST = {
     {"test_tree_rec2", test_tree_rec2},
     {"test_RPGraph", test_RPGraph},
     {"test_random_int", test_random_int},
-
+    {"test_rp_similarity", test_rp_similarity},
     {NULL, NULL}};

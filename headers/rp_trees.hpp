@@ -4,6 +4,7 @@
 #include <fstream>
 #include <cstdlib>
 #include <cmath>
+#include <cblas.h>
 #include <string>
 #include <chrono>
 #include <cstring> // For memset

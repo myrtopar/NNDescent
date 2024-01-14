@@ -1,8 +1,8 @@
 CC = gcc
 CXX = g++
 CFLAGS = -Wall
-CXXFLAGS = -std=c++11 -Wall -g -Wno-unused-variable -Wno-reorder -pthread 
-LDFLAGS =
+CXXFLAGS = -std=c++11 -Wall -g -Wno-unused-variable -Wno-reorder -pthread
+CBLASFLAGS = -L. -lcblas -lblas
 
 SRC_DIR = src
 HEADERS_DIR = headers
@@ -20,10 +20,10 @@ INCLUDES = -I.
 all: $(EXECUTABLE)
 
 $(EXECUTABLE): $(SOURCES) $(HEADERS)
-	$(CXX) $(CXXFLAGS) $(INCLUDES) $(SOURCES) -o $@
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $(SOURCES) $(CBLASFLAGS) -o $@ 
 
 $(TEST_EXECUTABLE): $(TEST_SOURCES) $(HEADERS)
-	$(CXX) $(CXXFLAGS) $(INCLUDES) $(TEST_SOURCES) -o $@
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $(TEST_SOURCES) $(CBLASFLAGS) -o $@
 
 run: $(EXECUTABLE)
 	./$(EXECUTABLE) $(ARG)
