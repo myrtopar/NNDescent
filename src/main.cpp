@@ -8,7 +8,7 @@ float *squares;
 
 int main(int argc, char *argv[])
 {
-    if (argc != 6)
+    if (argc != 5)
     {
         cout << "Error wrong amount of arguments.\n";
         return -1;
@@ -18,7 +18,6 @@ int main(int argc, char *argv[])
     float p = stof(argv[2]);
     char *file_path = argv[3];
     double delta = stof(argv[4]);
-    int rp_limit = atoi(argv[5]);
 
     if (p > 1.0)
     {
@@ -72,7 +71,7 @@ int main(int argc, char *argv[])
 
     // knn descent method
     auto start1 = std::chrono::high_resolution_clock::now();
-    KNNDescent KNNGraph(K, N, p, num_dimensions, data, distanceFunction, delta, rp_limit);
+    KNNDescent KNNGraph(K, N, p, num_dimensions, data, distanceFunction, delta);
     KNNGraph.createKNNGraph();
     auto stop1 = std::chrono::high_resolution_clock::now();
     auto duration1 = std::chrono::duration_cast<std::chrono::seconds>(stop1 - start1);

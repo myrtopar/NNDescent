@@ -147,18 +147,6 @@ float averageNeighborDistance(Set s)
     return avg_dist;
 }
 
-float averageSplitDistance(Vertex **array, int num)
-{
-    float total_dist = 0.0;
-    for (int i = 0; i < num; i++)
-    {
-        Vertex *v = array[i];
-    }
-
-    // continue here!!!
-    return 0.0;
-}
-
 // CLASS MEMBER DEFINITIONS
 Vertex::Vertex(void *_data, int _id) : datapoint(_data), id(_id)
 {
@@ -303,10 +291,13 @@ float calculateManhattanDistance(const float *point1, const float *point2, int n
     return sum;
 }
 
-void parallelSquares(float **data, int start, int end, int num_dimensions) {
+void parallelSquares(float **data, int start, int end, int num_dimensions)
+{
     std::unique_lock<std::mutex> lockupdate(squareMutex);
-    for (int i = start; i < end; i++) {  
-        squares[i] = dot_product(data[i], data[i], num_dimensions);
+    for (int i = start; i < end; i++)
+    {
+        // squares[i] = dot_product(data[i], data[i], num_dimensions);
+        squares[i] = cblas_sdot(num_dimensions, data[i], 1, data[i], 1);
     }
 }
 
@@ -325,11 +316,12 @@ void calculateSquares(float **data, int N, int num_dimensions)
     for (int i = 0; i < num_threads; ++i)
     {
         end = start + chunk_size + (i < remaining ? 1 : 0);
-        threads[i] = std::thread(parallelSquares, data, start, end, num_dimensions);        
+        threads[i] = std::thread(parallelSquares, data, start, end, num_dimensions);
         start = end;
     }
 
-    for (int i = 0; i < num_threads; ++i) {
+    for (int i = 0; i < num_threads; ++i)
+    {
         threads[i].join();
     }
 }
@@ -337,7 +329,7 @@ void calculateSquares(float **data, int N, int num_dimensions)
 float calculateEuclideanDistance2(int i, int j, const float *point1, const float *point2, int numDimensions)
 {
     float sum = 0.0;
-    float xy = dot_product(point1, point2, numDimensions);
-    sum = squares[i] + squares[j] - 2*xy;
+    float xy = cblas_sdot(numDimensions, point1, 1, point2, 1);
+    sum = squares[i] + squares[j] - 2 * xy;
     return sum;
 }

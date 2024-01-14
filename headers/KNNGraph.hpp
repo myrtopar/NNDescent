@@ -16,6 +16,7 @@ private:
     float sampling;
     int dimensions;
     int rp_limit;
+    int num_trees;
     using DistanceFunction = float (*)(int, int, const float *, const float *, int);
     DistanceFunction distance;
     double delta;
@@ -27,16 +28,19 @@ private:
 public:
     Vertex **vertexArray;
 
-    KNNDescent(int _K, int _size, float _sampling, int dimensions, float **data, DistanceFunction _distance, double delta, int rp_limit);
+    KNNDescent(int _K, int _size, float _sampling, int dimensions, float **data, DistanceFunction _distance, double delta);
 
     void createRandomGraph();
     void createRPGraph();
     void updateRPGraph();
+    void updateRPGraphOpt();
+
     void calculatePotentialNewNeighbors();    // optimized version
     void calculatePotentialNewNeighborsOpt(); // parallelized version
 
     void parallelCalculatePotentialNewNeighbors(int start, int end);
     void parallelUpdate(int start, int end, int *updates);
+    void parallelUpdateRPGraph(int start, int end);
 
     void printPotential();
     void printNeighbors();
@@ -47,7 +51,7 @@ public:
     void createKNNGraph();
 
     int **extract_neighbors_to_list();
-    void **NNSinglePoint(void *data);
+    // void **NNSinglePoint(void *data);
 
     ~KNNDescent();
 };

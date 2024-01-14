@@ -1,11 +1,19 @@
 #include "headers/KNNGraph.hpp"
 
 ////////////////////////////////// KNNDESCENT //////////////////////////////////
-KNNDescent::KNNDescent(int _K, int _size, float _sampling, int _dimensions, float **_data, DistanceFunction _metricFunction, double _delta, int _rp_limit) : K(_K), size(_size), data(_data), sampling(_sampling), dimensions(_dimensions), distance(_metricFunction), delta(_delta), rp_limit(_rp_limit)
+KNNDescent::KNNDescent(int _K, int _size, float _sampling, int _dimensions, float **_data, DistanceFunction _metricFunction, double _delta) : K(_K), size(_size), data(_data), sampling(_sampling), dimensions(_dimensions), distance(_metricFunction), delta(_delta), num_trees(0)
 {
     cout << "\nConstructing a graph of " << size << " elements, looking for " << K << " nearest neighbors" << endl;
+    rp_limit = 0.8 * K;
     vertexArray = new Vertex *[size];
     potentialNeighborsMutex = new mutex[size];
+    if (size <= 2000)
+        num_trees = 8;
+
+    else if (size > 2000 && size <= 5000)
+        num_trees = 16;
+    else
+        num_trees = 32;
 }
 
 void KNNDescent::createRandomGraph()
@@ -91,7 +99,7 @@ void KNNDescent::createRPGraph()
                 float *d2 = static_cast<float *>(v2->getData());
                 int v2_id = v2->getId();
 
-                float dist = distance(j, k, d1, d2, dimensions); // pre-calculated??
+                float dist = distance(v1_id, v2_id, d1, d2, dimensions);
 
                 Neighbor *newNeighbor = new Neighbor(v2_id, dist);
                 v1->addNeighbor(newNeighbor);
@@ -117,7 +125,7 @@ void KNNDescent::createRPGraph()
                 float *rd = static_cast<float *>(rv->getData());
                 int rv_id = rv->getId();
 
-                float dist = distance(j, rv_id, d1, rd, dimensions); // also pre-calculated?
+                float dist = distance(v1_id, rv_id, d1, rd, dimensions);
 
                 Neighbor *newNeighbor = new Neighbor(rv_id, dist);
                 if (!v1->addNeighbor(newNeighbor))
@@ -130,12 +138,46 @@ void KNNDescent::createRPGraph()
             }
         }
     }
-
     // creating an random projection forest in order to make the graph initialization more accurate
+    updateRPGraphOpt();
 
     rp_root->delete_tree();
     delete index;
     delete[] leaf_array;
+}
+
+void KNNDescent::updateRPGraphOpt()
+{
+    const int num_threads = std::thread::hardware_concurrency();
+    thread threads[num_threads];
+
+    cout << "random projection forest with " << num_trees << " trees\n";
+
+    int chunk_size = num_trees / num_threads;
+    int remaining = num_trees % num_threads;
+    int start = 0;
+    int end = 0;
+
+    for (int i = 0; i < num_threads; ++i)
+    {
+        end = start + chunk_size + (i < remaining ? 1 : 0);
+        threads[i] = thread(&KNNDescent::parallelUpdateRPGraph, this, start, end);
+        start = end;
+    }
+
+    // wait for all threads to finish
+    for (int i = 0; i < num_threads; ++i)
+    {
+        threads[i].join();
+    }
+}
+
+void KNNDescent::parallelUpdateRPGraph(int start, int end)
+{
+    for (int i = start; i < end; i++)
+    {
+        updateRPGraph();
+    }
 }
 
 void KNNDescent::updateRPGraph()
@@ -174,7 +216,10 @@ void KNNDescent::updateRPGraph()
                 float *d2 = static_cast<float *>(v2->getData());
                 int v2_id = v2->getId();
 
-                float dist = calculateEuclideanDistance2(v1_id, v2_id, d1, d2, dimensions);
+                float dist = distance(v1_id, v2_id, d1, d2, dimensions);
+
+                unique_lock<mutex> lockv1(vertexArray[v1_id]->getUpdateMutex(), defer_lock);
+                lockv1.lock();
 
                 Neighbor *furthest = furthest_neighbor(v1->getNeighbors());
                 float furthestDistance = *(furthest->getDistance());
@@ -190,15 +235,27 @@ void KNNDescent::updateRPGraph()
                     {
                         set_remove(v1->getNeighbors(), furthest);
 
+                        unique_lock<mutex> lockv2(vertexArray[v2_id]->getUpdateMutex(), defer_lock);
+                        unique_lock<mutex> lockf(vertexArray[furtherstId]->getUpdateMutex(), defer_lock);
+
+                        while (try_lock(lockv2, lockf) != -1)
+                        {
+                            lockv1.unlock();
+                            lockv1.lock();
+                        }
+
                         // add the new reverse neighbor
                         Neighbor *newReverseNeighbor = new Neighbor(v1_id, dist);
                         v2->addReverseNeighbor(newReverseNeighbor);
+                        lockv2.unlock();
 
                         // restore the reverse neighbors of the vertex
                         Neighbor reverse_to_remove(v1_id, furthestDistance);
                         bool removed = set_remove(vertexArray[furtherstId]->getReverseNeighbors(), &reverse_to_remove);
+                        lockf.unlock();
                     }
                 }
+                lockv1.unlock();
             }
         }
     }
@@ -288,8 +345,7 @@ void KNNDescent::calculatePotentialNewNeighbors()
                     float *data1 = static_cast<float *>(v1->getData());
                     float *data2 = static_cast<float *>(v2->getData());
 
-                    // double dist = distanceResults[id1][id2];
-                    float dist = calculateEuclideanDistance2(id1, id2, data1, data2, dimensions);
+                    float dist = distance(id1, id2, data1, data2, dimensions);
 
                     Neighbor *furthest = furthest_neighbor(v1->getNeighbors());
                     if (dist < *(furthest->getDistance()))
@@ -360,7 +416,7 @@ void KNNDescent::parallelCalculatePotentialNewNeighbors(int start, int end)
                 int id1 = *(n1->getid());
                 int id2 = *(n2->getid());
 
-                lock_guard<std::mutex> lock(potentialNeighborsMutex[id1]);
+                lock_guard<mutex> lock(potentialNeighborsMutex[id1]);
 
                 if (id1 == id2)
                 {
@@ -375,9 +431,7 @@ void KNNDescent::parallelCalculatePotentialNewNeighbors(int start, int end)
                     float *data1 = static_cast<float *>(v1->getData());
                     float *data2 = static_cast<float *>(v2->getData());
 
-                    // float dist = distanceResults[id1][id2];
-                    float dist = calculateEuclideanDistance2(id1, id2, data1, data2, dimensions);
-                    // cout << dist << " ";
+                    float dist = distance(id1, id2, data1, data2, dimensions);
 
                     Neighbor *furthest = furthest_neighbor(v1->getNeighbors());
                     if (dist < *(furthest->getDistance()))
@@ -516,11 +570,11 @@ void KNNDescent::parallelUpdate(int start, int end, int *updated)
 
         Neighbor *closestPotential = closest_neighbor(pn);
         int closestPotentialId = *closestPotential->getid();
-        double closestPotentialDistance = *closestPotential->getDistance();
+        float closestPotentialDistance = *closestPotential->getDistance();
 
         Neighbor *furthestNeighbor = furthest_neighbor(nn);
         int furthestNeighborId = *furthestNeighbor->getid();
-        double furthestNeighborDistance = *furthestNeighbor->getDistance();
+        float furthestNeighborDistance = *furthestNeighbor->getDistance();
 
         // keep updating the neighbors while there is room for update: while there are potential neighbors that are closer to the node than the furthest current neighbor, do the update
         while (closestPotentialDistance < furthestNeighborDistance)
@@ -549,9 +603,8 @@ void KNNDescent::parallelUpdate(int start, int end, int *updated)
                 furthestNeighborId = *furthestNeighbor->getid();
                 continue;
             }
-            // std::unique_lock<std::mutex> lockupdate(updateMutex);
+
             (*updated)++;
-            // lockupdate.unlock();
             set_remove(nn, furthestNeighbor); // removing the furthest one
             set_remove(pn, closestPotential); // updating the potential neighbor set
 
@@ -636,18 +689,17 @@ int KNNDescent::updateGraph2()
 
 void KNNDescent::createKNNGraph()
 {
-    createRandomGraph();
+    createRPGraph();
+    // createRandomGraph();
 
     for (int i = 0; i < 10; i++)
     {
         cout << "\033[1;32miteration " << i << "\033[0m" << endl;
         calculatePotentialNewNeighborsOpt();
-
         auto start1 = std::chrono::high_resolution_clock::now();
         int updates = updateGraph2();
         auto stop1 = std::chrono::high_resolution_clock::now();
         auto duration1 = std::chrono::duration_cast<std::chrono::microseconds>(stop1 - start1);
-        cout << "Time taken: " << duration1.count() << " microseconds\n";
 
         if (updates == 0)
             break;
@@ -678,39 +730,6 @@ int **KNNDescent::extract_neighbors_to_list()
 
     return neighbors;
 }
-
-// void **KNNDescent::NNSinglePoint(void *data)
-// {
-//     createKNNGraph();
-
-//     float *queryData = static_cast<float *>(data);
-//     void **nearest_neighbor_data_array;
-
-//     for (int i = 0; i < size; i++)
-//     {
-//         Vertex *v = vertexArray[i];
-//         float *vertexData = static_cast<float *>(v->getData());
-
-//         float dist = distance(vertexData, queryData, dimensions);
-//         if (dist == 0.0) // found the query data point
-//         {
-//             Set nn = v->getNeighbors();
-//             int neighbors_size = set_size(nn);
-//             nearest_neighbor_data_array = new void *[neighbors_size];
-//             int j = 0;
-//             for (SetNode node = set_first(nn); node != SET_EOF; node = set_next(nn, node))
-//             {
-//                 Neighbor *n = (Neighbor *)set_node_value(nn, node);
-//                 int neighbor_id = *n->getid();
-//                 nearest_neighbor_data_array[i] = vertexArray[neighbor_id]->getData();
-//                 j++;
-//             }
-//             break;
-//         }
-//     }
-
-//     return nearest_neighbor_data_array;
-// }
 
 void KNNDescent::printPotential()
 {
@@ -743,7 +762,7 @@ void KNNDescent::printNeighbors()
         for (SetNode node = set_first(p); node != SET_EOF; node = set_next(p, node))
         {
             Neighbor *n = (Neighbor *)set_node_value(p, node);
-            cout << *n->getid() << /*"(" << n->getFlag() << ", " << *n->getDistance() <<*/ " ";
+            cout << *n->getid() << "(" << *n->getDistance() << " ";
         }
         cout << endl;
     }

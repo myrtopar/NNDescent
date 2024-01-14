@@ -7,7 +7,8 @@ tree_node::tree_node(int _dimensions, Vertex **_data, int N, int _limit) : dimen
     hyperplaneVector = new float[100];
 }
 
-tree_node::~tree_node() {
+tree_node::~tree_node()
+{
     delete[] hyperplaneVector;
 
     if (data != NULL)
@@ -38,7 +39,6 @@ void delete_tree_recursive(TreeNode node)
 
     // Delete the current node
     delete node;
-
 }
 
 void tree_node::set_subtrees(TreeNode sub_left, TreeNode sub_right)
@@ -74,7 +74,7 @@ void tree_node::random_projection_split()
 
     for (int i = 0; i < numDataPoints; ++i)
     {
-        left_sub_data[i] = nullptr;  
+        left_sub_data[i] = nullptr;
         right_sub_data[i] = nullptr;
     }
 
@@ -83,13 +83,14 @@ void tree_node::random_projection_split()
 
     set_subtrees(new_sub_left, new_sub_right);
 
-    double dotp = 0.0;
+    float dotp = 0.0;
 
     for (int i = 0; i < numDataPoints; i++)
     {
         float *vertexData = static_cast<float *>(data[i]->getData());
+        dotp = cblas_sdot(dimensions, vertexData, 1, hyperplaneVector, 1);
 
-        dotp = dot_product(vertexData, hyperplaneVector, dimensions);
+        // dotp = dot_product(vertexData, hyperplaneVector, dimensions);
 
         if (dotp < 0)
         {
@@ -104,13 +105,10 @@ void tree_node::random_projection_split()
             (new_sub_left->numDataPoints <= new_sub_right->numDataPoints) ? new_sub_left->add_data(data[i]) : new_sub_right->add_data(data[i]);
         }
     }
-
-    // cout << "after split: datapoints on left: " << new_sub_left->numDataPoints << " , datapoints on right: " << new_sub_right->numDataPoints << endl;
 }
 
 void tree_node::rp_tree_rec(int *idx, TreeNode *leaf_array)
 {
-    // cout << "number of datapoints in this subtree: " << numDataPoints << endl;
     define_random_hyperplane(hyperplaneVector, dimensions, -0.4, 0.4);
 
     random_projection_split();
