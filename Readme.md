@@ -87,6 +87,6 @@ In the parallelSquares function, a mutex (squareMutex) is used to make sure only
 
 - **HOW TO RUN:**
 
-make run ARG='100 0.5 1 datasets/00002000-1.bin' : Runs the main function for K = 100, SamplingFactor = 0.5, DatasetPath = datasets/00002000-1.bin
+make run ARG='100 0.5 datasets/00001000-1.bin 0.01' : Runs the main function for K = 100, SamplingFactor = 0.5, DatasetPath = datasets/00001000-1.bin, Delta = 0.01
 make test : Runs the tests
 
