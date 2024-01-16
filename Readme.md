@@ -1,10 +1,4 @@
-
-
-## K23α - Ανάπτυξη Λογισμικού Για Πληροφοριακά Συστήματα
-
-### sdi2000067 - Δανάη Καραγεωργοπούλου
-### sdi2000261 - Μυρτώ Παράφορου
-
+**Documentation**
 - **CONCEPT:**
 
 Nearest neighbor search (NSS) is an optimization problem that aims to find the point in a given dataset that is closest to a specific data point, by measuring the distance using a metric function.
