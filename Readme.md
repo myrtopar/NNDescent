@@ -18,7 +18,6 @@ Otherwise, a new potential neighbor is found to be closer so it adds it to the s
 UpdateGraph deletes the farthest neighbor, inserts the needed one and finally updates the reverse neigbors accordingly. This process is being repeated for each vertex, so that we ensure that the whole graph has been updated.
 
 
-
 - **CLASSES:**
 1. KNNDescent:
 KNNDescent class keeps the number of neighbors to be found (K), the size of the dataset (size), the dimensions of the dataset (dimensions) and the distance metric between datapoints (distanceFunction). Lastly, it keeps an array of pointers to Vertex objects, where each Vertex represents a datapoint in the dataset (vertexArray). 
